@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TheMarkkade.io Player Stats</title>
+  <style>
+    body {
+      background: #0b0c10;
+      color: #66fcf1;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #1f2833;
+      width: 100%;
+      padding: 1rem;
+      text-align: center;
+      font-size: 2rem;
+      color: #45a29e;
+    }
+
+    .wallet {
+      width: 95%;
+      max-width: 600px;
+      background: #1f2833;
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin: 1rem auto;
+      box-shadow: 0 0 10px #45a29e;
+    }
+
+    .wallet h2 {
+      margin-top: 0;
+      color: #66fcf1;
+      text-align: center;
+    }
+
+    .wallet p {
+      font-size: 1.2rem;
+      margin: 0.5rem 0;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    @media (max-width: 400px) {
+      .wallet p {
+        font-size: 1rem;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>TheMarkkade.io Player Stats</header>
+
+  <div class="wallet">
+    <h2>Overall Balance</h2>
+    <p><span>Total Cash:</span> <span id="totalCash">$0.00</span></p>
+  </div>
+
+  <div class="wallet">
+    <h2>Markk'd for Fortune</h2>
+    <p><span>Tickets Bought:</span> <span id="ticketsBought">0</span></p>
+    <p><span>Tickets Scratched:</span> <span id="ticketsScratched">0</span></p>
+    <p><span>Tickets Won:</span> <span id="ticketsWon">0</span></p>
+    <p><span>Tickets Lost:</span> <span id="ticketsLost">0</span></p>
+    <p><span>Current Tickets:</span> <span id="currentTickets">0</span></p>
+  </div>
+
+  <script>
+    // Initialize default session data if missing
+    if (!sessionStorage.getItem('playerCash')) {
+      sessionStorage.setItem('playerCash', 100);
+    }
+    if (!sessionStorage.getItem('ticketsBought')) {
+      sessionStorage.setItem('ticketsBought', 0);
+    }
+    if (!sessionStorage.getItem('ticketsScratched')) {
+      sessionStorage.setItem('ticketsScratched', 0);
+    }
+    if (!sessionStorage.getItem('ticketsWon')) {
+      sessionStorage.setItem('ticketsWon', 0);
+    }
+    if (!sessionStorage.getItem('ticketsLost')) {
+      sessionStorage.setItem('ticketsLost', 0);
+    }
+    if (!sessionStorage.getItem('currentTickets')) {
+      sessionStorage.setItem('currentTickets', 0);
+    }
+
+    function updateDisplay() {
+      document.getElementById('totalCash').textContent = `$${parseFloat(sessionStorage.getItem('playerCash')).toFixed(2)}`;
+      document.getElementById('ticketsBought').textContent = sessionStorage.getItem('ticketsBought');
+      document.getElementById('ticketsScratched').textContent = sessionStorage.getItem('ticketsScratched');
+      document.getElementById('ticketsWon').textContent = sessionStorage.getItem('ticketsWon');
+      document.getElementById('ticketsLost').textContent = sessionStorage.getItem('ticketsLost');
+      document.getElementById('currentTickets').textContent = sessionStorage.getItem('currentTickets');
+    }
+
+    updateDisplay();
+  </script>
+
+</body>
+</html>
