@@ -2,112 +2,156 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>TheMarkkade.io Player Stats</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&family=Press+Start+2P&display=swap" rel="stylesheet" />
   <style>
     body {
-      background: #0b0c10;
+      background: #000;
       color: #66fcf1;
-      font-family: Arial, sans-serif;
+      font-family: 'Orbitron', sans-serif;
       margin: 0;
-      padding: 0;
+      padding: 1rem;
       display: flex;
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
+      overflow-x: hidden;
+      overflow-y: auto;
+      box-sizing: border-box;
     }
-
     header {
-      background: #1f2833;
-      width: 100%;
-      padding: 1rem;
+      font-size: clamp(2.5rem, 4vw, 4rem);
+      color: #39ff14;
+      margin-bottom: 2rem;
       text-align: center;
-      font-size: 2rem;
-      color: #45a29e;
+      text-transform: uppercase;
     }
-
-    .wallet {
-      width: 95%;
-      max-width: 600px;
-      background: #1f2833;
-      border-radius: 10px;
-      padding: 1.5rem;
-      margin: 1rem auto;
-      box-shadow: 0 0 10px #45a29e;
+    .stats-container {
+      width: 90%;
+      max-width: 700px;
+      background: rgba(0, 0, 0, 0.45);
+      border: 2px solid #39ff14;
+      border-radius: 15px;
+      padding: 2rem 2.5rem;
+      box-shadow: 0 0 20px #39ff14;
+      margin-bottom: 2rem;
+      box-sizing: border-box;
     }
-
-    .wallet h2 {
-      margin-top: 0;
-      color: #66fcf1;
+    .stats-container h2 {
+      font-size: clamp(1.8rem, 3vw, 2.5rem);
+      margin: 0 0 1rem 0;
+      color: #00ff00;
       text-align: center;
     }
-
-    .wallet p {
-      font-size: 1.2rem;
-      margin: 0.5rem 0;
+    .stats-row {
       display: flex;
       justify-content: space-between;
+      padding: 0.5rem 0;
+      font-size: clamp(1rem, 1.5vw, 1.3rem);
+      color: #66fcf1;
+      border-bottom: 1px solid #39ff14;
     }
-
-    @media (max-width: 400px) {
-      .wallet p {
-        font-size: 1rem;
-        flex-direction: column;
-        align-items: flex-start;
-      }
+    .stats-row:last-child {
+      border-bottom: none;
+    }
+    .bottom-controls {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      z-index: 1000;
+    }
+    #closeBtn {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      padding: 10px 30px;
+      color: #39ff14;
+      background: black;
+      border: 2px solid #39ff14;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 0 15px #39ff14;
+    }
+    #closeBtn:hover {
+      color: black;
+      background: #39ff14;
+    }
+    #backgroundMusic {
+      height: 40px;
+      background: none;
+      width: 220px;
     }
   </style>
 </head>
 <body>
-
   <header>TheMarkkade.io Player Stats</header>
 
-  <div class="wallet">
+  <section class="stats-container">
     <h2>Overall Balance</h2>
-    <p><span>Total Cash:</span> <span id="totalCash">$0.00</span></p>
-  </div>
+    <div class="stats-row"><span>Total Cash:</span> <span id="totalCash">$0.00</span></div>
+  </section>
 
-  <div class="wallet">
+  <section class="stats-container">
     <h2>Markk'd for Fortune</h2>
-    <p><span>Tickets Bought:</span> <span id="ticketsBought">0</span></p>
-    <p><span>Tickets Scratched:</span> <span id="ticketsScratched">0</span></p>
-    <p><span>Tickets Won:</span> <span id="ticketsWon">0</span></p>
-    <p><span>Tickets Lost:</span> <span id="ticketsLost">0</span></p>
-    <p><span>Current Tickets:</span> <span id="currentTickets">0</span></p>
+    <div class="stats-row"><span>Tickets Bought:</span> <span id="ticketsBought">0</span></div>
+    <div class="stats-row"><span>Tickets Scratched:</span> <span id="ticketsScratched">0</span></div>
+    <div class="stats-row"><span>Tickets Won:</span> <span id="ticketsWon">0</span></div>
+    <div class="stats-row"><span>Tickets Lost:</span> <span id="ticketsLost">0</span></div>
+    <div class="stats-row"><span>Current Tickets:</span> <span id="currentTickets">0</span></div>
+  </section>
+
+  <section class="stats-container">
+    <h2>Markk'dBills Slot Machine</h2>
+    <div class="stats-row"><span>Spins Played:</span> <span id="billsSpins">0</span></div>
+    <div class="stats-row"><span>Total Won:</span> <span id="billsWon">$0.00</span></div>
+    <div class="stats-row"><span>Total Lost:</span> <span id="billsLost">$0.00</span></div>
+    <div class="stats-row"><span>Free Spins Earned:</span> <span id="freeSpinsEarned">0</span></div>
+  </section>
+
+  <div class="bottom-controls">
+    <audio id="backgroundMusic" controls autoplay loop>
+      <source src="Content/Music/NFLThemeSongs(NBC,CBS,FOX,ABC,ESPN).mp3" type="audio/mpeg" />
+    </audio>
+    <button id="closeBtn">Close</button>
   </div>
 
   <script>
-    // Initialize default session data if missing
-    if (!sessionStorage.getItem('playerCash')) {
-      sessionStorage.setItem('playerCash', 100);
-    }
-    if (!sessionStorage.getItem('ticketsBought')) {
-      sessionStorage.setItem('ticketsBought', 0);
-    }
-    if (!sessionStorage.getItem('ticketsScratched')) {
-      sessionStorage.setItem('ticketsScratched', 0);
-    }
-    if (!sessionStorage.getItem('ticketsWon')) {
-      sessionStorage.setItem('ticketsWon', 0);
-    }
-    if (!sessionStorage.getItem('ticketsLost')) {
-      sessionStorage.setItem('ticketsLost', 0);
-    }
-    if (!sessionStorage.getItem('currentTickets')) {
-      sessionStorage.setItem('currentTickets', 0);
-    }
+    if (!localStorage.getItem('playerCash')) localStorage.setItem('playerCash', 100);
+    if (!localStorage.getItem('ticketsBought')) localStorage.setItem('ticketsBought', 0);
+    if (!localStorage.getItem('ticketsScratched')) localStorage.setItem('ticketsScratched', 0);
+    if (!localStorage.getItem('ticketsWon')) localStorage.setItem('ticketsWon', 0);
+    if (!localStorage.getItem('ticketsLost')) localStorage.setItem('ticketsLost', 0);
+    if (!localStorage.getItem('currentTickets')) localStorage.setItem('currentTickets', 0);
+    if (!localStorage.getItem('billsSpins')) localStorage.setItem('billsSpins', 0);
+    if (!localStorage.getItem('billsWon')) localStorage.setItem('billsWon', 0);
+    if (!localStorage.getItem('billsLost')) localStorage.setItem('billsLost', 0);
+    if (!localStorage.getItem('freeSpinsEarned')) localStorage.setItem('freeSpinsEarned', 0);
 
     function updateDisplay() {
-      document.getElementById('totalCash').textContent = `$${parseFloat(sessionStorage.getItem('playerCash')).toFixed(2)}`;
-      document.getElementById('ticketsBought').textContent = sessionStorage.getItem('ticketsBought');
-      document.getElementById('ticketsScratched').textContent = sessionStorage.getItem('ticketsScratched');
-      document.getElementById('ticketsWon').textContent = sessionStorage.getItem('ticketsWon');
-      document.getElementById('ticketsLost').textContent = sessionStorage.getItem('ticketsLost');
-      document.getElementById('currentTickets').textContent = sessionStorage.getItem('currentTickets');
+      document.getElementById('totalCash').textContent = `$${parseFloat(localStorage.getItem('playerCash')).toFixed(2)}`;
+      document.getElementById('ticketsBought').textContent = localStorage.getItem('ticketsBought');
+      document.getElementById('ticketsScratched').textContent = localStorage.getItem('ticketsScratched');
+      document.getElementById('ticketsWon').textContent = localStorage.getItem('ticketsWon');
+      document.getElementById('ticketsLost').textContent = localStorage.getItem('ticketsLost');
+      document.getElementById('currentTickets').textContent = localStorage.getItem('currentTickets');
+      document.getElementById('billsSpins').textContent = localStorage.getItem('billsSpins') || 0;
+      document.getElementById('billsWon').textContent = `$${parseFloat(localStorage.getItem('billsWon') || 0).toFixed(2)}`;
+      document.getElementById('billsLost').textContent = `$${parseFloat(localStorage.getItem('billsLost') || 0).toFixed(2)}`;
+      document.getElementById('freeSpinsEarned').textContent = localStorage.getItem('freeSpinsEarned') || 0;
     }
 
     updateDisplay();
-  </script>
 
+    document.getElementById('closeBtn').addEventListener('click', () => {
+      const audio = document.getElementById('backgroundMusic');
+      audio.pause();
+      audio.currentTime = 0;
+      window.location.href = 'index.html';
+    });
+  </script>
 </body>
 </html>

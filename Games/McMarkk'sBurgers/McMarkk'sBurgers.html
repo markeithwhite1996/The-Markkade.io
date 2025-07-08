@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>McMarkk's Burgers</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Press Start 2P', cursive;
+      height: 100%;
+      background: linear-gradient(-45deg, #ffcc00, #ffee00, #ff6600, #cc0000, #ffdd00);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+      overflow-x: hidden;
+      position: relative;
+      min-height: 100vh;
+    }
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    h1 {
+      text-align: center;
+      font-size: clamp(1.5rem, 5vw, 2.5rem);
+      color: white;
+      text-shadow: 3px 3px 0 #000;
+      margin-top: 20px;
+      padding: 0 10px;
+      user-select: none;
+      position: relative;
+      z-index: 10;
+    }
+    #machine {
+      max-width: 400px;
+      margin: 20px auto 20px auto; /* spacing below machine */
+      background: #fff3cd;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 0 20px 5px #ffcc00, inset 0 0 15px #cc3300;
+      animation: glowMachine 2s infinite alternate;
+      text-align: center;
+      position: relative;
+      color: black;
+      user-select: none;
+      z-index: 10;
+    }
+    @keyframes glowMachine {
+      0% { box-shadow: 0 0 15px 5px #ffcc00, inset 0 0 10px #cc4400; }
+      100% { box-shadow: 0 0 25px 10px #ff9900, inset 0 0 20px #cc3300; }
+    }
+    .reel {
+      display: inline-block;
+      font-size: 3rem;
+      width: 90px;
+      height: 90px;
+      margin: 10px 5px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: inset 0 0 8px #999;
+      line-height: 90px;
+      vertical-align: middle;
+      text-align: center;
+      user-select: none;
+    }
+    .reel.win {
+      background: gold;
+      box-shadow: 0 0 30px 10px #ff6600;
+      animation: reelWinPulse 1s infinite alternate;
+    }
+    @keyframes reelWinPulse {
+      0% { box-shadow: 0 0 30px 10px #ff6600; }
+      100% { box-shadow: 0 0 40px 14px #ffaa00; }
+    }
+    /* Spin button style matching slots with inner grey shadow */
+    #spinBtn {
+      font-family: 'Press Start 2P', cursive;
+      background: white;
+      color: #ff6600;
+      font-weight: bold;
+      border: none;
+      border-radius: 15px;
+      padding: 15px 40px;
+      margin: 15px auto;
+      cursor: pointer;
+      display: block;
+      transition: 0.3s;
+      user-select: none;
+      box-shadow:
+        inset 0 0 8px #999,
+        0 0 12px #ff9900;
+    }
+    #spinBtn:hover:not(:disabled) {
+      box-shadow:
+        inset 0 0 8px #999,
+        0 0 25px #ffaa00;
+      transform: scale(1.05);
+    }
+    #spinBtn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    #message, #balance {
+      font-size: 0.9rem;
+      color: black;
+      user-select: none;
+      margin: 8px 0;
+      position: relative;
+      z-index: 10;
+    }
+    #paytableBox {
+      max-width: 400px;
+      margin: 20px auto 20px auto; /* spacing below paytable same as game */
+      background: #fff3cd;
+      color: black;
+      padding: 20px 25px 15px 20px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      box-shadow: 0 0 20px 5px #ffcc00, inset 0 0 15px #cc3300;
+      animation: glowMachine 2s infinite alternate;
+      text-align: center;
+      user-select: none;
+      position: relative;
+      z-index: 10;
+    }
+    #paytableBox strong {
+      display: block;
+      margin-bottom: 12px;
+      font-size: 1.1rem;
+      text-align: center;
+    }
+    #paytableBox .paytable-content {
+      text-align: left;
+      max-width: 300px;
+      margin: 0 auto;
+      font-family: monospace, monospace;
+      line-height: 1.5;
+    }
+    /* Exit button style matching paytable and machine */
+    #exitBtn {
+      margin: 0 auto 20px auto; /* same bottom margin as paytable */
+      display: block;
+      background: #fff3cd;
+      color: black;
+      border: none;
+      padding: 14px 30px;
+      font-family: 'Press Start 2P', cursive;
+      font-weight: bold;
+      border-radius: 20px;
+      cursor: pointer;
+      box-shadow:
+        0 0 20px 5px #ffcc00,
+        inset 0 0 15px #cc3300;
+      transition: 0.4s;
+      user-select: none;
+      min-width: 120px;
+      text-align: center;
+      position: relative;
+      z-index: 10;
+    }
+    /* Wiggle animation for exit button hover */
+    @keyframes wiggle {
+      0%, 100% { transform: rotate(0deg); }
+      15% { transform: rotate(10deg); }
+      30% { transform: rotate(-10deg); }
+      45% { transform: rotate(6deg); }
+      60% { transform: rotate(-6deg); }
+      75% { transform: rotate(3deg); }
+      90% { transform: rotate(-3deg); }
+    }
+    #exitBtn:hover {
+      animation: wiggle 0.5s ease-in-out;
+      box-shadow:
+        0 0 25px 8px #ffdd33,
+        inset 0 0 20px #cc4400;
+      transform: none;
+    }
+    /* Floating emoji particles background */
+    #particles {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 0; /* behind everything */
+      overflow: hidden;
+    }
+    .emoji {
+      position: absolute;
+      font-size: 1.5rem;
+      animation: float 10s linear infinite;
+      opacity: 0.6;
+      user-select: none;
+      will-change: transform, opacity;
+    }
+    @keyframes float {
+      0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+      50% { opacity: 1; }
+      100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div id="particles"></div>
+  <h1>McMarkk's Burgers</h1>
+  <div style="display: flex; justify-content: center;">
+    <div id="balance">Balance: $1000</div>
+  </div>
+
+  <div id="machine">
+    <div class="reel" id="reel1">🍔</div>
+    <div class="reel" id="reel2">🍟</div>
+    <div class="reel" id="reel3">🥤</div>
+	    <div id="message">Press spin to begin!</div>
+
+    <button id="spinBtn">SPIN 🎰</button>
+  </div>
+
+  <div id="paytableBox" aria-label="Pay Table">
+    <strong>Pay Table:</strong>
+    <div class="paytable-content">
+      🍔🍟🥤 = Combo Meal Special +$500<br>
+      🥗🥗🥗 = -$100<br>
+      🥗🥗 = -$50<br>
+      🍔🍔🍔 = +$100<br>
+      🍔🍔 = +$50<br>
+      🍟🍟🍟 = +$50<br>
+      🍟🍟 = +$25<br>
+      🥤🥤🥤 = +$15<br>
+      🥤🥤 = +$5<br>
+    </div>
+  </div>
+
+  <button id="exitBtn">Exit</button>
+
+  <script>
+    const symbols = ["🍔", "🍟", "🥤", "🥗", "🧾"];
+    let balance = Number(localStorage.getItem('playerCash')) || 1000;
+    const reels = [
+      document.getElementById("reel1"),
+      document.getElementById("reel2"),
+      document.getElementById("reel3")
+    ];
+    const balanceDisplay = document.getElementById("balance");
+    const messageDisplay = document.getElementById("message");
+    const exitBtn = document.getElementById("exitBtn");
+    const spinBtn = document.getElementById("spinBtn");
+    balanceDisplay.textContent = `Balance: $${balance}`;
+
+    exitBtn.addEventListener('click', () => {
+      window.location.href = '../../index.html';
+    });
+
+    spinBtn.addEventListener("click", () => {
+      if (balance < 50) {
+        messageDisplay.textContent = "❌ Not enough balance! ($50 needed)";
+        return;
+      }
+      balance -= 50;
+      localStorage.setItem('playerCash', balance);
+      balanceDisplay.textContent = `Balance: $${balance}`;
+      spinBtn.disabled = true;
+      messageDisplay.textContent = "Spinning...";
+      spinReels();
+    });
+
+    function spinReels() {
+      const duration = 2500 + Math.random() * 2500;
+      const interval = 60;
+      let elapsed = 0;
+      const spinInterval = setInterval(() => {
+        reels.forEach(reel => reel.textContent = getRandomSymbol());
+        elapsed += interval;
+        if (elapsed >= duration) {
+          clearInterval(spinInterval);
+          finishSpin(reels.map(r => r.textContent));
+          spinBtn.disabled = false;
+        }
+      }, interval);
+    }
+
+    function getRandomSymbol() {
+      return symbols[Math.floor(Math.random() * symbols.length)];
+    }
+
+    function finishSpin(result) {
+      reels.forEach(r => r.classList.remove('win'));
+      let payout = 0;
+      const combo = result.join('');
+      if (combo === '🍔🍟🥤') {
+        payout = 500;
+        reels.forEach(r => r.classList.add('win'));
+        messageDisplay.textContent = '🍔🍟🥤 Combo Meal! +$500';
+      } else {
+        const counts = {};
+        result.forEach((s, i) => {
+          counts[s] = counts[s] ? [...counts[s], i] : [i];
+        });
+        for (let symbol in counts) {
+          const len = counts[symbol].length;
+          if (len === 3 && counts[symbol].every((v, i, arr) => v === arr[0] + i)) {
+            payout += symbol === '🥗' ? -100 : symbol === '🍔' ? 100 : symbol === '🍟' ? 50 : symbol === '🥤' ? 15 : 0;
+            counts[symbol].forEach(i => reels[i].classList.add('win'));
+          } else if (len === 2 && counts[symbol][1] - counts[symbol][0] === 1) {
+            payout += symbol === '🥗' ? -50 : symbol === '🍔' ? 50 : symbol === '🍟' ? 25 : symbol === '🥤' ? 5 : 0;
+            counts[symbol].forEach(i => reels[i].classList.add('win'));
+          }
+        }
+        if (payout === 0) {
+          messageDisplay.textContent = '🧾 No win. Try again!';
+        } else if (payout > 0) {
+          messageDisplay.textContent = `💰 You won $${payout}!`;
+        } else {
+          messageDisplay.textContent = `💸 You lost $${-payout}!`;
+        }
+      }
+      balance += payout;
+      balanceDisplay.textContent = `Balance: $${balance}`;
+      localStorage.setItem('playerCash', balance);
+    }
+
+    // Floating emojis background
+    function spawnEmojis() {
+      const container = document.getElementById('particles');
+      const emojis = ["🍔", "🍟", "🥤", "🥗"];
+      for (let i = 0; i < 40; i++) {
+        const span = document.createElement('span');
+        span.classList.add('emoji');
+        span.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        span.style.left = Math.random() * 100 + 'vw';
+        span.style.top = Math.random() * 100 + 'vh';
+        span.style.animationDelay = Math.random() * 10 + 's';
+        span.style.fontSize = (12 + Math.random() * 18) + 'px';
+        container.appendChild(span);
+      }
+    }
+    spawnEmojis();
+  </script>
+</body>
+</html>

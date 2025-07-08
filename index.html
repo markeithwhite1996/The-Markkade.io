@@ -283,8 +283,57 @@
 
 
 <script>
-  document.getElementById('indexBalance').textContent = `$${sessionStorage.getItem('playerCash')}`;
+  document.getElementById('indexBalance').textContent = `$${localStorage.getItem('playerCash')}`;
 </script>
+
+
+<div id="scrollNotice" style="
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 0.9em;
+  color: #66fcf1;
+  background: rgba(0,0,0,0.5);
+  padding: 5px 0;
+  font-family: 'Orbitron', sans-serif;
+  border-radius: 5px;
+  margin: 5px 0;
+">
+  <span id="noticeText" style="display: inline-block; padding-left: 100%;"></span>
+</div>
+
+
+  <h2 class="category-title">🎰 Slot Machines</h2>
+  <div class="game-grid">
+    <div class="game-card style-c">
+      <h3>Markk'd Bills</h3>
+      <p>Tap fast before it fades!</p>
+	        <button class="launch-btn" onclick="location.href='Games/Markk\'dBills/Markk\'dBills.html'">Launch</button>  
+  
+      </div>
+    <div class="game-card style-d">
+      <h3>Markk's 10x Fruit Freezy</h3>
+      <p>Time your spins to land the perfect score.</p>
+	        <button class="launch-btn" onclick="location.href='Games/Markk\'s10xFruitFreezy/Markk\'s10xFruitFreezy.html'">Launch</button>  
+    </div>
+  </div>
+  
+      </div>
+    <div class="game-card style-d">
+      <h3>Markk's Burgers</h3>
+      <p>Time your spins to land the perfect score.</p>
+	        <button class="launch-btn" onclick="location.href='Games/McMarkk\'sBurgers/McMarkk\'sBurgers.html'">Launch</button>  
+    </div>
+  </div>
+  
+      </div>
+    <div class="game-card style-d">
+      <h3>Markk's Burgers 2</h3>
+      <p>Time your spins to land the perfect score.</p>
+	        <button class="launch-btn" onclick="location.href='Games/McMarkk\'sBurgers/McMarkk\'sBurgers2.html'">Launch</button>  
+    </div>
+  </div>
+
 
   <h2 class="category-title">🎟️ Scratch-Off Tickets</h2>
   <div class="game-grid">
@@ -295,25 +344,61 @@
 
     </div>
     <div class="game-card style-b">
-      <h3>Hotbox Quiz</h3>
-      <p>Can you outwit the haze?</p>
-      <button class="launch-btn" onclick="location.href='/Games/Game2.html'">Launch</button>
-    </div>
+     <h3>Markk'sEmotions</h3>
+      <p>Scratch Your Fate and Get Markk’d.</p>
+      <button class="launch-btn" onclick="location.href='Games/Markk\'sEmotions/Markk\'sEmotions.html'">Launch</button>
+</div>
   </div>
 
-  <h2 class="category-title">🎰 Slot Machines</h2>
-  <div class="game-grid">
-    <div class="game-card style-c">
-      <h3>Reaction Hits</h3>
-      <p>Tap fast before it fades!</p>
-      <button class="launch-btn" onclick="location.href='/Games/Game3.html'">Launch</button>
-    </div>
-    <div class="game-card style-d">
-      <h3>Spin Rush</h3>
-      <p>Time your spins to land the perfect score.</p>
-      <button class="launch-btn" onclick="location.href='/Games/Game4.html'">Launch</button>
-    </div>
+
+<h2 class="category-title">🎓 Trivia Challenges</h2>
+<div class="game-grid">
+  <div class="game-card style-a">
+    <h3>Markk'sMobile</h3>
+    <p>Can You Unlock His Screen?!</p>
+    <button class="launch-btn" onclick="location.href='Games/Markk\'sMobile/Markk\'sMobile.html'">Launch</button>
   </div>
+</div>
+
+<h2 class="category-title">🧠 Brain Games</h2>
+<div class="game-grid">
+  <div class="game-card style-e">
+    <h3>This+That</h3>
+    <p>Make words wih Emojis</p>
+    <button class="launch-btn" onclick="location.href='Games/This+That/This+That.html'">Launch</button>
+</div>
+    </div>
+    <div class="game-card style-b">
+    <h3>Tic Tac Toe</h3>
+    <p>Make words wih Emojis</p>
+    <button class="launch-btn" onclick="location.href='Games/TicTacToe/TicTacToe.html'">Launch</button>
+  </div>
+</div>
+    </div>
+    <div class="game-card style-b">
+	    <h3>Hang Man</h3>
+    <p>Wavey Wiggly Colorful Brain Teaser</p>
+    <button class="launch-btn" onclick="location.href='Games/HangMan/HangMan.html'">Launch</button>
+  </div>
+</div>
+    </div>
+    <div class="game-card style-b">
+	    <h3>Markk'sRiddleMeThis</h3>
+    <p>Wavey Wiggly Colorful Brain Teaser</p>
+    <button class="launch-btn" onclick="location.href='Games/RiddleMeThis/RiddleMeThis.html'">Launch</button>
+  </div>
+</div>
+
+<h2 class="category-title">🧰 Jobs</h2>
+<p class="category-description">Work to Play</p>
+<div class="game-grid">
+  <div class="game-card style-e">
+    <h3>Food-O-Mania</h3>
+    <p>Serve fast, earn faster</p>
+    <button class="launch-btn" onclick="location.href='Games/Food-O-Mania/Food-O-Mania.html'">Launch</button>
+  </div>
+</div>
+
 
   <h2 class="category-title">🎉 Party Games</h2>
   <div class="game-grid">
@@ -343,19 +428,56 @@
     }
 
     // Init session cash
-    if (!sessionStorage.getItem('playerCash')) {
-      sessionStorage.setItem('playerCash', 100);
+    if (!localStorage.getItem('playerCash')) {
+      localStorage.setItem('playerCash', 100);
     }
   </script>
 <script>
-  // Set default balance if not already set
-  if (!sessionStorage.getItem('playerCash')) {
-    sessionStorage.setItem('playerCash', 100);
+  // Set defaults if not present
+  if (!localStorage.getItem('playerCash')) {
+    localStorage.setItem('playerCash', 100);
   }
-  if (!sessionStorage.getItem('currentTickets')) {
-    sessionStorage.setItem('currentTickets', 0);
+  if (!localStorage.getItem('currentTickets')) {
+    localStorage.setItem('currentTickets', 0);
   }
+
+  // Update balance display
+  document.getElementById('indexBalance').textContent = `$${localStorage.getItem('playerCash')}`;
 </script>
+
+
+<script>
+  const messages = [
+    "Progress is saved locally. Clearing browser data or switching devices will reset your progress.",
+    "Welcome to TheMarkkade.io — scratch, spin, and win!",
+    "Check Player Stats for your balance and ticket history!",
+    "Tip: You can clear data by clearing browser cache!"
+  ];
+
+  let currentMessageIndex = 0;
+  const noticeText = document.getElementById('noticeText');
+
+  function setNotice(message) {
+    noticeText.textContent = message;
+    noticeText.style.transition = 'none';
+    noticeText.style.transform = `translateX(100%)`;
+    
+    // Force reflow to reset animation
+    void noticeText.offsetWidth;
+
+    noticeText.style.transition = 'transform 15s linear';
+    noticeText.style.transform = 'translateX(-100%)';
+  }
+
+  function cycleMessages() {
+    setNotice(messages[currentMessageIndex]);
+    currentMessageIndex = (currentMessageIndex + 1) % messages.length;
+    setTimeout(cycleMessages, 1600000);
+  }
+
+  cycleMessages();
+</script>
+
 
 </body>
 </html>

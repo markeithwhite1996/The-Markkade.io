@@ -36,21 +36,9 @@
       margin: auto;
       position: relative;
     }
-    #your-numbers,
-    #scratch-grid {
-      transition: opacity 0.3s ease;
-    }
     .disabled-grid {
       opacity: 0.3;
       pointer-events: none;
-    }
-    #your-numbers {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      justify-content: center;
-      max-width: 270px;
-      margin: 0 auto;
     }
     .card-section {
       display: grid;
@@ -59,7 +47,9 @@
       justify-items: center;
       width: 100%;
       max-width: 500px;
+	
     }
+	
     .scratch-slot {
       position: relative;
       width: 80px;
@@ -81,6 +71,10 @@
       text-align: center;
       z-index: 1;
       user-select: none;
+    }
+    .grayed {
+      color: #999 !important;
+      background: #ccc !important;
     }
     canvas {
       position: absolute;
@@ -107,6 +101,7 @@
       border: none;
       border-radius: 10px;
       cursor: pointer;
+      user-select: none;
     }
     button:hover:not(:disabled) {
       background: linear-gradient(145deg, #f0c93b, #a6760f);
@@ -164,12 +159,20 @@
       color: #ffd700;
       user-select: none;
     }
+	#your-numbers {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  justify-content: center;  /* This centers the grid horizontally */
+  max-width: 270px;
+  margin: 0 auto;
+}
   </style>
 </head>
 <body>
   <h1>🎰 Markk’d for Fortune 🎰</h1>
   <div id="popup"></div>
-  <div id="status">Balance: $0 | Tickets: 0</div>
+  <div id="status">Balance: $0.00 | Tickets: 0</div>
   <div id="game">
     <div>
       <h2>🎯 Your Winning Numbers</h2>
@@ -182,11 +185,11 @@
   </div>
   <div id="result"></div>
   <button id="buy-ticket-btn">Buy Ticket ($5)</button>
+  <button id="play-ticket-btn">Use Ticket to Play</button>
   <button id="free-ticket-btn">🎟️ Free Ticket</button>
   <br />
-<a href="../../index.html" style="color: #ffd700; user-select: none;">🏠 Back to Arcade</a>
   <div id="paytable">
-    <div id="paytable-balance">Balance: $0 | Tickets: 0</div>
+    <div id="paytable-balance">Balance: $0.00 | Tickets: 0</div>
     <h2>Pay Table</h2>
     <ul>
       <li>🎯 Match 1 Number = $1 (Paid games only)</li>
@@ -199,162 +202,212 @@
       <li>🎟️ Free Ticket = Free Ticket Win (Both games)</li>
     </ul>
   </div>
-
+<div style="text-align: center;">
+  <a href="../../index.html" style="color: #ffd700; user-select: none;">🏠 Back to Arcade</a>
+</div>
 <script>
-let balance = parseFloat(sessionStorage.getItem('playerCash')) || 100;
-let tickets = parseInt(sessionStorage.getItem('currentTickets')) || 0;
+(() => {
+  // Initialize balance and tickets from localStorage or defaults
+  let balance = parseFloat(localStorage.getItem('playerCash')) || 100;
+  let tickets = parseInt(localStorage.getItem('currentTickets')) || 0;
 
-let freeTicketActive = false;
-let gameStarted = false;
-let playerNumbers = [];
-let scratchNumbers = [];
-let matches = 0;
-let bonus = null;
-let countdownInterval = null;
+  let gameStarted = false;
+  let freeTicketMode = false; // true if playing free ticket scratch
+  let playerNumbers = [];
+  let scratchNumbers = [];
+  let matches = 0;
+  let bonus = null;
+  let countdownInterval = null;
+  
+  let ticketsBought = parseInt(localStorage.getItem('ticketsBought')) || 0;
+let ticketsScratched = parseInt(localStorage.getItem('ticketsScratched')) || 0;
+let ticketsWon = parseInt(localStorage.getItem('ticketsWon')) || 0;
+let ticketsLost = parseInt(localStorage.getItem('ticketsLost')) || 0;
 
-const bonuses = ["2x", "5x", "10x", "100x", "Free Ticket"];
 
-const statusEl = document.getElementById('status');
-const balanceDisplay = document.getElementById('paytable-balance');
-const resultDiv = document.getElementById('result');
-const popup = document.getElementById('popup');
-const buyBtn = document.getElementById('buy-ticket-btn');
-const freeBtn = document.getElementById('free-ticket-btn');
+  const bonuses = ["2x", "5x", "10x", "100x", "Free Ticket"];
 
-function updateDisplay(countdownSeconds = null) {
-  sessionStorage.setItem('playerCash', balance);
-  sessionStorage.setItem('currentTickets', tickets);
+  const statusEl = document.getElementById('status');
+  const balanceDisplay = document.getElementById('paytable-balance');
+  const resultDiv = document.getElementById('result');
+  const popup = document.getElementById('popup');
 
-  let statusText = `Balance: $${balance} | Tickets: ${tickets}`;
-  if (countdownSeconds !== null) {
-    statusText += ` | Ripping Ticket...`;
+  const buyBtn = document.getElementById('buy-ticket-btn');
+  const playBtn = document.getElementById('play-ticket-btn');
+  const freeBtn = document.getElementById('free-ticket-btn');
+
+  function saveData() {
+    localStorage.setItem('playerCash', balance);
+    localStorage.setItem('currentTickets', tickets);
   }
-  statusEl.innerText = statusText;
-  balanceDisplay.innerText = statusText;
-}
 
-
-function showPopup(text, duration = 2500) {
-  popup.innerText = text;
-  popup.style.display = 'block';
-  setTimeout(() => {
-    popup.style.display = 'none';
-  }, duration);
-}
-
-function generateUniqueNumbers(count) {
-  const nums = [];
-  while (nums.length < count) {
-    const n = Math.floor(Math.random() * 99) + 1;
-    if (!nums.includes(n)) nums.push(n);
-  }
-  return nums;
-}
-
-function generateScratchNumbers() {
-  const result = [];
-  while (result.length < 15) {
-    const chance = Math.random();
-    if (chance < 0.01) result.push("100x");
-    else if (chance < 0.03) result.push("10x");
-    else if (chance < 0.06) result.push("5x");
-    else if (chance < 0.1) result.push("2x");
-    else if (chance < 0.12) result.push("Free Ticket");
-    else result.push(Math.floor(Math.random() * 99) + 1);
-  }
-  return result;
-}
-
-function createScratchSlot(value, isWinning = false, revealed = true) {
-  const slot = document.createElement('div');
-  slot.className = 'scratch-slot';
-
-  const text = document.createElement('div');
-  text.className = 'scratch-content';
-  text.innerText = revealed ? value : '?';
-
-  const canvas = document.createElement('canvas');
-  canvas.width = 300;
-  canvas.height = 300;
-  canvas.style.width = '100%';
-  canvas.style.height = '100%';
-
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#999';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-canvas.addEventListener('click', () => {
-  if (!gameStarted || ctx.globalAlpha === 0) return;
-
-  text.innerText = value;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.globalAlpha = 0;
-
-  if (!isWinning) {
-    if (bonuses.includes(value)) {
-      bonus = value;
+  function updateDisplay(countdownSeconds = null) {
+    saveData();
+    let statusText = `Balance: $${balance.toFixed(2)} | Tickets: ${tickets}`;
+    if (countdownSeconds !== null) {
+      statusText += ` | Ripping Ticket...`;
     }
-    if (playerNumbers.includes(value)) {
-      matches++;
-    }
-    if (freeTicketActive && value === "Free Ticket") {
-      tickets++;
-      updateDisplay();
-      showPopup('🎟️ You got a Free Ticket!', 1500);
-    }
+    statusEl.innerText = statusText;
+    balanceDisplay.innerText = statusText;
   }
-  checkIfAllScratched();
-});
 
-  slot.appendChild(text);
-  slot.appendChild(canvas);
-  return slot;
-}
+  function showPopup(text, duration = 2500) {
+    popup.innerText = text;
+    popup.style.display = 'block';
+    setTimeout(() => {
+      popup.style.display = 'none';
+    }, duration);
+  }
 
-function checkIfAllScratched() {
-  const canvases = document.querySelectorAll('#scratch-grid canvas');
-  const allCleared = Array.from(canvases).every(c => c.getContext('2d').globalAlpha === 0);
-  if (allCleared) endGame();
-}
+  function generateUniqueNumbers(count) {
+    const nums = [];
+    while (nums.length < count) {
+      const n = Math.floor(Math.random() * 99) + 1;
+      if (!nums.includes(n)) nums.push(n);
+    }
+    return nums;
+  }
+
+  function generateScratchNumbers(realTicket = true) {
+    // For free ticket mode, we only allow Free Ticket as possible win, others show faded prizes
+    if (!realTicket) {
+      const result = [];
+      while (result.length < 15) {
+        const chance = Math.random();
+        if (chance < 0.02) result.push("Free Ticket");
+        else {
+          // Show possible prizes faded for fun (numbers or bonuses)
+          const possiblePrizes = [...bonuses, ...Array.from({length:99}, (_,i) => i+1)];
+          const val = possiblePrizes[Math.floor(Math.random() * possiblePrizes.length)];
+          result.push(val);
+        }
+      }
+      return result;
+    }
+    // Real ticket scratch numbers
+    const result = [];
+    while (result.length < 15) {
+      const chance = Math.random();
+      if (chance < 0.01) result.push("100x");
+      else if (chance < 0.03) result.push("10x");
+      else if (chance < 0.06) result.push("5x");
+      else if (chance < 0.1) result.push("2x");
+      else if (chance < 0.12) result.push("Free Ticket");
+      else result.push(Math.floor(Math.random() * 99) + 1);
+    }
+    return result;
+  }
+
+  function createScratchSlot(value, isWinning = false, revealed = true, freeTicketFake = false) {
+    const slot = document.createElement('div');
+    slot.className = 'scratch-slot';
+
+    const text = document.createElement('div');
+    text.className = 'scratch-content';
+
+    // For free ticket mode, show prizes faded except actual Free Ticket values
+    if (freeTicketFake && !value.toString().includes("Free Ticket") && !isWinning) {
+      text.classList.add('grayed');
+    }
+
+    text.innerText = revealed ? value : '?';
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 300;
+    canvas.height = 300;
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#999';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    canvas.addEventListener('click', () => {
+      if (!gameStarted || ctx.globalAlpha === 0) return;
+
+      // In free ticket mode, only reveal the slot, no impact except for free ticket prize
+      text.innerText = value;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.globalAlpha = 0;
+
+      if (!isWinning) {
+        if (!freeTicketMode) {
+          // Real ticket game logic
+          if (bonuses.includes(value)) {
+            bonus = value;
+          }
+          if (playerNumbers.includes(value)) {
+            matches++;
+          }
+        } else {
+          // Free ticket game: only free ticket wins tickets, others do nothing
+          if (value === "Free Ticket") {
+            tickets++;
+            updateDisplay();
+            showPopup('🎟️ You won a Free Ticket!', 1500);
+          }
+        }
+      }
+
+      checkIfAllScratched();
+    });
+
+    slot.appendChild(text);
+    slot.appendChild(canvas);
+    return slot;
+  }
+
+  function checkIfAllScratched() {
+    const canvases = document.querySelectorAll('#scratch-grid canvas');
+    const allCleared = Array.from(canvases).every(c => c.getContext('2d').globalAlpha === 0);
+    if (allCleared) endGame();
+  }
 
 function endGame() {
   clearInterval(countdownInterval);
 
-  let win = 0;
-  let base = matches === 1 ? 1 : matches === 2 ? 2 : matches === 3 ? 3 : 0;
-  let multi = (bonus && bonus.endsWith('x')) ? parseInt(bonus) : 1;
+  if (freeTicketMode) {
+    resultDiv.innerText = '🎟️ Free Ticket scratch complete!';
+  } else {
+    let win = 0;
+    let base = matches === 1 ? 1 : matches === 2 ? 2 : matches === 3 ? 3 : 0;
+    let multi = (bonus && bonus.endsWith('x')) ? parseInt(bonus) : 1;
 
-  if (!freeTicketActive) {
     tickets = Math.max(0, tickets - 1);
     win = base * multi;
     if (bonus === "Free Ticket") tickets++;
-  } else {
-    if (bonus === "Free Ticket") tickets++;
+
+    if (win > 0) balance += win;
+
+    let resultText = '';
+    if (win > 0) resultText += `💰 You matched ${matches} for $${win.toFixed(2)}`;
+    else if (bonus === "Free Ticket") resultText += '🎟️ You won a Free Ticket!';
+    else resultText = '😢 No matches';
+
+    if (bonus && bonus !== "Free Ticket") resultText += ` + Bonus ${bonus}`;
+
+    resultDiv.innerText = resultText;
   }
-  if (!freeTicketActive && win > 0) balance += win;
 
-  let resultText = '';
-  if (win > 0) resultText += `💰 You matched ${matches} for $${win}`;
-  else if (bonus === "Free Ticket") resultText += '🎟️ You won a Free Ticket!';
-  else resultText = '😢 No matches';
-
-  if (bonus && bonus !== "Free Ticket") resultText += ` + Bonus ${bonus}`;
-
-  resultDiv.innerText = resultText;
   updateDisplay();
 
   gameStarted = false;
   disableButtons(true);
+
+  // Clear the result message after 5 seconds
+  setTimeout(() => {
+    resultDiv.innerText = '';
+  }, 5000);
 
   let countdown = 5;
   updateDisplay(countdown);
   countdownInterval = setInterval(() => {
     countdown--;
     if (countdown > 0) {
-      updateDisplay(countdown);  // show "Ripping Ticket..."
+      updateDisplay(countdown);
     } else {
       clearInterval(countdownInterval);
-      updateDisplay(); // no countdown, just balance and tickets
+      updateDisplay();
       disableButtons(false);
       showEmptyGrid();
       updateButtonStates();
@@ -363,104 +416,129 @@ function endGame() {
 }
 
 
-function disableButtons(disable) {
-  buyBtn.disabled = disable || balance < 5 || gameStarted;
-  freeBtn.disabled = disable || gameStarted;
-}
+  function disableButtons(disable) {
+    buyBtn.disabled = disable || balance < 5 || gameStarted;
+    playBtn.disabled = disable || tickets < 1 || gameStarted;
+    freeBtn.disabled = disable || gameStarted;
+  }
 
-function updateButtonStates() {
-  buyBtn.disabled = balance < 5 || gameStarted;
-  freeBtn.disabled = gameStarted;
-}
+  function updateButtonStates() {
+    buyBtn.disabled = balance < 5 || gameStarted;
+    playBtn.disabled = tickets < 1 || gameStarted;
+    freeBtn.disabled = gameStarted;
+  }
 
-function buildBoard() {
-  playerNumbers = generateUniqueNumbers(3);
-  scratchNumbers = generateScratchNumbers();
-  matches = 0;
-  bonus = null;
-  resultDiv.innerText = '';
+  function buildBoard() {
+    playerNumbers = generateUniqueNumbers(3);
+    scratchNumbers = generateScratchNumbers(true);
+    matches = 0;
+    bonus = null;
+    resultDiv.innerText = '';
 
-  const yourNumbersDiv = document.getElementById('your-numbers');
-  const scratchGrid = document.getElementById('scratch-grid');
-  yourNumbersDiv.innerHTML = '';
-  scratchGrid.innerHTML = '';
+    const yourNumbersDiv = document.getElementById('your-numbers');
+    const scratchGrid = document.getElementById('scratch-grid');
+    yourNumbersDiv.innerHTML = '';
+    scratchGrid.innerHTML = '';
 
-  playerNumbers.forEach(num => {
-    yourNumbersDiv.appendChild(createScratchSlot(num, true, true));
-  });
-  scratchNumbers.forEach(val => {
-    scratchGrid.appendChild(createScratchSlot(val, false, true));
-  });
+    playerNumbers.forEach(num => {
+      yourNumbersDiv.appendChild(createScratchSlot(num, true, true));
+    });
+    scratchNumbers.forEach(val => {
+      scratchGrid.appendChild(createScratchSlot(val, false, true));
+    });
 
-  yourNumbersDiv.classList.remove('disabled-grid');
-  scratchGrid.classList.remove('disabled-grid');
+    yourNumbersDiv.classList.remove('disabled-grid');
+    scratchGrid.classList.remove('disabled-grid');
 
-  gameStarted = true;
-  updateButtonStates();
-}
-
-function showEmptyGrid() {
-  const yourNumbersDiv = document.getElementById('your-numbers');
-  const scratchGrid = document.getElementById('scratch-grid');
-  yourNumbersDiv.innerHTML = '';
-  scratchGrid.innerHTML = '';
-
-  const placeholderNumbers = generateUniqueNumbers(3);
-  const placeholderScratch = generateScratchNumbers();
-
-  placeholderNumbers.forEach(num => {
-    yourNumbersDiv.appendChild(createScratchSlot(num, true, false));
-  });
-  placeholderScratch.forEach(val => {
-    scratchGrid.appendChild(createScratchSlot(val, false, false));
-  });
-
-  yourNumbersDiv.classList.add('disabled-grid');
-  scratchGrid.classList.add('disabled-grid');
-}
-
-buyBtn.addEventListener('click', () => {
-  if (balance >= 5) {
-    balance -= 5;
-    tickets++;
-    updateDisplay();
+    gameStarted = true;
     updateButtonStates();
-    freeTicketActive = false;
-    buildBoard();
-  } else {
-    showPopup('❌ Not enough funds to buy ticket ($5 required).');
   }
-});
 
-freeBtn.addEventListener('click', () => {
-  freeTicketActive = true;
-  showPopup('Begin Scratching', 2500);
-  disableButtons(true);
-  setTimeout(() => {
-    buildBoard();
-    disableButtons(false);
-  }, 2500);
-});
+  function buildFreeTicketBoard() {
+    playerNumbers = generateUniqueNumbers(3);
+    scratchNumbers = generateScratchNumbers(false); // free ticket mode
 
-updateDisplay();
-showEmptyGrid();
-updateButtonStates();
+    matches = 0;
+    bonus = null;
+    resultDiv.innerText = '';
+
+    const yourNumbersDiv = document.getElementById('your-numbers');
+    const scratchGrid = document.getElementById('scratch-grid');
+    yourNumbersDiv.innerHTML = '';
+    scratchGrid.innerHTML = '';
+
+    // In free ticket mode, all numbers & scratch slots are revealed but faded except Free Ticket
+    playerNumbers.forEach(num => {
+      yourNumbersDiv.appendChild(createScratchSlot(num, true, true, true));
+    });
+    scratchNumbers.forEach(val => {
+      scratchGrid.appendChild(createScratchSlot(val, false, true, true));
+    });
+
+    yourNumbersDiv.classList.remove('disabled-grid');
+    scratchGrid.classList.remove('disabled-grid');
+
+    gameStarted = true;
+    updateButtonStates();
+  }
+
+  function showEmptyGrid() {
+    const yourNumbersDiv = document.getElementById('your-numbers');
+    const scratchGrid = document.getElementById('scratch-grid');
+    yourNumbersDiv.innerHTML = '';
+    scratchGrid.innerHTML = '';
+
+    const placeholderNumbers = generateUniqueNumbers(3);
+    const placeholderScratch = generateScratchNumbers(true);
+
+    placeholderNumbers.forEach(num => {
+      yourNumbersDiv.appendChild(createScratchSlot(num, true, false));
+    });
+    placeholderScratch.forEach(val => {
+      scratchGrid.appendChild(createScratchSlot(val, false, false));
+    });
+
+    yourNumbersDiv.classList.add('disabled-grid');
+    scratchGrid.classList.add('disabled-grid');
+  }
+
+  buyBtn.addEventListener('click', () => {
+    if (balance >= 5) {
+      balance -= 5;
+      tickets++;
+      updateDisplay();
+      updateButtonStates();
+      showPopup('🎟️ Ticket purchased!');
+    } else {
+      showPopup('❌ Not enough funds to buy ticket ($5 required).');
+    }
+  });
+
+  playBtn.addEventListener('click', () => {
+    if (tickets > 0) {
+      freeTicketMode = false;
+      gameStarted = true;
+      buildBoard();
+      showPopup('🎟️ Game started! Scratch your ticket.', 2000);
+      updateButtonStates();
+    } else {
+      showPopup('❌ You need tickets to play.');
+    }
+  });
+
+  freeBtn.addEventListener('click', () => {
+    freeTicketMode = true;
+    gameStarted = true;
+    buildFreeTicketBoard();
+    showPopup('🎟️ Free Ticket scratch started! Win a Free Ticket or see what you could have won!', 3000);
+    updateButtonStates();
+  });
+
+  // Initial setup
+  updateDisplay();
+  showEmptyGrid();
+  updateButtonStates();
+})();
 </script>
-<script>
-  // Make sure cash is initialized
-  if (!sessionStorage.getItem('playerCash')) {
-    sessionStorage.setItem('playerCash', 100);
-  }
-
-  // Example: update your stats display
-  function updateCashDisplay() {
-    const cash = sessionStorage.getItem('playerCash');
-    document.getElementById('cash-display').textContent = `$${cash}`;
-  }
-
-  // Call update on page load
-  window.onload = updateCashDisplay;
-</script>
-
 </body>
 </html>

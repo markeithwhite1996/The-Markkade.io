@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RiddleHub</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+  :root {
+    --black: #0a0a0a;
+    --orange: #FF9900;
+    --dark-gray: #121212;
+    --white: #f5f5f5;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0; padding: 0;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  html, body {
+    background-color: var(--black);
+    color: var(--white);
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .container {
+    background-color: var(--dark-gray);
+    padding: 30px 40px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 0 20px rgba(255, 153, 0, 0.6);
+  }
+
+  .title {
+    font-weight: 600;
+    font-size: 2rem;
+    color: var(--orange);
+    text-align: center;
+    margin-bottom: 20px;
+    letter-spacing: 2px;
+  }
+
+  .info-bar {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1rem;
+    margin-bottom: 25px;
+    color: #ccc;
+  }
+
+  .question-box {
+    background-color: #1a1a1a;
+    padding: 18px 24px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    margin-bottom: 28px;
+    color: var(--white);
+    box-shadow: inset 0 0 12px rgba(255,153,0,0.3);
+  }
+
+  .answers {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+
+  button {
+    background-color: var(--black);
+    border: 2px solid var(--orange);
+    color: var(--orange);
+    padding: 14px 0;
+    font-size: 1rem;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+
+  button:hover:not(:disabled) {
+    background-color: var(--orange);
+    color: var(--black);
+    box-shadow: 0 0 10px var(--orange);
+  }
+
+  button:disabled {
+    border-color: #444;
+    color: #444;
+    cursor: default;
+    background-color: transparent;
+    box-shadow: none;
+  }
+
+  .footer-buttons {
+    margin-top: 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  #popup {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--orange);
+    color: var(--black);
+    padding: 16px 32px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 1.25rem;
+    box-shadow: 0 0 15px var(--orange);
+    display: none;
+    z-index: 9999;
+    user-select: none;
+  }
+
+  @media (max-width: 480px) {
+    .answers {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div id="popup"></div>
+
+<div class="container">
+  <div class="title">RiddleHub</div>
+  <div class="info-bar">
+    <div>💰 Cash: $<span id="playerCash">100</span></div>
+    <div>✅ <span id="correctCount">0</span> ❌ <span id="wrongCount">0</span></div>
+  </div>
+
+  <div class="question-box" id="question">
+    It's round, but not always around. It's light sometimes, dark sometimes, both sometimes. Everyone wants to walk on it, but only a happy few ever have. What is it?
+  </div>
+
+  <div class="answers">
+    <button>Moon</button>
+    <button>Sun</button>
+    <button>Earth</button>
+    <button>Stars</button>
+    <button>Sky</button>
+    <button>Cloud</button>
+  </div>
+
+  <div class="footer-buttons">
+    <button id="skip-btn">Skip Question (-$10)</button>
+    <button id="exit-btn">Exit</button>
+  </div>
+</div>
+
+<script>
+  let playerCash = parseInt(localStorage.getItem('playerCash')) || 100;
+  let correctAnswers = 0;
+  let wrongAnswers = 0;
+  let guessesLeft = 5;
+
+const riddles = [
+  {question: "I’m wet, wild, and usually happen behind closed doors. Sometimes messy, sometimes intense — what am I?", answer: "Sex", options: ['Party', 'Fight', 'Dance', 'Sex', 'Storm', 'Rain']},
+  {question: "I’m a little taboo but often whispered about in bars and bedrooms. I can be kinky, wild, or just plain fun. What am I?", answer: "Fetish", options: ['Fantasy', 'Dream', 'Secret', 'Joke', 'Fetish', 'Desire']},
+  {question: "I’m something people often regret in the morning but crave at night. What am I?", answer: "One-night stand", options: ['Regret', 'One-night stand', 'Dream', 'Call', 'Mistake', 'Coffee']},
+  {question: "I’m a five-letter word. Sometimes I’m rough, sometimes I’m soft, but I always leave you breathless. What am I?", answer: "Fling", options: ['Binge', 'Touch', 'Whisper', 'Fling', 'Kiss', 'Blush']},
+  {question: "I’m sticky, sweet, and often found in places people don’t talk about in polite company. What am I?", answer: "Honey", options: ['Candy', 'Honey', 'Glue', 'Sweat', 'Lust', 'Glue']},
+  {question: "I’m a place where clothes come off and passions ignite. What am I?", answer: "Bedroom", options: ['Nightclub', 'Bedroom', 'Stage', 'Bath', 'Kitchen', 'Bar']},
+ {question: "I'm long, hard, and come in your mouth, but I’m not what you think. What am I?", answer: "Candy cane", options: ['Candy cane', 'Toothbrush', 'Cigar', 'Popsicle', 'Hotdog', 'Straw']},
+  {question: "I go in dry, come out wet, and leave you satisfied. What am I?", answer: "Teabag", options: ['Teabag', 'Noodle', 'Sponge', 'Toothpick', 'Lollipop', 'Napkin']},
+  {question: "I’m most useful when I’m on my knees and get turned on. What am I?", answer: "Vacuum", options: ['Vacuum', 'Maid', 'Candle', 'Hose', 'Fan', 'Doormat']},
+  {question: "I have a head but no brain, often used before bed. What am I?", answer: "Penis", options: ['Penis', 'Pillow', 'Toothbrush', 'Shampoo', 'Cap', 'Toy']},
+  {question: "You can use me once, or ride me all night long. What am I?", answer: "Condom", options: ['Condom', 'Saddle', 'Toy', 'Drink', 'Blanket', 'Partner']},
+  {question: "I like it rough, I like it soft, I always leave you hot and sweaty. What am I?", answer: "Sex", options: ['Sex', 'Workout', 'Sauna', 'Massage', 'Dance', 'Boxing']},
+  {question: "You pull me out when you're ready to explode. What am I?", answer: "Cork", options: ['Cork', 'Condom', 'Gun', 'Plug', 'Tooth', 'Lid']},
+  {question: "I'm slippery, go in holes, and used to prevent friction. What am I?", answer: "Lube", options: ['Lube', 'Soap', 'Oil', 'Cream', 'Water', 'Sweat']},
+  {question: "I come in different sizes, go deep, and vibrate if you want. What am I?", answer: "Sex toy", options: ['Sex toy', 'Drill', 'Electric toothbrush', 'Phone', 'Speaker', 'Screwdriver']},
+  {question: "You finger me to get me going, I moan and buzz with delight. What am I?", answer: "Phone", options: ['Phone', 'Vibrator', 'Remote', 'Microwave', 'Tablet', 'Controller']},
+  {question: "You shove me in tight, I stretch things out. What am I?", answer: "Butt plug", options: ['Butt plug', 'Shoe horn', 'Tampon', 'Key', 'Screw', 'Pillow']},
+  {question: "I’m a three-letter word that can go in any position. What am I?", answer: "Sex", options: ['Sex', 'Bed', 'Toy', 'Tie', 'Job', 'Run']},
+  {question: "You grip me tightly, stroke me fast or slow, and sometimes I spit. What am I?", answer: "Shampoo bottle", options: ['Shampoo bottle', 'Pen', 'Lotion tube', 'Hose', 'Marker', 'Mouthwash']},
+  {question: "I’m round, juicy, and best when I'm between buns. What am I?", answer: "Ass", options: ['Ass', 'Burger', 'Peach', 'Muffin', 'Boobs', 'Melon']},
+  {question: "I get hotter the longer I rub, and sometimes I squirt. What am I?", answer: "Lotion", options: ['Lotion', 'Candle', 'Soup', 'Boil', 'Fire', 'Sex toy']},
+  {question: "The more you beat me, the wetter I get. What am I?", answer: "Egg", options: ['Egg', 'Cream', 'Drum', 'Pudding', 'Butter', 'Cake batter']},
+  {question: "I'm a single finger away from a screaming good time. What am I?", answer: "Clit", options: ['Clit', 'Button', 'Doorbell', 'Remote', 'Mouth', 'Pen cap']},
+  {question: "I'm made of rubber, I stretch a lot, and I help you go all night. What am I?", answer: "Condom", options: ['Condom', 'Balloon', 'Rubber band', 'Toy', 'Glove', 'Gum']},
+  {question: "I like to be choked, tied down, and handled with care. What am I?", answer: "Submissive", options: ['Submissive', 'Leash', 'Dog', 'Tie', 'Pillow', 'Necklace']},
+  {question: "You stick your face in me and move your tongue around. What am I?", answer: "Vagina", options: ['Vagina', 'Bowl of pudding', 'Mouth', 'Ice cream', 'Soup', 'Cake']},
+  {question: "You blow me to feel satisfied, and sometimes I leak. What am I?", answer: "Balloon", options: ['Balloon', 'Penis', 'Pipe', 'Whistle', 'Bubble', 'Juice box']},
+  {question: "I hum softly, sit between your legs, and get turned on easily. What am I?", answer: "Vibrator", options: ['Vibrator', 'Laptop', 'Motorcycle', 'Speaker', 'Fan', 'Cat']},
+  {question: "I’m juicy, you suck on me, and I leave your lips sticky. What am I?", answer: "Popsicle", options: ['Popsicle', 'Lollipop', 'Penis', 'Candy', 'Melon', 'Banana']},
+  {question: "I'm slippery when wet and I go in tight spots. What am I?", answer: "Lube", options: ['Lube', 'Fish', 'Snake', 'Oil', 'Rope', 'Grease']},
+  {question: "You often scream when I’m in you deep and fast. What am I?", answer: "Dick", options: ['Dick', 'Rollercoaster', 'Doctor', 'Toy', 'Vibrator', 'Cramp']},
+  {question: "I’m sometimes hard, sometimes soft, but I’m always ready when the mood strikes. What am I?", answer: "Cocktail", options: ['Bed', 'Heart', 'Cocktail', 'Rock', 'Joke', 'Lips']},
+  {question: "I’m a whisper, a moan, or a scream, often heard but never seen. What am I?", answer: "Pleasure", options: ['Pleasure', 'Wind', 'Secret', 'Shadow', 'Sound', 'Dream']},
+  {question: "I’m a forbidden fruit many seek, but few admit to tasting. What am I?", answer: "Taboo", options: ['Lust', 'Desire', 'Secret', 'Taboo', 'Sin', 'Dream']},
+  {question: "I’m something you might call out during a wild night, or when you’re surprised in bed. What am I?", answer: "Oh!", options: ['No!', 'Oh!', 'Wait!', 'Stop!', 'Hey!', 'Yes!']},
+  {question: "I’m a quick thrill, sometimes messy, often unplanned, and rarely repeated. What am I?", answer: "One-night stand", options: ['One-night stand', 'Dance', 'Drink', 'Mistake', 'Fight', 'Race']},
+  {question: "I’m an act that can tie you up, but never hold a grudge. What am I?", answer: "Bondage", options: ['Promise', 'Knot', 'Chain', 'Bondage', 'Trust', 'Lace']},
+  {question: "I’m a whispered secret in the dark, a touch that lingers, and a promise unspoken. What am I?", answer: "Desire", options: ['Hope', 'Desire', 'Dream', 'Love', 'Fear', 'Trust']},
+  {question: "I’m sometimes soft, sometimes hard, and often found between sheets. What am I?", answer: "Pillow", options: ['Pillow', 'Body', 'Heart', 'Dream', 'Lust', 'Kiss']},
+  {question: "I’m a game played in the dark, where winners take all and losers get nothing. What am I?", answer: "Strip poker", options: ['Hide and seek', 'Truth or dare', 'Poker', 'Strip poker', 'Spin the bottle', 'Charades']},
+  {question: "I’m a feeling that starts in the stomach, climbs to the chest, and explodes in the bedroom. What am I?", answer: "Passion", options: ['Passion', 'Love', 'Fear', 'Anger', 'Joy', 'Hunger']},
+  {question: "I’m often whispered between strangers and partners alike — I’m raw, real, and sometimes reckless. What am I?", answer: "Honesty", options: ['Lie', 'Trust', 'Honesty', 'Truth', 'Secret', 'Lust']},
+  {question: "I’m a naughty game for adults, played with eyes closed and limits pushed. What am I?", answer: "Truth or Dare", options: ['Poker', 'Spin the bottle', 'Charades', 'Truth or Dare', 'Strip poker', 'Hide and seek']},
+  {question: "I’m a five-letter word often whispered during heated moments. What am I?", answer: "Moist", options: ['Moist', 'Quiet', 'Sweet', 'Soft', 'Loud', 'Warm']},
+  {question: "What’s the favorite position for many, but hard to describe?", answer: "Missionary", options: ['Doggy', 'Missionary', 'Cowgirl', 'Spooning', 'Standing', 'Sitting']},
+  {question: "I’m something that can be ‘tied’ but I’m not a knot. What am I?", answer: "Tie-up", options: ['Tie-up', 'Knot', 'Lace', 'Chain', 'Bond', 'Rope']},
+  {question: "I’m an act that requires trust, patience, and sometimes restraints. What am I?", answer: "Bondage", options: ['Bondage', 'Massage', 'Cuddle', 'Promise', 'Game', 'Secret']},
+  {question: "I’m a word that can mean both pleasure and pain. What am I?", answer: "Spank", options: ['Spank', 'Kiss', 'Hug', 'Cry', 'Laugh', 'Bite']},
+  {question: "I’m often whispered after a wild night or before a crazy day. What am I?", answer: "Regret", options: ['Joy', 'Regret', 'Love', 'Fear', 'Hope', 'Dream']},
+  {question: "I’m a game where clothes disappear and inhibitions rise. What am I?", answer: "Strip poker", options: ['Poker', 'Strip poker', 'Truth or Dare', 'Charades', 'Hide and Seek', 'Spin the Bottle']},
+  {question: "I’m a secret shared between two, often between sheets. What am I?", answer: "Confession", options: ['Secret', 'Confession', 'Whisper', 'Lie', 'Dream', 'Promise']},
+  {question: "I’m a sensation that can drive you crazy, but is always welcome. What am I?", answer: "Desire", options: ['Desire', 'Pain', 'Fear', 'Joy', 'Lust', 'Love']},
+  {question: "I’m a four-letter word that’s both naughty and nice. What am I?", answer: "Kink", options: ['Kink', 'Love', 'Play', 'Pain', 'Hope', 'Fear']},
+  {question: "I’m an intimate act, often slow, sometimes fast, always thrilling. What am I?", answer: "Kiss", options: ['Kiss', 'Hug', 'Dance', 'Touch', 'Look', 'Smile']},
+  {question: "I’m a term for playful roughness in adult games. What am I?", answer: "Fetish", options: ['Fetish', 'Game', 'Joke', 'Dance', 'Fight', 'Play']},
+  {question: "I’m a state where clothes and worries fall away. What am I?", answer: "Naked", options: ['Naked', 'Happy', 'Free', 'Wild', 'Crazy', 'Free']},
+  {question: "I’m a whispered word before the storm of passion. What am I?", answer: "Wait", options: ['Stop', 'Wait', 'Yes', 'No', 'Go', 'Hold']},
+  {question: "I’m an adult game involving truth and risk. What am I?", answer: "Truth or Dare", options: ['Poker', 'Truth or Dare', 'Hide and Seek', 'Spin the Bottle', 'Strip Poker', 'Charades']},
+  {question: "I’m a feeling so strong it can’t be ignored or denied. What am I?", answer: "Lust", options: ['Love', 'Lust', 'Desire', 'Passion', 'Hope', 'Joy']},
+  {question: "I’m a place where fantasies come alive and secrets are safe. What am I?", answer: "Bedroom", options: ['Club', 'Bedroom', 'Bar', 'Cinema', 'Park', 'Restaurant']},
+  {question: "I’m a quick and steamy encounter with no strings attached. What am I?", answer: "Hookup", options: ['Date', 'Hookup', 'Fling', 'Crash', 'Game', 'Bet']},
+  {question: "I’m a way to say no, but often mean maybe. What am I?", answer: "Tease", options: ['Tease', 'Lie', 'Truth', 'Dare', 'Yes', 'No']},
+  {question: "I’m the sound you make when pleasure takes over. What am I?", answer: "Moan", options: ['Cry', 'Laugh', 'Moan', 'Scream', 'Whisper', 'Sing']},
+  {question: "I’m a spice that heats up the mood. What am I?", answer: "Passion", options: ['Salt', 'Passion', 'Sugar', 'Pepper', 'Honey', 'Lemon']},
+  {question: "I’m a secret that makes hearts race and minds wander. What am I?", answer: "Fantasy", options: ['Fantasy', 'Truth', 'Lie', 'Dream', 'Hope', 'Wish']},
+  {question: "I’m a feeling that can’t be seen but can be deeply felt. What am I?", answer: "Chemistry", options: ['Love', 'Chemistry', 'Trust', 'Lust', 'Hope', 'Fear']},
+  {question: "I’m the art of seduction in words and glances. What am I?", answer: "Flirt", options: ['Flirt', 'Lie', 'Dance', 'Song', 'Game', 'Joke']},
+  {question: "I’m an adult’s favorite sweet treat, often shared with a kiss. What am I?", answer: "Chocolate", options: ['Candy', 'Chocolate', 'Honey', 'Caramel', 'Cake', 'Sugar']},
+  {question: "I’m a touch that sends shivers down your spine. What am I?", answer: "Caress", options: ['Punch', 'Caress', 'Kick', 'Tap', 'Hug', 'Shake']},
+  {question: "I’m an intimate act often done in the dark. What am I?", answer: "Massage", options: ['Massage', 'Dance', 'Talk', 'Sleep', 'Cry', 'Laugh']},
+  {question: "I’m a slow dance that leads to a wild night. What am I?", answer: "Seduction", options: ['Seduction', 'Game', 'Party', 'Flirt', 'Kiss', 'Song']},
+  {question: "I’m a feeling that can make you lose control. What am I?", answer: "Desire", options: ['Desire', 'Fear', 'Love', 'Joy', 'Hope', 'Anger']},
+  {question: "I’m a game where rules are broken and fun is the goal. What am I?", answer: "Truth or Dare", options: ['Poker', 'Truth or Dare', 'Hide and Seek', 'Spin the Bottle', 'Strip Poker', 'Charades']},
+  {question: "I’m a passion that can burn slow or fast. What am I?", answer: "Flame", options: ['Flame', 'Ice', 'Wind', 'Fire', 'Water', 'Earth']},
+  {question: "I’m something you wear that can drive others wild. What am I?", answer: "Lingerie", options: ['Dress', 'Lingerie', 'Hat', 'Coat', 'Shoes', 'Gloves']},
+  {question: "I’m an act of trust and surrender in a relationship. What am I?", answer: "Submission", options: ['Trust', 'Submission', 'Love', 'Respect', 'Hope', 'Joy']},
+  {question: "I’m a word that means both a game and a naughty act. What am I?", answer: "Play", options: ['Work', 'Play', 'Sleep', 'Eat', 'Fight', 'Run']},
+  {question: "I’m a whispered promise in the heat of the night. What am I?", answer: "Secret", options: ['Lie', 'Secret', 'Truth', 'Dream', 'Hope', 'Wish']},
+  {question: "I’m a feeling that can make you weak in the knees. What am I?", answer: "Love", options: ['Fear', 'Love', 'Joy', 'Sadness', 'Hope', 'Anger']},
+  {question: "I’m the rush you get when you’re caught in a moment of passion. What am I?", answer: "Thrill", options: ['Thrill', 'Fear', 'Calm', 'Joy', 'Pain', 'Sadness']},
+  {question: "I’m a place where clothes and worries disappear. What am I?", answer: "Bedroom", options: ['Bedroom', 'Bar', 'Park', 'Office', 'Gym', 'Street']},
+  {question: "I’m a word that can mean both pain and pleasure. What am I?", answer: "Bite", options: ['Bite', 'Hug', 'Kiss', 'Punch', 'Tickle', 'Scratch']},
+  {question: "I’m a look that can melt hearts or ignite flames. What am I?", answer: "Gaze", options: ['Gaze', 'Smile', 'Frown', 'Glare', 'Blink', 'Wink']},
+  {question: "I’m a touch that lingers longer than expected. What am I?", answer: "Caress", options: ['Tap', 'Punch', 'Caress', 'Push', 'Pull', 'Shake']},
+  {question: "I’m a four-letter word that means 'to seduce or attract'. What am I?", answer: "Lure", options: ['Lure', 'Love', 'Play', 'Hate', 'Fear', 'Wait']},
+  {question: "I’m a scent that can drive desire wild. What am I?", answer: "Perfume", options: ['Soap', 'Perfume', 'Smoke', 'Flower', 'Food', 'Wine']},
+  {question: "I’m a whispered word that makes pulses race. What am I?", answer: "Yes", options: ['No', 'Yes', 'Maybe', 'Wait', 'Stop', 'Go']},
+  {question: "I’m a game of risk and reward played in the bedroom. What am I?", answer: "Strip poker", options: ['Poker', 'Strip poker', 'Truth or Dare', 'Charades', 'Spin the Bottle', 'Hide and Seek']},
+  {question: "I’m a sensation that makes your skin tingle and your heart race. What am I?", answer: "Excitement", options: ['Fear', 'Excitement', 'Calm', 'Joy', 'Sadness', 'Anger']},
+  {question: "I’m a way to tease without words. What am I?", answer: "Touch", options: ['Touch', 'Look', 'Smile', 'Gesture', 'Laugh', 'Cry']},
+  {question: "I’m a word that means both 'to flirt' and 'to play'. What am I?", answer: "Play", options: ['Play', 'Work', 'Run', 'Fight', 'Sleep', 'Eat']},
+  {question: "I’m a word that means both 'darkness' and 'desire'. What am I?", answer: "Night", options: ['Night', 'Light', 'Day', 'Sun', 'Moon', 'Star']},
+  {question: "I’m a four-letter word meaning 'to excite or stimulate'. What am I?", answer: "Tease", options: ['Tease', 'Kiss', 'Hug', 'Play', 'Love', 'Cry']},
+  {question: "I’m a feeling that can make you blush or scream. What am I?", answer: "Embarrassment", options: ['Joy', 'Embarrassment', 'Fear', 'Love', 'Anger', 'Hope']},
+  {question: "I’m a place where bodies and souls connect. What am I?", answer: "Bedroom", options: ['Bedroom', 'Church', 'Park', 'Office', 'Gym', 'Restaurant']},
+  {question: "I’m a word that means both 'to please' and 'to torment'. What am I?", answer: "Tease", options: ['Tease', 'Hurt', 'Love', 'Hate', 'Cry', 'Laugh']},
+  {question: "I’m a game of chance where winners take all and losers lose everything. What am I?", answer: "Poker", options: ['Poker', 'Blackjack', 'Roulette', 'Bingo', 'Slots', 'Craps']},
+  {question: "I’m a sensation that starts in your toes and rises to your head. What am I?", answer: "Tingling", options: ['Tingling', 'Pain', 'Warmth', 'Cold', 'Itch', 'Numbness']},
+  {question: "I’m a look that promises trouble and excitement. What am I?", answer: "Smirk", options: ['Smile', 'Frown', 'Smirk', 'Glare', 'Blink', 'Wink']},
+  {question: "I’m a word that means both 'to dance' and 'to flirt'. What am I?", answer: "Shimmy", options: ['Shimmy', 'Jump', 'Run', 'Walk', 'Sing', 'Play']},
+  {question: "I’m a feeling that makes your heart pound and your palms sweat. What am I?", answer: "Nervousness", options: ['Joy', 'Fear', 'Nervousness', 'Calm', 'Sadness', 'Anger']},
+  {question: "I’m a whispered word that ignites passion. What am I?", answer: "Come", options: ['Go', 'Stop', 'Wait', 'Come', 'Yes ChatGPT said:', 'No']},
+];
+
+  
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    // Pick a random index from 0 to i
+    const j = Math.floor(Math.random() * (i + 1));
+    // Swap elements array[i] and array[j]
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+function randomizeOptions(riddles) {
+  riddles.forEach(riddle => {
+    // Ensure answer is in options, just in case
+    if (!riddle.options.includes(riddle.answer)) {
+      riddle.options[0] = riddle.answer; // force include answer if missing
+    }
+    riddle.options = shuffleArray([...riddle.options]); // shuffle a copy of options
+  });
+}
+
+// Usage:
+randomizeOptions(riddles);
+
+console.log(riddles);
+
+
+  let currentRiddleIndex = 0;
+
+  function updateCash() {
+    localStorage.setItem('playerCash', playerCash);
+    document.getElementById('playerCash').textContent = playerCash;
+  }
+
+  function updateFeedback() {
+    document.getElementById('correctCount').textContent = correctAnswers;
+    document.getElementById('wrongCount').textContent = wrongAnswers;
+  }
+
+  function showPopup(message) {
+    const popup = document.getElementById('popup');
+    popup.textContent = message;
+    popup.style.display = 'block';
+    setTimeout(() => {
+      popup.style.display = 'none';
+    }, 1800);
+  }
+
+  function checkAnswer(button, answer) {
+    if (guessesLeft <= 0 || button.disabled) return;
+    button.disabled = true;
+
+    const currentRiddle = riddles[currentRiddleIndex];
+    if (answer === currentRiddle.answer) {
+      correctAnswers++;
+      playerCash += 5;
+      showPopup("✅ Correct! +$5");
+      setTimeout(nextRound, 1000);
+    } else {
+      wrongAnswers++;
+      playerCash -= 1;
+      showPopup("❌ Wrong! -$1");
+
+      if (wrongAnswers >= 5) {
+        showPopup("💀 Too many wrong! -$10");
+        playerCash -= 10;
+        resetGame();
+        return;
+      }
+    }
+
+    guessesLeft--;
+    updateCash();
+    updateFeedback();
+  }
+
+  function updateRiddle() {
+    const current = riddles[currentRiddleIndex];
+    document.getElementById('question').textContent = current.question;
+    const buttons = document.querySelectorAll('.answers button');
+    current.options.forEach((opt, idx) => {
+      if (buttons[idx]) {
+        buttons[idx].textContent = opt;
+        buttons[idx].disabled = false;
+      }
+    });
+    guessesLeft = 5;
+  }
+
+  function nextRound() {
+    currentRiddleIndex = (currentRiddleIndex + 1) % riddles.length;
+    correctAnswers = 0;
+    wrongAnswers = 0;
+    guessesLeft = 5;
+    updateFeedback();
+    updateRiddle();
+  }
+
+  function resetGame() {
+    playerCash = 100;
+    correctAnswers = 0;
+    wrongAnswers = 0;
+    guessesLeft = 5;
+    updateCash();
+    updateFeedback();
+    updateRiddle();
+  }
+
+  function skipQuestion() {
+    if (playerCash >= 10) {
+      playerCash -= 10;
+      showPopup("⏭️ Skipped! -$10");
+      nextRound();
+      updateCash();
+    } else {
+      showPopup("⚠️ Not enough cash to skip!");
+    }
+  }
+
+  function exitGame() {
+    showPopup("👋 Thanks for playing!");
+    setTimeout(() => location.reload(), 1200);
+  }
+
+  // Init
+  updateCash();
+  updateFeedback();
+  updateRiddle();
+
+  document.querySelectorAll('.answers button').forEach(button => {
+    button.addEventListener('click', () => checkAnswer(button, button.textContent));
+  });
+
+  document.getElementById('skip-btn').addEventListener('click', skipQuestion);
+  document.getElementById('exit-btn').addEventListener('click', exitGame);
+</script>
+
+</body>
+</html>

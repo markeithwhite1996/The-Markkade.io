@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Food-O-Mania Game</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #fff3e6;
+    user-select: none;
+    height: 100%;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: radial-gradient(circle, #ffd699 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: -1;
+    opacity: 0.3;
+  }
+
+  h1, h2, h3 {
+    margin: 0 0 10px 0;
+    color: #cc5500;
+  }
+
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  button {
+    padding: 10px 15px;
+    font-size: clamp(14px, 1.5vw, 16px);
+    border: none;
+    border-radius: 6px;
+    background: #ff8c42;
+    color: white;
+    cursor: pointer;
+    position: relative;
+    min-width: 120px;
+    max-width: 100%;
+    user-select: none;
+    transition: background 0.3s ease;
+  }
+
+  button:hover:enabled {
+    background: #ff7b29;
+  }
+
+  button:disabled {
+    background: #bbb;
+    cursor: default;
+  }
+
+  .bubble {
+    position: absolute;
+    top: -8px;
+    right: -10px;
+    background: #ff5722;
+    color: white;
+    border-radius: 50%;
+    padding: 2px 7px;
+    font-size: 12px;
+    font-weight: bold;
+    pointer-events: none;
+  }
+
+  main {
+    padding: 10px;
+  }
+
+  main > section {
+    display: none;
+    border: 2px solid #ff8c42;
+    border-radius: 8px;
+    padding: 15px;
+    max-height: 60vh;
+    overflow-y: auto;
+    background: #fffdf8;
+    box-shadow: 0 0 8px rgba(0,0,0,0.05);
+  }
+
+  main > section.active {
+    display: block;
+  }
+
+  .customer {
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  .customer.red { background: #ffe5e0; }
+  .customer.yellow { background: #fff5cc; }
+  .customer.green { background: #e6ffe6; }
+
+  .receipt, .order {
+    padding: 8px;
+    margin: 6px 0;
+    border-radius: 6px;
+    background: #f9f9f9;
+    cursor: pointer;
+  }
+
+  .order.yellow { background: #fff5cc; }
+  .order.green { background: #e6ffe6; }
+  .order.red { background: #ffe5e0; }
+
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    z-index: 900;
+  }
+
+  .modal {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 0 15px #0008;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    display: none;
+    z-index: 1000;
+  }
+
+  .order-item {
+    cursor: pointer;
+    padding: 6px 10px;
+    margin: 5px 0;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    transition: background 0.3s ease;
+  }
+
+  .order-item:hover {
+    background: #ffe8cc;
+  }
+
+  .order-item.read {
+    color: green;
+    text-decoration: line-through;
+    background: #e6ffe6;
+  }
+
+  .modal-buttons {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .modal-buttons button {
+    flex: 1;
+    min-width: 120px;
+  }
+
+  #balanceDisplay {
+    font-size: 1rem;
+    margin-top: 10px;
+    color: #cc5500;
+  }
+
+  #failedOrdersDisplay {
+    font-size: 0.9rem;
+    color: #e60000;
+  }
+
+  @media (max-width: 600px) {
+    button {
+      font-size: 14px;
+      min-width: 100px;
+      padding: 8px 12px;
+    }
+
+    .modal {
+      padding: 15px;
+    }
+  }
+</style>
+
+</head>
+<body>
+
+
+
+<header>
+  <h1>🍔 Food-O-Mania</h1>
+  <p><em>Where every bite is an emoji delight!</em></p>
+</header>
+
+<nav class="top-bar">
+  <button id="btnReceipts" title="View Receipts">📄 Receipts <span class="bubble" id="receiptCount">0</span></button>
+  <button id="btnOrders" title="View Orders">🍽️ Orders <span class="bubble" id="orderCount">0</span></button>
+  <button id="btnCustomers" title="View Customers">👥 Customers <span class="bubble" id="customerCount">0</span></button>
+  <button id="btnCloseShop" title="Close Shop" style="background:#555;min-width:120px;">🚪 Close Shop</button>
+</nav>
+
+<main>
+  <section id="sectionCustomers" class="active">
+    <h2>Customer Queue</h2>
+    <div id="customerQueue"></div>
+  </section>
+
+  <section id="sectionReceipts">
+    <h2>Receipt Queue</h2>
+    <div id="receiptList"></div>
+  </section>
+
+  <section id="sectionOrders">
+    <h2>Orders Cooking/Ready</h2>
+    <div id="orderList"></div>
+  </section>
+</main>
+
+<div id="balanceDisplay">Balance: $0</div>
+<div id="failedOrdersDisplay"></div>
+
+<div class="modal-overlay" id="modalOverlay"></div>
+<div class="modal" id="modal">
+  <!-- dynamic content -->
+</div>
+<section id="menuSection" style="border: 2px solid #ff8c42; border-radius: 8px; padding: 10px; max-height: 150px; overflow-y: auto; background: #fffdf8; box-shadow: 0 0 8px rgba(0,0,0,0.05); margin: 10px;">
+  <h2>Menu</h2>
+  <ul id="menuList" style="list-style: none; padding-left: 0; margin: 0; font-size: 0.9rem;"></ul>
+</section>
+
+<script>
+(() => {
+  // --- Data ---
+  const menu = [
+    // Drinks
+    { name: '🧃 Fresh Fruit Juice', price: 4 },
+    { name: '☕️ Hot Coffee', price: 2 },
+    { name: '🥤 Soda Pop', price: 2 },
+    { name: '🍵 Green Tea', price: 2 },
+    { name: '🍺 Craft Beer', price: 5 },
+    { name: '🍷 Red Wine Glass', price: 7 },
+    { name: '🥛 Milkshake (Chocolate/Vanilla)', price: 4 },
+    // Food
+    { name: '🍔 Classic Cheeseburger', price: 6 },
+    { name: '🍗 Crispy Chicken', price: 7 },
+    { name: '🥪 Veggie Delight Sandwich', price: 6 },
+    { name: '🌭 Loaded Hot Dog', price: 5 },
+    { name: '🍕 Pepperoni Pizza Slice', price: 4 },
+    { name: '🍤 Fried Shrimp', price: 9 },
+    { name: '🍣 Sushi', price: 10 },
+    { name: '🥩 Steak', price: 13 },
+    { name: '🥙 Falafel Wrap', price: 7 },
+    { name: '🍝 Spaghetti Bolognese', price: 9 },
+    { name: '🍜 Noodle Soup', price: 5 },
+    // Sides
+    { name: '🍟 French Fries', price: 3 },
+    { name: '🥗 Garden Salad', price: 3 },
+    { name: '🧀 Mozzarella Sticks', price: 4 },
+    { name: '🥒 Pickle Spears', price: 2 },
+    { name: '🥔 Baked Potato', price: 3 },
+    { name: '🥕 Glazed Carrots', price: 3 },
+    // Desserts
+    { name: '🍦 Soft Serve Ice Cream', price: 3 },
+    { name: '🍩 Glazed Donut', price: 2 },
+    { name: '🍪 Chocolate Chip Cookies', price: 2 },
+    { name: '🧁 Cupcake Surprise', price: 4 },
+    { name: '🍰 Cake', price: 5 },
+    { name: '🍮 Caramel Flan', price: 4 }
+  ];
+
+  let customerQueue = [];
+  let receipts = [];
+  let orders = [];
+  let failedOrders = 0;
+  let balance = 0;
+  let gameOver = false;
+
+  // --- DOM elements ---
+  const btnReceipts = document.getElementById('btnReceipts');
+  const btnOrders = document.getElementById('btnOrders');
+  const btnCustomers = document.getElementById('btnCustomers');
+  const btnCloseShop = document.getElementById('btnCloseShop');
+
+  const customerCount = document.getElementById('customerCount');
+  const receiptCount = document.getElementById('receiptCount');
+  const orderCount = document.getElementById('orderCount');
+
+  const sectionCustomers = document.getElementById('sectionCustomers');
+  const sectionReceipts = document.getElementById('sectionReceipts');
+  const sectionOrders = document.getElementById('sectionOrders');
+
+  const customerQueueDiv = document.getElementById('customerQueue');
+  const receiptListDiv = document.getElementById('receiptList');
+  const orderListDiv = document.getElementById('orderList');
+
+  const balanceDisplay = document.getElementById('balanceDisplay');
+  const failedOrdersDisplay = document.getElementById('failedOrdersDisplay');
+
+  const modal = document.getElementById('modal');
+  const modalOverlay = document.getElementById('modalOverlay');
+
+  // --- Utils ---
+  function randomId() {
+    return Math.floor(Math.random() * 100000);
+  }
+  function shuffleArray(arr) {
+    for (let i = arr.length -1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i +1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+  }
+
+  // --- UI updates ---
+  function updateBubbles() {
+    customerCount.textContent = customerQueue.length;
+    receiptCount.textContent = receipts.length;
+    orderCount.textContent = orders.length;
+    failedOrdersDisplay.textContent = failedOrders > 0 ? `Failed Orders: ${failedOrders}` : '';
+    balanceDisplay.textContent = `Balance: $${balance.toFixed(2)}`;
+  }
+
+  // Show only one section at a time
+  function showSection(section) {
+    sectionCustomers.classList.remove('active');
+    sectionReceipts.classList.remove('active');
+    sectionOrders.classList.remove('active');
+    section.classList.add('active');
+  }
+
+  // --- Renderers ---
+  function renderCustomers() {
+    customerQueueDiv.innerHTML = '';
+    customerQueue.forEach((c, idx) => {
+      const div = document.createElement('div');
+      div.className = 'customer ' + c.status;
+      div.textContent = `Customer #${c.id} - Status: ${c.status.toUpperCase()}`;
+      div.onclick = () => openOrderModal(idx);
+      customerQueueDiv.appendChild(div);
+    });
+    updateBubbles();
+  }
+
+function renderReceipts() {
+  receiptListDiv.innerHTML = '';
+  receipts.forEach((r, i) => {
+    const div = document.createElement('div');
+    div.className = 'receipt';
+    div.textContent = `Order #${r.id}`; // ✅ Total removed
+    div.dataset.orderId = r.id;
+    div.dataset.total = r.total;
+    div.style.cursor = "pointer";
+    div.addEventListener('click', () => {
+      openChargeFromReceipt(r.id, r.total);
+    });
+    receiptListDiv.appendChild(div);
+  });
+  updateBubbles();
+}
+
+
+function openChargeFromReceipt(orderId, actualTotal) {
+  const customer = customerQueue.find(c => c.id === orderId);
+  if (!customer) return;
+
+  let html = `<h3>Charge Customer #${orderId}</h3>`;
+  html += `<p>Items Purchased:</p><ul>`;
+  customer.orderItems.forEach(item => {
+    html += `<li>${item.name}</li>`; // no prices here
+  });
+  html += `</ul>`;
+
+  html += `<p>Enter the total amount to charge:</p>`;
+  html += `<input type="number" step="0.01" id="orderTotalInput" placeholder="Enter total here" />`;
+  html += `
+    <div class="modal-buttons">
+      <button id="chargeBtn">Charge Customer</button>
+      <button id="cancelBtn">Cancel</button>
+    </div>`;
+
+  modal.innerHTML = html;
+  modal.style.display = 'block';
+  modalOverlay.style.display = 'block';
+
+  document.getElementById('chargeBtn').onclick = () => {
+    const inputTotal = parseFloat(document.getElementById('orderTotalInput').value.trim());
+
+    if (isNaN(inputTotal)) {
+      alert("Please enter a valid number.");
+      return;
+    }
+
+    if (Math.abs(inputTotal - actualTotal) > 0.01) {
+      alert("Incorrect total. Customer complained!");
+      failedOrders++;
+      closeModal();
+      updateBubbles();
+      return;
+    }
+
+    chargeCustomer(orderId, actualTotal);
+    closeModal();
+  };
+
+  document.getElementById('cancelBtn').onclick = closeModal;
+}
+
+
+
+  function renderOrders() {
+    orderListDiv.innerHTML = '';
+    const now = Date.now();
+    orders.forEach((o, idx) => {
+      const div = document.createElement('div');
+      div.className = 'order ' + o.status;
+      let timerText = '';
+      if (o.status === 'cooking') {
+        const diff = Math.max(0, o.readyAt - now);
+        const mins = Math.floor(diff / 60000);
+        const secs = Math.floor((diff % 60000) / 1000);
+        timerText = `Ready in ${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+
+        if(diff <= 0) {
+          o.status = 'ready';
+          o.readyAt = now + 3 * 60000;
+          o.serveTimer = now; // Start serving timer
+          timerText = 'Order is Ready!';
+          div.className = 'order green';
+        }
+      } else if (o.status === 'ready') {
+        // serveTimer counts from order.readyAt - 3 min timer
+        const servePassed = now - o.readyAt + 3 * 60000;
+        if (servePassed <= 60000) {
+          // 0-1 min green
+          div.className = 'order green';
+          timerText = 'Order is Ready! (Green)';
+        } else if (servePassed <= 2 * 60000) {
+          div.className = 'order yellow';
+          timerText = 'Order is Ready! (Yellow)';
+        } else if (servePassed <= 3 * 60000) {
+          div.className = 'order red';
+          timerText = 'Order is Ready! (Red)';
+        } else {
+          // time exceeded, refund and remove order
+          alert(`You took too long to serve Order #${o.id} — customer requested a refund.`);
+          balance -= o.total;
+          failedOrders++;
+          removeOrder(o.id);
+          renderOrders();
+          updateBubbles();
+          return;
+        }
+      }
+      div.textContent = `Order #${o.id} - Total: $${o.total.toFixed(2)} - ${timerText}`;
+      div.onclick = () => openServeModal(idx);
+      orderListDiv.appendChild(div);
+    });
+    updateBubbles();
+  }
+
+  // --- Modals ---
+function openOrderModal(index) {
+  const customer = customerQueue[index];
+  if (!customer) return;
+
+  let html = `<h3>Customer #${customer.id}'s Order</h3>`;
+  html += `<p><em>Tap each item to confirm you've read it.</em></p>`;
+  customer.orderItems.forEach((item, i) => {
+    const readClass = customer.readStatus[i] ? 'order-item read' : 'order-item';
+    html += `<div class="${readClass}" data-index="${i}">${item.name} - $${item.price.toFixed(2)}</div>`;
+  });
+  html += `<p><strong>Total: $${customer.total.toFixed(2)}</strong></p>`;  // total under items
+
+  if (customer.readStatus.every(Boolean)) {
+    html += `<button id="placeOrderBtn">Place Order</button>`;
+  }
+  html += `<button id="cancelBtn">Cancel</button>`;
+
+  modal.innerHTML = html;
+  modal.style.display = 'block';
+  modalOverlay.style.display = 'block';
+
+  // attach toggle handlers
+  const items = modal.querySelectorAll('.order-item');
+  items.forEach(el => {
+    el.onclick = () => {
+      const i = Number(el.dataset.index);
+      customer.readStatus[i] = !customer.readStatus[i];
+      openOrderModal(index);
+    };
+  });
+
+  const placeOrderBtn = document.getElementById('placeOrderBtn');
+  if (placeOrderBtn) {
+    placeOrderBtn.onclick = () => placeOrder(index);
+  }
+  document.getElementById('cancelBtn').onclick = closeModal;
+}
+
+
+
+function openChargeModal(index) {
+  const customer = customerQueue[index];
+  if (!customer) return;
+
+  let html = `<h3>Charge Customer #${customer.id}</h3>`;
+  html += `<p>Items Purchased:</p><ul>`;
+  customer.orderItems.forEach(item => {
+    html += `<li>${item.name}</li>`;  // no prices
+  });
+  html += `</ul>`;
+  html += `<button id="confirmBtn">Confirm Order</button>`;
+
+  modal.innerHTML = html;
+  modal.style.display = 'block';
+  modalOverlay.style.display = 'block';
+
+  document.getElementById('confirmBtn').onclick = () => {
+    closeModal();
+    showSection(sectionReceipts); // go to receipt queue
+  };
+}
+
+
+
+function openServeModal(orderIndex) {
+  const order = orders[orderIndex];
+  if (!order) return;
+
+  // Calculate time until ready
+  const now = Date.now();
+  const timeRemainingMs = order.readyAt - now;
+  const readyIn = timeRemainingMs > 0
+    ? `${Math.floor(timeRemainingMs / 60000)}:${String(Math.floor((timeRemainingMs % 60000) / 1000)).padStart(2, '0')}`
+    : 'Ready!';
+
+  // Show items WITHOUT prices
+  let html = `<h3>Serve Order #${order.id}</h3>`;
+  html += `<p><em>Time until ready: ${timeRemainingMs > 0 ? readyIn : 'Order is Ready!'}</em></p>`;
+  html += `<p>Items:</p><ul>`;
+  order.items.forEach(item => {
+    html += `<li>${item.name}</li>`;
+  });
+  html += `</ul>`;
+
+  // Buttons, disabled if order not ready
+  const buttonsDisabled = order.status !== 'ready' ? 'disabled' : '';
+
+  html += `
+    <div class="modal-buttons">
+      <button id="sendBackBtn" ${buttonsDisabled}>Send Back</button>
+      <button id="fillOrderBtn" ${buttonsDisabled}>Fill Order</button>
+    </div>
+    <button id="serveCancelBtn">Cancel</button>`;
+
+  modal.innerHTML = html;
+  modal.style.display = 'block';
+  modalOverlay.style.display = 'block';
+
+  if (order.status === 'ready') {
+    document.getElementById('sendBackBtn').onclick = () => sendBackOrder(orderIndex);
+    document.getElementById('fillOrderBtn').onclick = () => fillOrder(orderIndex);
+  }
+  document.getElementById('serveCancelBtn').onclick = closeModal;
+}
+
+
+  function closeModal() {
+    modal.style.display = 'none';
+    modalOverlay.style.display = 'none';
+  }
+
+  // --- Gameplay logic ---
+  function placeOrder(index) {
+    const customer = customerQueue[index];
+    if (!customer.readStatus.every(x => x)) {
+      alert("Please confirm all items before placing the order.");
+      return;
+    }
+    customer.status = 'yellow'; // waiting to be charged
+    receipts.push({ id: customer.id, total: customer.total });
+    closeModal();
+    renderCustomers();
+    renderReceipts();
+    showSection(sectionCustomers);
+  }
+
+  function chargeCustomer(inputId, inputTotal) {
+    // Match receipt and customer
+    const receiptIdx = receipts.findIndex(r => r.id == inputId && r.total === inputTotal);
+    if (receiptIdx === -1) {
+      alert("Incorrect order number or total. Customer complained!");
+      failedOrders++;
+      updateBubbles();
+      closeModal();
+      return;
+    }
+    const customerIdx = customerQueue.findIndex(c => c.id == inputId && c.status === 'yellow');
+    if (customerIdx === -1) {
+      alert("Customer not found or already processed.");
+      closeModal();
+      return;
+    }
+    // Charge success
+    receipts.splice(receiptIdx, 1);
+    const customer = customerQueue[customerIdx];
+    customer.status = 'green'; // paid and cooking
+    // Add to cooking orders with 2-5 min timer
+    const cookingTimeMs = Math.floor(Math.random() * 180000) + 120000;
+    orders.push({
+      id: customer.id,
+      items: customer.orderItems,
+      total: customer.total,
+      status: 'cooking',
+      readyAt: Date.now() + cookingTimeMs,
+      serveTimer: null
+    });
+    balance += customer.total;
+    closeModal();
+    renderCustomers();
+    renderReceipts();
+    renderOrders();
+    updateBubbles();
+    showSection(sectionReceipts);
+  }
+
+  function removeOrder(orderId) {
+    // Remove order and corresponding customer
+    const oIdx = orders.findIndex(o => o.id === orderId);
+    if (oIdx !== -1) orders.splice(oIdx, 1);
+    const cIdx = customerQueue.findIndex(c => c.id === orderId);
+    if (cIdx !== -1) customerQueue.splice(cIdx, 1);
+    renderCustomers();
+    renderOrders();
+    updateBubbles();
+  }
+
+  // Send Back order logic
+  function sendBackOrder(orderIndex) {
+    const order = orders[orderIndex];
+    if (!order) return;
+    closeModal();
+    // Show prompt: Is order really wrong or not?
+    if (confirm("Is the order really wrong? Press OK for Yes, Cancel for No.")) {
+      // Order really wrong - Kitchen thanks you, +$1 tip, timer resets
+      alert("Kitchen thanks you! +$1 tip. Order timer reset.");
+      balance += 1;
+      // Reset cooking timer to 2-5 mins from now
+      order.status = 'cooking';
+      order.readyAt = Date.now() + (Math.floor(Math.random() * 180000) + 120000);
+      order.serveTimer = null;
+      renderOrders();
+      updateBubbles();
+    } else {
+      // Order is correct - Kitchen complains, lose half order total, timer resets
+      alert("Kitchen complains! You lost half the order total. Timer reset.");
+      balance -= order.total / 2;
+      order.status = 'cooking';
+      order.readyAt = Date.now() + (Math.floor(Math.random() * 180000) + 120000);
+      order.serveTimer = null;
+      renderOrders();
+      updateBubbles();
+    }
+  }
+
+  // Fill Order logic
+  function fillOrder(orderIndex) {
+    const order = orders[orderIndex];
+    if (!order) return;
+    closeModal();
+
+    if (confirm("Was the order served correctly? OK=Yes, Cancel=No")) {
+      // Correct: order complete, chance for tip 0-15%
+      const tipPercent = Math.random() * 0.15;
+      const tip = order.total * tipPercent;
+      balance += tip;
+      alert(`Order Complete! You earned a tip of $${tip.toFixed(2)}.`);
+      removeOrder(order.id);
+    } else {
+      // Wrong: refund full order cost
+      alert("Order Incomplete. Customer wants a refund.");
+      balance -= order.total;
+      removeOrder(order.id);
+      failedOrders++;
+    }
+    updateBubbles();
+  }
+
+  // Add new random customer
+  function addCustomer() {
+    if (gameOver) return;
+    const itemCount = Math.floor(Math.random() * 3) + 1; // 1-3 items
+    const items = [];
+    for (let i=0; i<itemCount; i++) {
+      const item = menu[Math.floor(Math.random() * menu.length)];
+      items.push(item);
+    }
+    const id = randomId();
+    const total = items.reduce((acc, i) => acc + i.price, 0);
+    customerQueue.push({
+      id,
+      orderItems: items,
+      total,
+      status: 'red',
+      readStatus: Array(items.length).fill(false)
+    });
+    renderCustomers();
+  }
+
+  // Timers for cooking and order management
+  setInterval(() => {
+    if (gameOver) return;
+    renderOrders();
+    if (failedOrders >= 10) {
+      gameOver = true;
+      const activeOrdersTotal = orders.reduce((acc,o) => acc + o.total, 0);
+      const penalty = activeOrdersTotal * 2 + failedOrders * orders.reduce((acc,o) => acc + o.total, 0);
+      alert(`Too many mistakes! Game Over.\nYou lose double total of active orders plus all failed orders.\nPenalty: $${penalty.toFixed(2)}`);
+      balance -= penalty;
+      updateBubbles();
+      // Reset game or disable
+      // Here we disable adding new customers and buttons
+      btnReceipts.disabled = true;
+      btnOrders.disabled = true;
+      btnCustomers.disabled = true;
+      btnCloseShop.disabled = true;
+    }
+  }, 1000);
+
+  // Randomly add customers every 1-30 seconds
+  setInterval(() => {
+    if (gameOver) return;
+    addCustomer();
+  }, Math.floor(Math.random() * 29000) + 1000);
+
+  // --- Button handlers ---
+  btnCustomers.onclick = () => showSection(sectionCustomers);
+  btnReceipts.onclick = () => showSection(sectionReceipts);
+  btnOrders.onclick = () => showSection(sectionOrders);
+
+  btnCloseShop.onclick = () => {
+    if (orders.length === 0) {
+      if (confirm("Are you sure you want to close the shop?")) {
+        alert(`Shop closed! Final balance: $${balance.toFixed(2)}`);
+        // Reset game state:
+        customerQueue = [];
+        receipts = [];
+        orders = [];
+        failedOrders = 0;
+        balance = 0;
+        gameOver = false;
+        updateBubbles();
+        renderCustomers();
+        renderReceipts();
+        renderOrders();
+        showSection(sectionCustomers);
+        btnReceipts.disabled = false;
+        btnOrders.disabled = false;
+        btnCustomers.disabled = false;
+        btnCloseShop.disabled = false;
+      }
+    } else {
+      alert("You can't close shop while orders are still active!");
+    }
+  };
+
+  // Clicking a customer:
+  function openOrderModalWrapper(index) {
+    const customer = customerQueue[index];
+    if (!customer) return;
+    if (customer.status === 'red') {
+      openOrderModal(index);
+    } else if (customer.status === 'yellow') {
+      openChargeModal(index);
+    } else {
+      alert("This customer has already been charged.");
+    }
+  }
+
+  // Override customerQueueDiv onclick delegation:
+  customerQueueDiv.addEventListener('click', e => {
+    let target = e.target;
+    while(target && target !== customerQueueDiv) {
+      if (target.classList.contains('customer')) {
+        // find index
+        const idx = [...customerQueueDiv.children].indexOf(target);
+        if (idx >= 0) openOrderModalWrapper(idx);
+        break;
+      }
+      target = target.parentElement;
+    }
+  });
+
+  // Init
+  showSection(sectionCustomers);
+  updateBubbles();
+function renderMenu() {
+  const menuList = document.getElementById('menuList');
+  menuList.innerHTML = '';
+  menu.forEach(item => {
+    const li = document.createElement('li');
+    li.textContent = `${item.name} - $${item.price.toFixed(2)}`;
+    menuList.appendChild(li);
+  });
+}
+
+})();
+</script>
+
+</body>
+</html>
+
+move enter order number: and eenter order total and charge customer button to when recipt is click in recipts; 
+
+leave "Charge customer #_____ in yellow costomer click
+
+
+remove enter order number and endter order number from custumer queue options
+
+when orders complete make the game sometime get them wrong ensuring the player have to check the recipt or order befor confirming
