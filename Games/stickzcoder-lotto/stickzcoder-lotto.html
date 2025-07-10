@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>StickzCoder.Lua Lotto - Script Your Luck!</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Courier New', Courier, monospace;
+      background-color: #1e1e1e;
+      color: #d4d4d4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px;
+    }
+
+    .ticket {
+      background-color: #2d2d2d;
+      border: 2px solid #3c3c3c;
+      border-radius: 10px;
+      width: 350px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.5);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .title {
+      color: #4fc1ff;
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .tagline {
+      color: #6a9955;
+      font-style: italic;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      color: #c586c0;
+      margin: 15px 0 10px;
+      font-size: 18px;
+    }
+
+    .scratch-line {
+      background-color: #1e1e1e;
+      border: 1px dashed #555;
+      border-radius: 5px;
+      padding: 8px 12px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .scratch-line:hover {
+      background-color: #333;
+    }
+
+    .revealed {
+      background-color: #0e639c !important;
+      color: #ffffff;
+      border: 1px solid #0e639c;
+    }
+
+    .winning {
+      background-color: #0e639c;
+      padding: 8px;
+      border-radius: 5px;
+      margin-top: 20px;
+      color: #fff;
+    }
+
+    .footer {
+      margin-top: 30px;
+      font-size: 12px;
+      color: #808080;
+      text-align: center;
+      max-width: 300px;
+    }
+
+    #results-box, #total-winnings {
+      text-align: center;
+      font-size: 18px;
+      margin-top: 10px;
+    }
+
+    #results-box {
+      color: #6a9955;
+    }
+
+    #total-winnings {
+      color: #dcdcaa;
+      font-weight: bold;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      background-color: #4fc1ff;
+      color: #1e1e1e;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background-color: #379fd8;
+    }
+
+    code {
+      color: #dcdcaa;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ticket" id="lotto-ticket">
+    <div class="title">StickzCoder.Lua Lotto</div>
+    <div class="tagline">“Script Your Luck!”</div>
+
+    <div class="section-title">Scratch Functions</div>
+    <div class="scratch-line" onclick="scratch(this)">function1() -- ?</div>
+    <div class="scratch-line" onclick="scratch(this)">function2() -- ?</div>
+    <div class="scratch-line" onclick="scratch(this)">function3() -- ?</div>
+    <div class="scratch-line" onclick="scratch(this)">function4() -- ?</div>
+    <div class="scratch-line" onclick="scratch(this)">function5() -- ?</div>
+
+    <div class="section-title">-- Winning Values</div>
+    <div class="winning">prize = 10000</div>
+    <div class="winning">bonus = print("Winner!")</div>
+
+    <div class="section-title">🎁 Bonus Scratch Corner</div>
+    <div class="scratch-line" id="bonus-scratch" onclick="bonusScratch()">-- Bonus() ?</div>
+
+    <div class="footer">
+      Match 3 of the same functions or find <code>StickzCoder.Lua()</code><br>
+      Uncover <code>print("Winner!")</code> to win instantly.<br>
+      Bonus Corner may surprise you!<br><br>
+      This is a demo interactive scratch card for entertainment purposes.
+    </div>
+  </div>
+
+  <div id="results-box"></div>
+  <div id="total-winnings">Total Winnings: $0</div>
+
+  <button onclick="resetTicket()">Scratch Another Ticket</button>
+  <button onclick="leaveLotto()">Leave</button>
+
+  <script>
+    const weightedResults = [
+      ...Array(30).fill('print("Try Again")'),
+      ...Array(6).fill('prize = 10'),
+      ...Array(3).fill('prize = 50'),
+      ...Array(1).fill('prize = 100'),
+      ...Array(1).fill('StickzCoder.Lua()'),
+      ...Array(1).fill('print("Winner!")')
+    ];
+
+    const bonusResults = [
+      'bonus = 0',
+      'bonus = 5',
+      'bonus = 25',
+      'bonus = 50',
+      'bonus = StickzBonus.Lua()'
+    ];
+
+    let revealedResults = [];
+    let totalWon = 0;
+    let bonusRevealed = false;
+
+    function scratch(el) {
+      if (el.classList.contains('revealed')) return;
+
+      const outcome = weightedResults[Math.floor(Math.random() * weightedResults.length)];
+      el.textContent = `${el.textContent.split('--')[0]}-- ${outcome}`;
+      el.classList.add('revealed');
+      revealedResults.push(outcome);
+      calculateWinnings();
+    }
+
+    function calculateWinnings() {
+      const counts = {};
+      let wonThisTicket = 0;
+      let instantWin = false;
+
+      revealedResults.forEach(result => {
+        counts[result] = (counts[result] || 0) + 1;
+
+        if (result === 'print("Winner!")') instantWin = true;
+        if (result === 'prize = 10') wonThisTicket += 10;
+        if (result === 'prize = 50') wonThisTicket += 50;
+        if (result === 'prize = 100') wonThisTicket += 100;
+        if (result === 'StickzCoder.Lua()') wonThisTicket += 500;
+      });
+
+      let message = instantWin
+        ? "🎉 Instant Win! You found print(\"Winner!\")!"
+        : wonThisTicket > 0
+          ? `💰 You won $${wonThisTicket} this ticket!`
+          : revealedResults.length === 5
+            ? "😢 No winnings this time. Try again!"
+            : "";
+
+      totalWon += wonThisTicket;
+      document.getElementById('results-box').textContent = message;
+      document.getElementById('total-winnings').textContent = `Total Winnings: $${totalWon}`;
+    }
+
+    function bonusScratch() {
+      if (bonusRevealed) return;
+
+      const el = document.getElementById('bonus-scratch');
+      const result = bonusResults[Math.floor(Math.random() * bonusResults.length)];
+      el.textContent = `-- ${result}`;
+      el.classList.add('revealed');
+      bonusRevealed = true;
+
+      let bonusAmount = 0;
+      if (result === 'bonus = 5') bonusAmount = 5;
+      if (result === 'bonus = 25') bonusAmount = 25;
+      if (result === 'bonus = 50') bonusAmount = 50;
+      if (result === 'bonus = StickzBonus.Lua()') bonusAmount = 100;
+
+      totalWon += bonusAmount;
+
+      const bonusText = bonusAmount > 0
+        ? ` 🎁 +$${bonusAmount} bonus!`
+        : ` 🙃 Bonus gave nothing...`;
+
+      document.getElementById('results-box').textContent += bonusText;
+      document.getElementById('total-winnings').textContent = `Total Winnings: $${totalWon}`;
+    }
+
+    function resetTicket() {
+      const lines = document.querySelectorAll('.scratch-line');
+      lines.forEach((line, i) => {
+        if (line.id !== "bonus-scratch") {
+          line.textContent = `function${i + 1}() -- ?`;
+          line.classList.remove('revealed');
+        }
+      });
+
+      const bonus = document.getElementById('bonus-scratch');
+      bonus.textContent = "-- Bonus() ?";
+      bonus.classList.remove('revealed');
+      bonusRevealed = false;
+
+      revealedResults = [];
+      document.getElementById('results-box').textContent = '';
+    }
+
+    function leaveLotto() {
+      window.location.href = "../index.html";
+    }
+  </script>
+
+</body>
+</html>
