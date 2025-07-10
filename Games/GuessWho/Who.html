@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Guess Who? - WHO</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>🤫 You Are the WHO</h1>
+    <p><strong>Connect Code:</strong> <span id="connectCodeDisplay"></span></p>
+    <p><strong>Secret Character:</strong> <span id="secretChar"></span></p>
+    <img id="whoCharacterImg" class="character-img" alt="Secret Character" />
+
+    <div class="actionButtons">
+      <button onclick="markCorrect()">✅ Right Name</button>
+      <button onclick="markWrong()">❌ Wrong Name</button>
+      <button onclick="logQuestion()">❓ Log Asked Question</button>
+      <button onclick="toggleSound()">🔈 Toggle Sound</button>
+    </div>
+
+    <div id="logBox"></div>
+
+    <div id="winPanel" style="display:none">
+      <h2>🏆 Winner!</h2>
+      <p id="winnerInfo"></p>
+      <button onclick="playAgain()">🔁 Play Again</button>
+    </div>
+  </div>
+
+  <audio id="sfx-correct" src="assets/sfx/correct.mp3"></audio>
+  <audio id="sfx-wrong" src="assets/sfx/wrong.mp3"></audio>
+  <audio id="sfx-question" src="assets/sfx/question.mp3"></audio>
+  <audio id="sfx-win" src="assets/sfx/win.mp3"></audio>
+
+  <script src="js/game.js"></script>
+  <script>
+    const connectCode = localStorage.getItem('connectCode');
+    const playerName = localStorage.getItem('playerName');
+
+const characterList = [
+  'Aaron', 'Adam', 'Adrian', 'Arthur', 'August', 'Austin', 'Axel',
+  'Benjamin', 'Carson', 'Charles', 'Chloe', 'Chris', 'Christian', 'Connor', 'Craig',
+  'Daniel', 'Darren', 'David', 'Derrick', 'Destin', 'Dominic', 'Elias', 'Elijah',
+  'Emiliano', 'Emmett', 'Eric', 'Gary', 'Graham', 'Harrison', 'Hudson', 'Ian',
+  'Jack', 'Jackson', 'James', 'Jeff', 'Johnathan', 'Jordan', 'Justin', 'Kristen',
+  'Landon', 'Lewis', 'Liam', 'Lincoln', 'Luca', 'Marty', 'Mateo', 'Michael', 'Mike',
+  'Noah', 'Nolan', 'Oakley', 'Parker', 'Rqaymond', 'Ryker', 'Sebastian', 'Staven',
+  'Steven', 'Theodore', 'Vincent', 'Walker', 'Waylon', 'William', 'Zachary', 'Zander'
+];
+
+    if (!connectCode || !playerName) {
+      alert('Missing connect code or player name. Please return to the main page.');
+      window.location.href = 'GuessWho.html';
+    }
+
+    function loadGameInfo() {
+      const gameDataStr = localStorage.getItem(`guesswho-${connectCode}`);
+      if (!gameDataStr) {
+        alert('Game data not found. Please create a game first.');
+        window.location.href = 'GuessWho.html';
+        return null;
+      }
+      return JSON.parse(gameDataStr);
+    }
+
+    function refreshUI() {
+      const game = loadGameInfo();
+      if (!game) return;
+
+      document.getElementById('connectCodeDisplay').textContent = connectCode;
+      document.getElementById('secretChar').textContent = game.whoCharacter;
+      document.getElementById('whoCharacterImg').src = `characters/${game.whoCharacter}.jpg`;
+
+      updateTurnUI();
+      updateLogBox();
+      showWinScreen();
+    }
+
+    function markCorrect() {
+      const game = loadGameInfo();
+      if (!game) return;
+
+      if (game.gameState === 'won') return;
+
+      game.winner = game.currentTurn;
+      game.gameState = 'won';
+      saveGameState(game);
+      addLog(`✅ ${game.currentTurn} guessed correctly!`);
+      playSFX('sfx-win');
+      showWinScreen();
+    }
+
+    function markWrong() {
+      const game = loadGameInfo();
+      if (!game) return;
+
+      if (game.gameState === 'won') return;
+
+      addLog(`❌ ${game.currentTurn} guessed wrong.`);
+      playSFX('sfx-wrong');
+      nextTurn();
+    }
+
+    function logQuestion() {
+      const game = loadGameInfo();
+      if (!game) return;
+
+      if (game.gameState === 'won') return;
+
+      addLog(`❓ ${game.currentTurn} asked a question.`);
+      playSFX('sfx-question');
+    }
+
+    function playAgain() {
+      const game = loadGameInfo();
+      if (!game) return;
+
+      game.round = (game.round || 1) + 1;
+      game.gameState = 'active';
+      game.currentTurn = game.guessers[0];
+      delete game.winner;
+      saveGameState(game);
+      localStorage.setItem(`guesswho-${connectCode}-log`, JSON.stringify([]));
+      window.location.href = 'GuessWho.html';
+    }
+
+    setInterval(refreshUI, 1000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Guess Who? - Guesser</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>🎯 You Are a Guesser</h1>
+    <p><strong>Connect Code:</strong> <span id="connectCodeDisplay"></span></p>
+    <p><strong>Round:</strong> <span id="roundNum">1</span></p>
+    <p><strong>Current Turn:</strong> <span id="currentTurnDisplay"></span></p>
+
+    <div id="characterGrid" class="grid"></div>
+
+    <div class="actionButtons">
+      <button id="btnAsk" onclick="askQuestion()">❓ Ask Question</button>
+      <select id="guessSelect"></select>
+      <button id="btnGuess" onclick="makeGuess()">🎯 Guess</button>
+      <button onclick="toggleSound()">🔈 Toggle Sound</button>
+    </div>
+
+    <div id="logBox"></div>
+
+    <div id="winPanel" style="display:none">
+      <h2>🏆 Winner!</h2>
+      <p id="winnerInfo"></p>
+      <button onclick="playAgain()">🔁 Play Again</button>
+    </div>
+  </div>
+
+  <audio id="sfx-correct" src="assets/sfx/correct.mp3"></audio>
+  <audio id="sfx-wrong" src="assets/sfx/wrong.mp3"></audio>
+  <audio id="sfx-question" src="assets/sfx/question.mp3"></audio>
+  <audio id="sfx-win" src="assets/sfx/win.mp3"></audio>
+
+  <script src="js/game.js"></script>
+  <script>
+    const connectCode = localStorage.getItem('connectCode');
+    const playerName = localStorage.getItem('playerName');
+
+    if (!connectCode || !playerName) {
+      alert('Missing connect code or player name. Please return to the main page.');
+      window.location.href = 'GuessWho.html';
+    }
+
+    function loadGameInfo() {
+      const gameDataStr = localStorage.getItem(`guesswho-${connectCode}`);
+      if (!gameDataStr) {
+        alert('Game data not found. Please join an existing game.');
+        window.location.href = 'GuessWho.html';
+        return null;
+      }
+      return JSON.parse(gameDataStr);
+    }
+
+    function refreshUI() {
+      const game = loadGameInfo();
+      if (!game) return;
+
+      document.getElementById('connectCodeDisplay').textContent = connectCode;
+      document.getElementById('roundNum').textContent = game.round || 1;
+      document.getElementById('currentTurnDisplay').textContent = game.currentTurn || '';
+
+      // Fill guess dropdown
+      const guessSelect = document.getElementById('guessSelect');
+      guessSelect.innerHTML = '';
+      // Use characters from your game or guessers for dropdown options
+const characterList = [
+  'Aaron', 'Adam', 'Adrian', 'Arthur', 'August', 'Austin', 'Axel',
+  'Benjamin', 'Carson', 'Charles', 'Chloe', 'Chris', 'Christian', 'Connor', 'Craig',
+  'Daniel', 'Darren', 'David', 'Derrick', 'Destin', 'Dominic', 'Elias', 'Elijah',
+  'Emiliano', 'Emmett', 'Eric', 'Gary', 'Graham', 'Harrison', 'Hudson', 'Ian',
+  'Jack', 'Jackson', 'James', 'Jeff', 'Johnathan', 'Jordan', 'Justin', 'Kristen',
+  'Landon', 'Lewis', 'Liam', 'Lincoln', 'Luca', 'Marty', 'Mateo', 'Michael', 'Mike',
+  'Noah', 'Nolan', 'Oakley', 'Parker', 'Rqaymond', 'Ryker', 'Sebastian', 'Staven',
+  'Steven', 'Theodore', 'Vincent', 'Walker', 'Waylon', 'William', 'Zachary', 'Zander'
+];
+      characters.forEach(char => {
+        const option = document.createElement('option');
+        option.value = char;
+        option.textContent = char;
+        guessSelect.appendChild(option);
+      });
+
+      // Populate character grid
+      const grid = document.getElementById('characterGrid');
+      grid.innerHTML = '';
+      characters.forEach(char => {
+        const img = document.createElement('img');
+        img.src = `characters/${char}.png`;
+        img.alt = char;
+        img.className = 'character-img';
+        img.onclick = () => img.classList.toggle('dimmed');
+        grid.appendChild(img);
+      });
+
+      updateTurnUI();
+      updateLogBox();
+      showWinScreen();
+    }
+
+    setInterval(refreshUI, 1000);
+  </script>
+</body>
+</html>

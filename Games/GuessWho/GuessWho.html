@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Guess Who? - Start</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .hidden { display: none; }
+    .roleBtn {
+      background: var(--color1);
+      border: none;
+      padding: 12px 24px;
+      margin: 10px;
+      font-size: 18px;
+      cursor: pointer;
+      border-radius: 8px;
+      color: #000;
+      box-shadow: 0 0 10px var(--color1);
+      transition: transform 0.2s;
+    }
+    .roleBtn:hover {
+      transform: scale(1.1);
+    }
+    #errorMsg {
+      color: #FF5555;
+      margin: 10px 0;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎮 Guess Who? - Multiplayer Setup</h1>
+    <p>Select your role:</p>
+    <button class="roleBtn" onclick="selectRole('who')">I'm the WHO (Host)</button>
+    <button class="roleBtn" onclick="selectRole('guesser')">I'm a GUESSER</button>
+
+    <div id="whoSetup" class="hidden">
+      <h2>Host Setup</h2>
+      <input type="text" id="hostName" placeholder="Enter your name (Host)" />
+      <textarea id="guesserNames" placeholder="Enter guesser names, comma separated"></textarea><br />
+      <button onclick="createGame()">Create Game & Get Connect Code</button>
+      <p><strong>Connect Code:</strong> <span id="connectCodeDisplay"></span></p>
+      <button onclick="goToWhoPage()" class="hidden" id="goWhoBtn">Go to Your Game</button>
+    </div>
+
+    <div id="guesserSetup" class="hidden">
+      <h2>Join a Game</h2>
+      <input type="text" id="guesserNameInput" placeholder="Enter your name" />
+      <input type="text" id="connectCodeInput" placeholder="Enter Connect Code" maxlength="4" />
+      <button onclick="joinGame()">Join Game</button>
+      <p id="errorMsg"></p>
+    </div>
+  </div>
+
+  <script>
+    function selectRole(role) {
+      document.getElementById('whoSetup').classList.toggle('hidden', role !== 'who');
+      document.getElementById('guesserSetup').classList.toggle('hidden', role !== 'guesser');
+      document.getElementById('errorMsg').textContent = '';
+    }
+
+    function createGame() {
+      const hostName = document.getElementById('hostName').value.trim();
+      const guesserNamesRaw = document.getElementById('guesserNames').value.trim();
+      const connectCodeSpan = document.getElementById('connectCodeDisplay');
+      const goBtn = document.getElementById('goWhoBtn');
+
+      if (!hostName) {
+        alert('Please enter your name.');
+        return;
+      }
+      if (!guesserNamesRaw) {
+        alert('Please enter at least one guesser name.');
+        return;
+      }
+      const guessers = guesserNamesRaw.split(',').map(name => name.trim()).filter(n => n);
+      if (guessers.length === 0) {
+        alert('Please enter valid guesser names.');
+        return;
+      }
+
+      // Generate 4-digit connect code (unique enough)
+      const connectCode = Math.floor(1000 + Math.random() * 9000).toString();
+
+      // Select random secret character (example set, you can extend)
+      const characters = ['Alex', 'Jamie', 'Chris', 'Taylor', 'Jordan', 'Morgan', 'Cameron', 'Skyler'];
+      const whoCharacter = characters[Math.floor(Math.random() * characters.length)];
+
+      // Create game object
+      const gameData = {
+        role: 'who',
+        whoName: hostName,
+        guessers,
+        whoCharacter,
+        round: 1,
+        currentTurn: guessers[0],
+        gameState: 'active',
+      };
+
+      // Save all data to localStorage using connect code key
+      localStorage.setItem('connectCode', connectCode);
+      localStorage.setItem('playerName', hostName);
+      localStorage.setItem(`guesswho-${connectCode}`, JSON.stringify(gameData));
+      localStorage.setItem(`guesswho-${connectCode}-log`, JSON.stringify([]));
+
+      // Show connect code to host
+      connectCodeSpan.textContent = connectCode;
+      goBtn.classList.remove('hidden');
+    }
+
+    function goToWhoPage() {
+      window.location.href = 'Who.html';
+    }
+
+    function joinGame() {
+      const guesserName = document.getElementById('guesserNameInput').value.trim();
+      const connectCode = document.getElementById('connectCodeInput').value.trim();
+      const errorMsg = document.getElementById('errorMsg');
+
+      errorMsg.textContent = '';
+
+      if (!guesserName) {
+        errorMsg.textContent = 'Please enter your name.';
+        return;
+      }
+      if (!connectCode || connectCode.length !== 4) {
+        errorMsg.textContent = 'Please enter a valid 4-digit Connect Code.';
+        return;
+      }
+
+      const gameDataStr = localStorage.getItem(`guesswho-${connectCode}`);
+      if (!gameDataStr) {
+        errorMsg.textContent = 'Game not found with that Connect Code!';
+        return;
+      }
+
+      const gameData = JSON.parse(gameDataStr);
+      if (!gameData.guessers.includes(guesserName)) {
+        errorMsg.textContent = 'Your name is not registered as a guesser in this game!';
+        return;
+      }
+
+      // Save to localStorage and redirect to Guess.html
+      localStorage.setItem('connectCode', connectCode);
+      localStorage.setItem('playerName', guesserName);
+      localStorage.setItem('role', 'guesser');
+
+      window.location.href = 'Guess.html';
+    }
+  </script>
+</body>
+</html>
