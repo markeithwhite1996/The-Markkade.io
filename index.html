@@ -1,461 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>TheMarkkade.io</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
-<style>
-  /* Reset & base */
-  * {
-    box-sizing: border-box;
-    margin: 0; padding: 0;
-  }
-  body, html {
-    height: 100%;
-    font-family: 'Roboto', sans-serif;
-    background: #111;
-    color: #eee;
-    overflow-x: hidden;
-    position: relative;
-    min-height: 100vh;
-  }
-  header {
-    background: #1a1a1a;
-    padding: 1rem 1rem 0.5rem;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 10px rgba(0,255,0,0.3);
-    flex-wrap: wrap;
-  }
-  header h1 {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 1.8rem;
-    color: #00ff6e;
-    text-shadow: 0 0 5px #0f0;
-    animation: glitch 2s infinite;
-  }
-  header a#balanceButton {
-    background: linear-gradient(45deg, #00ff6e, #008000);
-    border: none;
-    border-radius: 25px;
-    padding: 0.5rem 1rem;
-    font-weight: bold;
-    cursor: pointer;
-    color: #000;
-    box-shadow: 0 0 15px #00ff6e;
-    font-size: 1rem;
-    user-select: none;
-    text-decoration: none;
-    text-align: center;
-    min-width: 120px;
-  }
-  header a#balanceButton:hover,
-  header a#balanceButton:focus {
-    background: linear-gradient(45deg, #00ee60, #00cc44);
-    box-shadow: 0 0 20px #00ff80;
-    outline: none;
-  }
-  /* Background particles container */
-  #particleCanvas {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 1;
-    background: linear-gradient(135deg, #001100, #004400);
-  }
-
-  /* Swipeable categories bar locked below header */
-  #categorySwipe {
-    margin: 0;
-    overflow-x: auto;
-    overflow-y: hidden;
-    white-space: nowrap;
-    padding: 1.5rem 2rem 1.5rem 1rem;
-    -webkit-overflow-scrolling: touch;
-    border-bottom: 1px solid #222;
-    background: #161616;
-    position: sticky;
-    top: 66px; /* height of header approx + small gap */
-    z-index: 90;
-  }
-  #categorySwipe button {
-    display: inline-block;
-    background: #222;
-    color: #00ff6e;
-    border: none;
-    border-radius: 20px;
-    padding: 0.8rem 1.8rem;
-    margin-right: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background 0.3s ease;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 1.1rem;
-    user-select: none;
-    white-space: nowrap;
-  }
-  #categorySwipe button.active,
-  #categorySwipe button:hover {
-    background: #00ff6e;
-    color: #000;
-    box-shadow: 0 0 10px #00ff6e;
-  }
-
-  /* Categories container */
-  #categoriesContainer {
-    padding: 1rem 1rem rem;
-    position: relative;
-    z-index: 10;
-    max-width: 900px;
-    margin: 0 auto;
-  }
-  .category-section {
-  margin-bottom: 1.5rem; /* reduced from 3rem to 1.5rem */
-  }
-  .category-section h2 {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 1.7rem;
-    color: #a5ffcb;
-    text-shadow: 0 0 10px #00ff6e;
-    margin-bottom: 1rem;
-    animation: glitch 2s infinite;
-  }
-  /* Horizontal list for all games grouped by category */
-  .category-section.all .game-list {
-    display: flex;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    gap: 1rem;
-    padding-bottom: 0.5rem;
-  }
-  .category-section.all .game-list::-webkit-scrollbar {
-    height: 8px;
-  }
-  .category-section.all .game-list::-webkit-scrollbar-thumb {
-    background: #00ff6e;
-    border-radius: 4px;
-  }
-  /* Vertical list for single category */
-  .category-section:not(.all) .game-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1.3rem;
-  }
-  .game-card {
-    background: linear-gradient(135deg, #1b1b1b, #2b2b2b);
-    border: 2px solid #0f0;
-    border-radius: 15px;
-    padding: 1.8rem 1rem; /* increased vertical padding from 1rem to 1.8rem */
-    box-shadow: 0 0 10px #0f0;
-    display: flex;
-    flex-direction: column;
-    animation: wobble 4s infinite ease-in-out;
-    cursor: default;
-    transition: transform 0.2s ease, box-shadow 0.3s ease;
-    min-width: 180px;
-    max-width: 220px;
-    flex-shrink: 0; /* prevent shrinking in horizontal scroll */
-  }
-  /* On vertical lists, override min/max width */
-  .category-section:not(.all) .game-card {
-    min-width: auto;
-    max-width: 100%;
-  }
-  .game-card:hover {
-    transform: scale(1.07);
-    box-shadow: 0 0 30px #00ff9c;
-    animation-play-state: paused;
-  }
-  .game-card h3 {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 1.2rem;
-    color: #0f0;
-    animation: glitchText 2.5s infinite;
-  }
-  .game-card p {
-    color: #ccc;
-    margin: 0.6rem 0 1.1rem;
-    font-size: 1rem;
-  }
-  .launch-btn {
-    align-self: flex-start;
-    background: linear-gradient(to right, #00ff6e, #55ff99);
-    border: none;
-    border-radius: 8px;
-    padding: 0.6rem 1.2rem;
-    font-weight: bold;
-    cursor: pointer;
-    color: #000;
-    font-size: 1rem;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    user-select: none;
-  }
-  .launch-btn:hover {
-    transform: scale(1.07);
-    box-shadow: 0 0 20px #00ff9c;
-  }
-
-  footer {
-    text-align: center;
-    padding: 2rem 1rem;
-    color: #888;
-    font-size: 0.9rem;
-    border-top: 1px solid #333;
-    margin-top: 2rem;
-    position: relative;
-    z-index: 10;
-  }
-
-  /* Animations */
-  @keyframes glitch {
-    0%, 100% { text-shadow: 2px 0 green, -2px 0 lime; }
-    50% { text-shadow: -2px 0 green, 2px 0 lime; }
-  }
-  @keyframes glitchText {
-    0%, 100% { transform: translate(0, 0); text-shadow: 0 0 2px lime; }
-    20% { transform: translate(-1px, 1px); text-shadow: -1px 1px red; }
-    40% { transform: translate(1px, -1px); text-shadow: 1px -1px blue; }
-    60% { transform: translate(-1px, 0); text-shadow: -2px 2px lime; }
-    80% { transform: translate(1px, 1px); text-shadow: 2px -2px magenta; }
-  }
-  @keyframes wobble {
-    0%, 100% { transform: rotate(0deg); }
-    15% { transform: rotate(1deg) translate(1px, 0); }
-    30% { transform: rotate(-1deg) translate(-1px, 0); }
-    45% { transform: rotate(1deg) translate(1px, 0); }
-    60% { transform: rotate(-1deg) translate(-1px, 0); }
-    75% { transform: rotate(1deg) translate(1px, 0); }
-    90% { transform: rotate(-1deg) translate(-1px, 0); }
-  }
-
-  /* Responsive */
-  @media (max-width: 700px) {
-    #categorySwipe {
-      padding: 1.2rem 1rem 1.2rem 1rem;
-      top: 56px; /* smaller header height on mobile */
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Loading...</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
-    #categorySwipe button {
-      padding: 0.6rem 1rem;
-      font-size: 1rem;
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      background: black;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-family: 'Courier New', Courier, monospace;
+      overflow: hidden;
     }
-    #categoriesContainer {
-      padding: 1rem 0.5rem 3rem;
+
+    .screen {
+      position: absolute;
+      opacity: 0;
+      transition: opacity 1s ease;
+      font-size: 2rem;
+      text-align: center;
     }
-    .game-card h3 {
-      font-size: 1.05rem;
+
+    .visible {
+      opacity: 1;
     }
-    .game-card p {
-      font-size: 0.9rem;
+
+    /* Glitch effect */
+    .glitch {
+      position: relative;
+      font-size: 2.5rem;
+      color: white;
+      animation: glitch 1s infinite;
     }
-  }
-</style>
+
+    @keyframes glitch {
+      0% { transform: translate(0); }
+      20% { transform: translate(-2px, 2px); }
+      40% { transform: translate(-2px, -2px); }
+      60% { transform: translate(2px, 2px); }
+      80% { transform: translate(2px, -2px); }
+      100% { transform: translate(0); }
+    }
+
+    .logo {
+      width: 100px;
+      height: auto;
+    }
+  </style>
 </head>
 <body>
 
-<header>
-  <h1>TheMarkkade.io</h1>
-  <a id="balanceButton" href="balance.html" aria-label="Go to balance page">Balance: <span id="indexBalance">$100</span></a>
-</header>
+  <div id="screen1" class="screen">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg" class="logo" alt="ChatGPT Logo" />
+  </div>
 
-<!-- Background Particles Canvas -->
-<canvas id="particleCanvas"></canvas>
+  <div id="screen2" class="screen">
+    StickzCoder.Lua - Markk
+  </div>
 
-<!-- Swipeable Categories Bar -->
-<div id="categorySwipe" role="tablist" aria-label="Game categories">
-  <button class="active" data-category="all" role="tab" aria-selected="true">All</button>
-  <button data-category="slots" role="tab" aria-selected="false">🎰 Slots</button>
-  <button data-category="scratch" role="tab" aria-selected="false">🎟️ Scratch</button>
-  <button data-category="brain" role="tab" aria-selected="false">🧠 Brain</button>
-  <button data-category="trivia" role="tab" aria-selected="false">🎓 Trivia</button>
-  <button data-category="jobs" role="tab" aria-selected="false">🧰 Jobs</button>
-  <button data-category="party" role="tab" aria-selected="false">🎉 Party</button>
-</div>
+  <div id="screen3" class="screen">
+    <div class="glitch">The Markkade.io</div>
+  </div>
 
-<!-- Categories Container -->
-<div id="categoriesContainer">
+  <script>
+    const screens = [
+      { id: "screen1", duration: 1500 },
+      { id: "screen2", duration: 2000 },
+      { id: "screen3", duration: 1500 }
+    ];
 
-  <!-- ALL: show all categories horizontally -->
-  <section class="category-section all" data-category="all" tabindex="0" aria-label="All games">
-<!-- Slot Machines -->
-<h2>🎰 Slot Machines</h2>
-<div class="game-list">
-  <article class="game-card"><h3>Markk'd Bills</h3><p>Tap fast before it fades!</p><button class="launch-btn" onclick="location.href='Games/Markk\'dBills/Markk\'dBills.html'">Launch</button></article>
-  <article class="game-card"><h3>10x Fruit Freezy</h3><p>Spin and win the juicy way!</p><button class="launch-btn" onclick="location.href='Games/Markk\'s10xFruitFreezy/Markk\'s10xFruitFreezy.html'">Launch</button></article>
-  <article class="game-card"><h3>Markk's Burgers</h3><p>Fast food meets fast cash!</p><button class="launch-btn" onclick="location.href='Games/McMarkk\'sBurgers/McMarkk\'sBurgers.html'">Launch</button></article>
-  <article class="game-card"><h3>Markk's Burgers 2</h3><p>Time your spins to land the perfect score.</p><button class="launch-btn" onclick="location.href='Games/McMarkk\'sBurgers/McMarkk\'sBurgers2.html'">Launch</button></article>
-</div>
+    let current = 0;
 
-<!-- Scratch-Off Tickets -->
-<h2>🎟️ Scratch-Off Tickets</h2>
-<div class="game-list">
-  <article class="game-card"><h3>Markk'dforFortune</h3><p>Scratch Your Fate and Get Markk’d.</p><button class="launch-btn" onclick="location.href='Games/Markk\'dforFortune/Markk\'dforFortune.html'">Launch</button></article>
-  <article class="game-card"><h3>Markk's Emotions</h3><p>What will your mood earn you?</p><button class="launch-btn" onclick="location.href='Games/Markk\'sEmotions/Markk\'sEmotions.html'">Launch</button></article>
-  <article class="game-card"><h3>StickzCoder.Lua Lotto</h3><p>Can You Get The Right Code?</p><button class="launch-btn" onclick="location.href='Games/stickzcoder-lotto/stickzcoder-lotto.html'">Launch</button></article>
-
-</div>
-
-<!-- Brain Games -->
-<h2>🧠 Brain Games</h2>
-<div class="game-list">
-  <article class="game-card"><h3>This+That</h3><p>Make words with emojis</p><button class="launch-btn" onclick="location.href='Games/This+That/This+That.html'">Launch</button></article>
-  <article class="game-card"><h3>Tic Tac Toe</h3><p>Classic strategy reimagined</p><button class="launch-btn" onclick="location.href='Games/TicTacToe/TicTacToe.html'">Launch</button></article>
-  <article class="game-card"><h3>Markk's Riddle Me This</h3><p>Wiggly, wavey colorful brain teaser</p><button class="launch-btn" onclick="location.href='Games/RiddleMeThis/RiddleMeThis.html'">Launch</button></article>
-  <article class="game-card"><h3>Memory Match</h3><p>Find the pairs before time runs out!</p><button class="launch-btn" onclick="location.href='Games/MemoryMatch/MemoryMatch.html'">Launch</button></article>
-  <article class="game-card"><h3>Connect4</h3><p>Drop discs, think fast, connect four to win!</p><button class="launch-btn" onclick="location.href='Games/Connect4/Connect4.html'">Launch</button></article>
-  <article class="game-card"><h3>HangMan</h3><p>Classic word game with a twist of Markk!</p><button class="launch-btn" onclick="location.href='Games/HangMan/HangMan.html'">Launch</button></article>
-  <article class="game-card"><h3>Word Search</h3><p>Find the hidden words to win!</p><button class="launch-btn" onclick="location.href='Games/WordSearch/WordSearch.html'">Launch</button></article>
-</div>
-
-<!-- Trivia -->
-<h2>🎓 Trivia Challenges</h2>
-<div class="game-list">
-  <article class="game-card"><h3>Markk's Mobile</h3><p>Can You Unlock His Screen?!</p><button class="launch-btn" onclick="location.href='Games/Markk\'sMobile/Markk\'sMobile.html'">Launch</button></article>
-</div>
-
-<!-- Jobs -->
-<h2>🧰 Jobs</h2>
-<div class="game-list">
-  <article class="game-card"><h3>Food-O-Mania</h3><p>Serve up chaos in this fast-paced food frenzy!</p><button class="launch-btn" onclick="location.href='Games/Food-O-Mania/Food-O-Mania.html'">Launch</button></article>
-</div>
-
-<!-- Party Games -->
-<h2>🎉 Party Games</h2>
-<div class="game-list">
-  <article class="game-card"><h3>Markk's Poker Face Truth or Lie</h3><p>A truth-or-bluff party challenge!</p><button class="launch-btn" onclick="location.href='Games/TrUtHoRlIe/TrUtHoRlIe.html'">Launch</button></article>
-  <article class="game-card"><h3>Guess Who</h3><p>Guess your opponent’s character before they guess yours!</p><button class="launch-btn" onclick="location.href='Games/GuessWho/GuessWho.html'">Launch</button></article>
-  <article class="game-card"><h3>Bingo</h3><p>Classic multiplayer number-calling fun!</p><button class="launch-btn" onclick="location.href='Games/Bingo/Bingo.html'">Launch</button></article>
-</div>
-
-  </section>
-
-</div>
-
-<footer>
-  &copy; 2025 TheMarkkade.io | Powered by Markk 🌿
-</footer>
-
-<script>
-  // Initialize player cash display
-  if (!localStorage.getItem('playerCash')) {
-    localStorage.setItem('playerCash', 100);
-  }
-  document.getElementById('indexBalance').textContent = `$${localStorage.getItem('playerCash')}`;
-
-  const categoryButtons = document.querySelectorAll('#categorySwipe button');
-  const categorySections = document.querySelectorAll('.category-section');
-
-  function setActiveCategory(cat) {
-    categoryButtons.forEach(btn => {
-      if(btn.dataset.category === cat) {
-        btn.classList.add('active');
-        btn.setAttribute('aria-selected', 'true');
-        btn.scrollIntoView({behavior: 'smooth', inline: 'center'});
-      } else {
-        btn.classList.remove('active');
-        btn.setAttribute('aria-selected', 'false');
+    function showScreen(index) {
+      if (index > 0) {
+        document.getElementById(screens[index - 1].id).classList.remove("visible");
       }
-    });
+      if (index < screens.length) {
+        const screen = document.getElementById(screens[index].id);
+        screen.classList.add("visible");
 
-    categorySections.forEach(section => {
-      if(cat === 'all') {
-        if(section.dataset.category === 'all') {
-          section.hidden = false;
-          section.classList.add('all');
-          section.focus();
-        } else {
-          section.hidden = true;
-          section.classList.remove('all');
-        }
+        setTimeout(() => {
+          showScreen(index + 1);
+        }, screens[index].duration);
       } else {
-        if(section.dataset.category === cat) {
-          section.hidden = false;
-          section.classList.remove('all');
-          section.focus();
-        } else {
-          section.hidden = true;
-        }
+        // Redirect after last screen
+        window.location.href = "TheMarkkade.io-Home.html";
       }
-    });
-  }
-
-  // Default category is 'all'
-  setActiveCategory('all');
-
-  categoryButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      setActiveCategory(btn.dataset.category);
-    });
-  });
-
-  // PARTICLES BACKGROUND
-  const canvas = document.getElementById('particleCanvas');
-  const ctx = canvas.getContext('2d');
-  let w, h, particles = [];
-
-  function initCanvas() {
-    w = window.innerWidth;
-    h = window.innerHeight;
-    canvas.width = w;
-    canvas.height = h;
-  }
-  window.addEventListener('resize', () => {
-    initCanvas();
-  });
-  initCanvas();
-
-  class Particle {
-    constructor() {
-      this.x = Math.random()*w;
-      this.y = Math.random()*h;
-      this.size = Math.random()*2 + 1;
-      this.speedX = (Math.random()-0.5)*0.4;
-      this.speedY = (Math.random()-0.5)*0.4;
-      this.alpha = 0.1 + Math.random()*0.3;
     }
-    update() {
-      this.x += this.speedX;
-      this.y += this.speedY;
-      if(this.x > w) this.x = 0;
-      if(this.x < 0) this.x = w;
-      if(this.y > h) this.y = 0;
-      if(this.y < 0) this.y = h;
-    }
-    draw() {
-      ctx.beginPath();
-      ctx.fillStyle = `rgba(0,255,110,${this.alpha})`;
-      ctx.shadowColor = 'rgba(0,255,110,0.7)';
-      ctx.shadowBlur = 8;
-      ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
-      ctx.fill();
-    }
-  }
 
-  function initParticles() {
-    particles = [];
-    for(let i=0; i<120; i++) {
-      particles.push(new Particle());
-    }
-  }
-
-  function animate() {
-    ctx.clearRect(0,0,w,h);
-    particles.forEach(p => {
-      p.update();
-      p.draw();
-    });
-    requestAnimationFrame(animate);
-  }
-
-  initParticles();
-  animate();
-</script>
-
+    window.onload = () => {
+      showScreen(0);
+    };
+  </script>
 </body>
 </html>

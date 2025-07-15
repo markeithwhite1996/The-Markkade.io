@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Player Settings - TheMarkkade.io</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron&display=swap');
+  :root {
+    --color-primary: #00ff6e;
+    --color-secondary: #00e5ff;
+    --bg-color: #121212;
+    --particle-color: #00e5ff;
+	  --glow-color: #00e5ff; /* default, will be updated by JS */
+	    --text-color: #00e5ff; /* default fallback */
+
+
+  }
+  body {
+    margin: 0; padding: 1rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+  color: var(--text-color);
+    transition: background-color 0.3s;
+  }
+  h1 {
+    text-align: center;
+    font-family: 'Orbitron', monospace;
+    margin-bottom: 1rem;
+  }
+  form {
+    max-width: 600px;
+    margin: 0 auto 2rem auto;
+    background: #1e1e1e;
+    padding: 1rem 2rem;
+    border-radius: 1rem;
+  }
+  label {
+    display: block;
+    margin: 1rem 0 0.3rem;
+    font-weight: bold;
+  }
+  input[type="text"], input[type="number"], select {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 0.4rem;
+    border: none;
+    font-size: 1rem;
+  }
+  input[type="color"] {
+    width: 50px;
+    height: 32px;
+    border: none;
+    cursor: pointer;
+    vertical-align: middle;
+  }
+  button {
+    margin-top: 1.5rem;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    background: var(--color-primary);
+    color: black;
+    border: none;
+    border-radius: 0.6rem;
+    cursor: pointer;
+    font-weight: bold;
+    display: block;
+    width: 100%;
+  }
+  .preview {
+    max-width: 600px;
+    margin: 0 auto;
+    background: #292929;
+    border-radius: 1rem;
+    padding: 1rem 2rem;
+    font-family: 'Orbitron', monospace;
+    color: var(--color-primary);
+    text-align: center;
+  }
+  .preview-emoji {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+  }
+  .readonly-info {
+    max-width: 600px;
+    margin: 0 auto 2rem auto;
+    background: #1a1a1a;
+    padding: 1rem 2rem;
+    border-radius: 1rem;
+    font-size: 0.9rem;
+  }
+  .readonly-info h2 {
+    margin-top: 0;
+    font-family: 'Orbitron', monospace;
+  }
+  .readonly-info dl {
+    display: grid;
+    grid-template-columns: max-content auto;
+    gap: 0.3rem 1rem;
+  }
+  .readonly-info dt {
+    font-weight: bold;
+    color: var(--color-secondary);
+  }
+  .readonly-info dd {
+    margin: 0;
+  }
+  .app-icon, .game-card {
+  box-shadow: 0 0 10px var(--glow-color);
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+.app-icon:hover, .game-card:hover {
+  box-shadow: 0 0 20px var(--glow-color), 0 0 40px var(--glow-color);
+}
+<style>
+  #closeBtn {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    background: #ff4d4d;
+    color: white;
+    font-weight: bold;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 1000;
+    line-height: 28px;
+    text-align: center;
+    box-shadow: 0 0 5px #ff0000;
+  }
+  #closeBtn:hover {
+    background: #ff1a1a;
+  }
+</style>
+
+<button id="closeBtn" aria-label="Close Home Screen" title="Close">Close</button>
+
+<script>
+  document.getElementById('closeBtn').addEventListener('click', () => {
+    // Option 1: Close the current window/tab if it was opened by script
+    if (window.close) {
+      window.close();
+    }
+    // Option 2: Navigate back to previous page (uncomment if preferred)
+    // else if (window.history.length > 1) {
+    //   window.history.back();
+    // } else {
+    //   alert('No page to go back to.');
+    // }
+  });
+</script>
+</head>
+<body>
+
+<h1>Player Settings</h1>
+
+<form id="settingsForm">
+  <label for="playerName">Player Name</label>
+  <input type="text" id="playerName" name="playerName" maxlength="30" required />
+
+  <label for="playerUsername">Username</label>
+  <input type="text" id="playerUsername" name="playerUsername" maxlength="30" required />
+
+  <label for="playerZodiac">Zodiac Emoji</label>
+  <input type="text" id="playerZodiac" name="playerZodiac" maxlength="2" placeholder="♈♉♊ etc." />
+
+  <label for="playerAge">Age</label>
+  <input type="number" id="playerAge" name="playerAge" min="1" max="120" />
+
+  <label for="playerColor1">Primary UI Color</label>
+  <input type="color" id="playerColor1" name="playerColor1" />
+
+  <label for="playerColor2">Secondary UI Color</label>
+  <input type="color" id="playerColor2" name="playerColor2" />
+
+  <label for="playerBackgroundColor">Background Color</label>
+  <input type="color" id="playerBackgroundColor" name="playerBackgroundColor" />
+
+  <label for="playerParticleColor">Particle Color</label>
+  <input type="color" id="playerParticleColor" name="playerParticleColor" />
+
+  <label for="playerFont">Font Family</label>
+  <select id="playerFont" name="playerFont">
+    <option value="Orbitron">Orbitron</option>
+    <option value="Segoe UI">Segoe UI</option>
+    <option value="Arial">Arial</option>
+    <option value="Verdana">Verdana</option>
+    <option value="Courier New">Courier New</option>
+    <option value="Tahoma">Tahoma</option>
+  </select>
+
+  <label for="playerEmoji">Favorite Emoji</label>
+  <input type="text" id="playerEmoji" name="playerEmoji" maxlength="2" placeholder="e.g. 🌿" />
+
+  <label for="playerTheme">Theme</label>
+  <input type="text" id="playerTheme" name="playerTheme" maxlength="30" />
+
+  <label for="playerMusic">Background Music</label>
+  <input type="text" id="playerMusic" name="playerMusic" maxlength="50" placeholder="filename.mp3" />
+
+  <label for="playerSoundEffects">Sound Effects</label>
+  <select id="playerSoundEffects" name="playerSoundEffects">
+    <option value="on">On</option>
+    <option value="off">Off</option>
+  </select>
+
+  <label for="playerGameMode">Last Selected Game Mode</label>
+  <input type="text" id="playerGameMode" name="playerGameMode" maxlength="30" />
+
+  <label for="playerFavorites">Favorite Games (comma separated)</label>
+  <input type="text" id="playerFavorites" name="playerFavorites" placeholder="TicTacToe,HangMan" />
+
+  <label for="playerMood">Player Mood Emoji</label>
+  <input type="text" id="playerMood" name="playerMood" maxlength="2" placeholder="e.g. 😊" />
+
+  <label for="playerLanguage">Language</label>
+  <input type="text" id="playerLanguage" name="playerLanguage" maxlength="10" placeholder="en-US" />
+
+  <label for="playerRegion">Region</label>
+  <input type="text" id="playerRegion" name="playerRegion" maxlength="10" />
+
+  <label for="playerCode">Referral/Friend Code</label>
+  <input type="text" id="playerCode" name="playerCode" maxlength="20" />
+
+  <label for="playerNotifications">Notifications</label>
+  <select id="playerNotifications" name="playerNotifications">
+    <option value="enabled">Enabled</option>
+    <option value="disabled">Disabled</option>
+  </select>
+
+  <button type="submit">Save Settings</button>
+</form>
+
+<div class="preview" id="profilePreview">
+  <div class="preview-emoji" id="previewEmoji">🌿</div>
+  <div id="previewName">Markk</div>
+  <div id="previewUsername">@Markk123</div>
+</div>
+
+<div class="readonly-info">
+  <h2>Non-Editable Info</h2>
+  <dl>
+    <dt>Player Level:</dt><dd id="infoPlayerLevel"></dd>
+    <dt>Joined Date:</dt><dd id="infoPlayerJoinedDate"></dd>
+    <dt>Visited Days:</dt><dd id="infoPlayerVisitedDays"></dd>
+    <dt>Total Playtime:</dt><dd id="infoPlayerPlaytime"></dd>
+    <dt>Markka$h:</dt><dd id="infoPlayerCash"></dd>
+    <dt>Markkoin$:</dt><dd id="infoPlayerCoins"></dd>
+    <dt>XP:</dt><dd id="infoPlayerXP"></dd>
+    <dt>Rank:</dt><dd id="infoPlayerRank"></dd>
+    <dt>Achievements:</dt><dd id="infoPlayerAchievements"></dd>
+    <dt>Last Played:</dt><dd id="infoPlayerLastPlayed"></dd>
+    <dt>Profile Pic:</dt><dd id="infoPlayerProfilePic"></dd>
+    <dt>Current Tickets:</dt><dd id="infoCurrentTickets"></dd>
+    <dt>Scratchers:</dt><dd id="infoPlayerScratchers"></dd>
+  </dl>
+</div>
+<canvas id="particleCanvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1;"></canvas>
+
+<script>
+const playerParticleColor = localStorage.getItem('playerParticleColor') || '#00e5ff';
+const playerColor2 = localStorage.getItem('playerColor2') || '#00e5ff';
+document.documentElement.style.setProperty('--text-color', playerColor2);
+
+  const defaultSettings = {
+    playerName: "Markk",
+    playerUsername: "Markk123",
+    playerZodiac: "♑",
+    playerAge: "28",
+    playerColor1: "#00ff6e",
+    playerColor2: "#00e5ff",
+    playerBackgroundColor: "#121212",
+    playerParticleColor: "#00e5ff",
+    playerFont: "Orbitron",
+    playerEmoji: "🌿",
+    playerTheme: "NeoGlow",
+    playerMusic: "lofi.mp3",
+    playerSoundEffects: "on",
+    playerGameMode: "Arcade",
+    playerFavorites: "TicTacToe,HangMan",
+    playerMood: "😊",
+    playerLanguage: "en-US",
+    playerRegion: "NA",
+    playerCode: "MK2025",
+    playerNotifications: "enabled"
+  };
+
+  const readonlyInfoDefaults = {
+    playerLevel: "12",
+    playerJoinedDate: "2023-01-01",
+    playerVisitedDays: "42",
+    playerPlaytime: "123h 45m",
+    playerCash: "1000",
+    playerCoins: "10000",
+    playerXP: "0000",
+    playerRank: "Elite Markkster",
+    playerAchievements: "[{'id':1,'name':'Big Brain'}]",
+    playerLastPlayed: "Connect4",
+    playerProfilePic: "🧠",
+    currentTickets: "Markk'dforFortune Tickets",
+    playerScratchers: "Markk'sEmotions Scratchers"
+  };
+
+  function loadSettings() {
+    // Editable fields
+    for (const key in defaultSettings) {
+      const val = localStorage.getItem(key) ?? defaultSettings[key];
+      const el = document.getElementById(key);
+      if (!el) continue;
+      el.value = val;
+      updatePreview(key, val);
+    }
+    // Readonly info
+    for (const key in readonlyInfoDefaults) {
+      const val = localStorage.getItem(key) ?? readonlyInfoDefaults[key];
+      const el = document.getElementById('info' + capitalize(key));
+      if (el) el.textContent = val;
+    }
+    applyTheme();
+  }
+
+  function saveSettings(e) {
+    e.preventDefault();
+    for (const key in defaultSettings) {
+      const el = document.getElementById(key);
+      if (!el) continue;
+      let val = el.value.trim();
+      if (key === "playerFavorites") {
+        val = val.split(',').map(s => s.trim()).filter(s => s).join(',');
+      }
+      localStorage.setItem(key, val);
+      updatePreview(key, val);
+    }
+    alert('Settings saved!');
+    applyTheme();
+  }
+
+  function updatePreview(key, val) {
+    switch(key) {
+      case 'playerName':
+        document.getElementById('previewName').textContent = val || defaultSettings.playerName;
+        break;
+      case 'playerUsername':
+        document.getElementById('previewUsername').textContent = '@' + (val || defaultSettings.playerUsername);
+        break;
+      case 'playerEmoji':
+        document.getElementById('previewEmoji').textContent = val || defaultSettings.playerEmoji;
+        break;
+      case 'playerColor1':
+        document.documentElement.style.setProperty('--color-primary', val);
+        break;
+      case 'playerColor2':
+        document.documentElement.style.setProperty('--color-secondary', val);
+        break;
+      case 'playerBackgroundColor':
+        document.body.style.backgroundColor = val;
+        break;
+      case 'playerParticleColor':
+        document.documentElement.style.setProperty('--particle-color', val);
+        break;
+      case 'playerFont':
+        document.body.style.fontFamily = val;
+        break;
+    }
+  }
+
+  function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  function applyTheme() {
+    const primary = localStorage.getItem('playerColor1') || defaultSettings.playerColor1;
+    const secondary = localStorage.getItem('playerColor2') || defaultSettings.playerColor2;
+    const bg = localStorage.getItem('playerBackgroundColor') || defaultSettings.playerBackgroundColor;
+    const particle = localStorage.getItem('playerParticleColor') || defaultSettings.playerParticleColor;
+    const font = localStorage.getItem('playerFont') || defaultSettings.playerFont;
+
+    document.documentElement.style.setProperty('--color-primary', primary);
+    document.documentElement.style.setProperty('--color-secondary', secondary);
+    document.documentElement.style.setProperty('--bg-color', bg);
+    document.documentElement.style.setProperty('--particle-color', particle);
+    document.body.style.backgroundColor = bg;
+    document.body.style.fontFamily = font;
+  }
+
+  document.getElementById('settingsForm').addEventListener('submit', saveSettings);
+  window.onload = loadSettings;
+  
+  const canvas = document.getElementById('particleCanvas');
+const ctx = canvas.getContext('2d');
+let particlesArray = [];
+let width, height;
+
+function initCanvas() {
+  width = canvas.width = window.innerWidth;
+  height = canvas.height = window.innerHeight;
+}
+
+class Particle {
+  constructor() {
+    this.x = Math.random() * width;
+    this.y = Math.random() * height;
+    this.size = Math.random() * 3 + 1;
+    this.speedX = (Math.random() - 0.5) * 0.5;
+    this.speedY = (Math.random() - 0.5) * 0.5;
+    this.color = playerParticleColor;
+  }
+
+  update() {
+    this.x += this.speedX;
+    this.y += this.speedY;
+
+    if (this.x < 0 || this.x > width) this.speedX *= -1;
+    if (this.y < 0 || this.y > height) this.speedY *= -1;
+  }
+
+  draw() {
+    ctx.fillStyle = this.color;
+    ctx.shadowColor = this.color;
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function createParticles(count = 80) {
+  particlesArray = [];
+  for(let i = 0; i < count; i++) {
+    particlesArray.push(new Particle());
+  }
+}
+
+function animateParticles() {
+  ctx.clearRect(0, 0, width, height);
+  particlesArray.forEach(p => {
+    p.update();
+    p.draw();
+  });
+  requestAnimationFrame(animateParticles);
+}
+
+window.addEventListener('resize', () => {
+  initCanvas();
+  createParticles();
+});
+
+initCanvas();
+createParticles();
+animateParticles();
+
+</script>
+
+</body>
+</html>

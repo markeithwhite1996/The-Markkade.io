@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Markkade.io Admin Settings</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron&display=swap');
+
+  :root {
+    --highlight-color: #00e5ff; /* default swapped */
+    --text-color: #00ff6e;
+    --background-color: #121212;
+    --particle-color: #00e5ff;
+  }
+
+  body {
+    margin: 0;
+    padding: 2rem;
+    background: var(--background-color);
+    color: var(--text-color);
+    font-family: var(--playerFont, 'Orbitron'), monospace;
+    min-height: 100vh;
+    position: relative;
+    user-select: none;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 1rem;
+    text-shadow: 0 0 10px var(--highlight-color);
+  }
+
+  #closeBtn {
+    position: fixed;
+    top: 15px;
+    right: 20px;
+    font-size: 2rem;
+    color: var(--highlight-color);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    user-select: none;
+  }
+  #closeBtn:hover {
+    color: var(--text-color);
+  }
+
+  form {
+    max-width: 600px;
+    margin: 0 auto;
+    background: #1e1e1e;
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 0 20px var(--highlight-color);
+  }
+  label {
+    display: block;
+    margin-top: 1rem;
+    margin-bottom: 0.3rem;
+    font-weight: 600;
+  }
+  input[type="text"],
+  input[type="number"],
+  select,
+  textarea {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: none;
+    background: #121212;
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: 1rem;
+  }
+  input[type="checkbox"] {
+    transform: scale(1.4);
+    margin-right: 0.5rem;
+    vertical-align: middle;
+  }
+  textarea {
+    resize: vertical;
+    min-height: 60px;
+    font-family: monospace;
+  }
+  input[readonly], input[disabled], textarea[readonly], textarea[disabled], select[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  button#saveBtn {
+    margin-top: 2rem;
+    width: 100%;
+    padding: 0.8rem;
+    font-size: 1.2rem;
+    background: var(--highlight-color);
+    color: var(--background-color);
+    font-weight: 700;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    text-shadow: 0 0 6px var(--background-color);
+    user-select: none;
+  }
+  button#saveBtn:hover {
+    background: var(--text-color);
+    color: var(--background-color);
+    text-shadow: 0 0 8px var(--background-color);
+  }
+  /* Particle canvas full screen */
+  #particles {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 0;
+  }
+  #lockScreen {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: var(--background-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  font-family: var(--playerFont, 'Orbitron'), monospace;
+}
+
+#lockScreen h2 {
+  color: var(--text-color);
+  margin-bottom: 1rem;
+  text-shadow: 0 0 8px var(--highlight-color);
+}
+
+#pinInput {
+  font-size: 2rem;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  border: none;
+  background: #222;
+  color: var(--text-color);
+  margin-bottom: 1rem;
+  text-align: center;
+  width: 200px;
+  letter-spacing: 0.2rem;
+}
+
+#keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 60px);
+  gap: 1rem;
+}
+
+#keypad button {
+  font-size: 1.5rem;
+  padding: 1rem;
+  background: #1e1e1e;
+  color: var(--text-color);
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 0 6px var(--highlight-color);
+  cursor: pointer;
+  transitio
+
+</style>
+</head>
+<body>
+<div id="lockScreen">
+  <h2>Enter Admin Code</h2>
+  <input id="pinInput" type="password" readonly />
+  <div id="keypad">
+    <button>1</button><button>2</button><button>3</button>
+    <button>4</button><button>5</button><button>6</button>
+    <button>7</button><button>8</button><button>9</button>
+    <button>←</button><button>0</button><button>#</button>
+  </div>
+</div>
+
+  <canvas id="particles"></canvas>
+  <button id="closeBtn" title="Close Settings">✖</button>
+  <h1>Admin Settings</h1>
+  <form id="settingsForm" autocomplete="off" spellcheck="false">
+    <!-- Editable keys first -->
+    <label for="playerName">Player Name</label>
+    <input type="text" id="playerName" name="playerName" maxlength="30" />
+
+    <label for="playerUsername">Player Username</label>
+    <input type="text" id="playerUsername" name="playerUsername" maxlength="30" />
+
+    <label for="playerEmoji">Player Emoji</label>
+    <input type="text" id="playerEmoji" name="playerEmoji" maxlength="3" />
+
+    <label for="playerZodiac">Player Zodiac (Emoji)</label>
+    <input type="text" id="playerZodiac" name="playerZodiac" maxlength="4" />
+
+    <label for="playerMood">Player Mood (Emoji)</label>
+    <input type="text" id="playerMood" name="playerMood" maxlength="4" />
+
+    <label for="playerAge">Player Age</label>
+    <input type="number" id="playerAge" name="playerAge" min="1" max="120" />
+
+    <label for="playerLevel">Player Level</label>
+    <input type="number" id="playerLevel" name="playerLevel" min="0" max="1000" readonly disabled />
+
+    <label for="playerRank">Player Rank</label>
+    <input type="text" id="playerRank" name="playerRank" readonly disabled />
+
+    <label for="playerProfilePic">Player Profile Pic (Emoji or image ref)</label>
+    <input type="text" id="playerProfilePic" name="playerProfilePic" maxlength="10" />
+
+    <label for="playerCode">Player Referral Code</label>
+    <input type="text" id="playerCode" name="playerCode" maxlength="20" />
+
+    <label for="playerLanguage">Player Language</label>
+    <select id="playerLanguage" name="playerLanguage">
+      <option value="en-US">English (US)</option>
+      <option value="en-GB">English (UK)</option>
+      <option value="es-ES">Spanish (Spain)</option>
+      <option value="fr-FR">French</option>
+      <option value="de-DE">German</option>
+      <option value="ja-JP">Japanese</option>
+      <option value="zh-CN">Chinese (Simplified)</option>
+      <option value="ru-RU">Russian</option>
+      <option value="auto">Auto Detect</option>
+    </select>
+
+    <label for="playerRegion">Player Region</label>
+    <select id="playerRegion" name="playerRegion">
+      <option value="NA">North America</option>
+      <option value="EU">Europe</option>
+      <option value="AS">Asia</option>
+      <option value="SA">South America</option>
+      <option value="AF">Africa</option>
+      <option value="OC">Oceania</option>
+      <option value="AN">Antarctica</option>
+      <option value="Other">Other</option>
+    </select>
+
+    <label for="playerTheme">Player Theme</label>
+    <input type="text" id="playerTheme" name="playerTheme" maxlength="30" />
+
+    <label for="playerFont">Player Font</label>
+    <input type="text" id="playerFont" name="playerFont" maxlength="30" />
+
+    <label for="playerColor1">Player Primary Color</label>
+    <input type="color" id="playerColor1" name="playerColor1" />
+
+    <label for="playerColor2">Player Secondary Color</label>
+    <input type="color" id="playerColor2" name="playerColor2" />
+
+    <label for="playerBackgroundColor">Player Background Color</label>
+    <input type="color" id="playerBackgroundColor" name="playerBackgroundColor" />
+
+    <label for="playerParticleColor">Player Particle Color</label>
+    <input type="color" id="playerParticleColor" name="playerParticleColor" />
+
+    <label for="playerMusic">Player Music</label>
+    <input type="text" id="playerMusic" name="playerMusic" maxlength="50" />
+
+    <label for="playerSoundEffects">Player Sound Effects</label>
+    <select id="playerSoundEffects" name="playerSoundEffects">
+      <option value="on">On</option>
+      <option value="off">Off</option>
+    </select>
+
+    <label for="playerGameMode">Player Game Mode</label>
+    <input type="text" id="playerGameMode" name="playerGameMode" maxlength="30" />
+
+    <label for="playerFavorites">Player Favorite Games (JSON Array)</label>
+    <textarea id="playerFavorites" name="playerFavorites" spellcheck="false"></textarea>
+
+    <label for="playerNotifications">Player Notifications</label>
+    <select id="playerNotifications" name="playerNotifications">
+      <option value="enabled">Enabled</option>
+      <option value="disabled">Disabled</option>
+    </select>
+
+    <label for="currentTickets">Current Tickets</label>
+    <input type="text" id="currentTickets" name="currentTickets" maxlength="50" />
+
+    <label for="playerScratchers">Player Scratchers</label>
+    <input type="text" id="playerScratchers" name="playerScratchers" maxlength="50" />
+
+    <hr style="margin:2rem 0; border-color: var(--highlight-color);" />
+
+    <!-- Non editable / readonly fields -->
+    <label for="playerJoinedDate">Player Joined Date</label>
+    <input type="text" id="playerJoinedDate" name="playerJoinedDate" readonly disabled />
+
+    <label for="playerVisitedDays">Player Visited Days</label>
+    <input type="number" id="playerVisitedDays" name="playerVisitedDays" readonly disabled />
+
+    <label for="playerPlaytime">Player Total Playtime</label>
+    <input type="text" id="playerPlaytime" name="playerPlaytime" readonly disabled />
+
+    <label for="playerCash">Player Cash (Markk\$h)</label>
+    <input type="number" id="playerCash" name="playerCash" readonly disabled />
+
+    <label for="playerCoins">Player Coins (Markkoin\$)</label>
+    <input type="number" id="playerCoins" name="playerCoins" readonly disabled />
+
+    <label for="playerXP">Player XP</label>
+    <input type="number" id="playerXP" name="playerXP" readonly disabled />
+
+    <label for="playerAchievements">Player Achievements (JSON Array)</label>
+    <textarea id="playerAchievements" name="playerAchievements" readonly disabled spellcheck="false"></textarea>
+
+    <label for="playerLastPlayed">Player Last Played Game</label>
+    <input type="text" id="playerLastPlayed" name="playerLastPlayed" readonly disabled />
+
+    <button type="submit" id="saveBtn">Save Settings</button>
+  </form>
+
+<script>
+  // Load colors for theme
+  function applyTheme() {
+    const playerColor1 = localStorage.getItem('playerColor1') || '#00ff6e';
+    const playerColor2 = localStorage.getItem('playerColor2') || '#00e5ff';
+    const playerBackgroundColor = localStorage.getItem('playerBackgroundColor') || '#121212';
+    const playerParticleColor = localStorage.getItem('playerParticleColor') || playerColor2;
+    const playerFont = localStorage.getItem('playerFont') || 'Orbitron';
+
+    document.documentElement.style.setProperty('--highlight-color', playerColor2);
+    document.documentElement.style.setProperty('--text-color', playerColor1);
+    document.documentElement.style.setProperty('--background-color', playerBackgroundColor);
+    document.documentElement.style.setProperty('--particle-color', playerParticleColor);
+    document.documentElement.style.setProperty('--playerFont', playerFont);
+    document.body.style.fontFamily = playerFont + ', monospace';
+  }
+  applyTheme();
+
+  // Particle canvas setup (same as home screen)
+  const canvas = document.getElementById('particles');
+  const ctx = canvas.getContext('2d');
+  let particlesArray = [];
+
+  function initCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', () => { initCanvas(); });
+  class Particle {
+    constructor() {
+      this.x = Math.random() * canvas.width;
+      this.y = Math.random() * canvas.height;
+      this.size = Math.random() * 2 + 1;
+      this.speedX = (Math.random() - 0.5) * 1;
+      this.speedY = (Math.random() - 0.5) * 1;
+      this.color = getComputedStyle(document.documentElement).getPropertyValue('--particle-color').trim() || '#00ff6e';
+    }
+    update() {
+      this.x += this.speedX;
+      this.y += this.speedY;
+      if(this.x < 0 || this.x > canvas.width) this.speedX = -this.speedX;
+      if(this.y < 0 || this.y > canvas.height) this.speedY = -this.speedY;
+    }
+    draw() {
+      ctx.fillStyle = this.color;
+      ctx.beginPath();
+      ctx.arc(this.x,this.y,this.size,0,Math.PI*2);
+      ctx.fill();
+    }
+  }
+  function handleParticles() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particlesArray.forEach(p => { p.update(); p.draw(); });
+    requestAnimationFrame(handleParticles);
+  }
+  function initParticles() {
+    particlesArray = [];
+    for(let i=0; i<80; i++) {
+      particlesArray.push(new Particle());
+    }
+  }
+  initCanvas();
+  initParticles();
+  handleParticles();
+
+  // Load all keys into the form
+  const form = document.getElementById('settingsForm');
+  const keys = [
+    'playerName','playerUsername','playerEmoji','playerZodiac','playerMood','playerAge','playerLevel','playerRank','playerProfilePic','playerCode',
+    'playerLanguage','playerRegion','playerTheme','playerFont','playerColor1','playerColor2','playerBackgroundColor','playerParticleColor',
+    'playerMusic','playerSoundEffects','playerGameMode','playerFavorites','playerNotifications','currentTickets','playerScratchers',
+    'playerJoinedDate','playerVisitedDays','playerPlaytime','playerCash','playerCoins','playerXP','playerAchievements','playerLastPlayed'
+  ];
+
+  function loadSettings() {
+    keys.forEach(k => {
+      const el = document.getElementById(k);
+      if(!el) return;
+      let val = localStorage.getItem(k);
+      if(val === null) {
+        // Use default values for some keys
+        switch(k) {
+          case 'playerName': val = 'Markk'; break;
+          case 'playerUsername': val = 'Markk123'; break;
+          case 'playerZodiac': val = '🌟'; break;
+          case 'playerAge': val = '28'; break;
+          case 'playerColor1': val = '#00ff6e'; break;
+          case 'playerColor2': val = '#00e5ff'; break;
+          case 'playerBackgroundColor': val = '#121212'; break;
+          case 'playerParticleColor': val = '#00e5ff'; break;
+          case 'playerFont': val = 'Orbitron'; break;
+          case 'playerEmoji': val = '🌿'; break;
+          case 'playerLevel': val = '12'; break;
+          case 'playerTheme': val = 'NeoGlow'; break;
+          case 'playerMusic': val = 'lofi.mp3'; break;
+          case 'playerSoundEffects': val = 'on'; break;
+          case 'playerGameMode': val = 'Arcade'; break;
+          case 'playerFavorites': val = JSON.stringify(['TicTacToe','HangMan']); break;
+          case 'playerMood': val = '😊'; break;
+          case 'playerLanguage': val = 'en-US'; break;
+          case 'playerRegion': val = 'NA'; break;
+          case 'playerCode': val = 'MK2025'; break;
+          case 'playerNotifications': val = 'enabled'; break;
+          case 'playerJoinedDate': val = '2023-01-01'; break;
+          case 'playerVisitedDays': val = '0'; break;
+          case 'playerPlaytime': val = '0h 0m'; break;
+          case 'playerCash': val = '1000'; break;
+          case 'playerCoins': val = '10000'; break;
+          case 'playerXP': val = '0000'; break;
+          case 'playerRank': val = 'Elite Markkster'; break;
+          case 'playerAchievements': val = JSON.stringify([{id:1,name:"Big Brain"}]); break;
+          case 'playerLastPlayed': val = 'Connect4'; break;
+          case 'playerProfilePic': val = '🧠'; break;
+          case 'currentTickets': val = "Markk'dforFortune Tickets"; break;
+          case 'playerScratchers': val = "Markk'sEmotions Scratchers"; break;
+          default: val = ''; break;
+        }
+      }
+      if(el.tagName === 'SELECT') {
+        el.value = val;
+      } else if(el.tagName === 'TEXTAREA') {
+        el.value = val;
+      } else {
+        el.value = val;
+      }
+    });
+
+    applyTheme();
+  }
+
+  // Save form to localStorage
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+
+    keys.forEach(k => {
+      const el = document.getElementById(k);
+      if(!el) return;
+      if(el.disabled || el.readOnly) return; // skip non-editable
+      let val = el.value.trim();
+
+      // Validate JSON for favorites and achievements
+      if((k === 'playerFavorites' || k === 'playerAchievements') && val) {
+        try {
+          JSON.parse(val);
+        } catch {
+          alert(`Invalid JSON format for ${k}. Please fix.`);
+          el.focus();
+          throw 'JSON parse error';
+        }
+      }
+
+      localStorage.setItem(k, val);
+    });
+
+    applyTheme();
+    alert('Settings saved!');
+  });
+
+  // Close button functionality
+  document.getElementById('closeBtn').onclick = () => {
+    window.close();
+  };
+
+  loadSettings();
+  
+  const lockScreen = document.getElementById('lockScreen');
+const pinInput = document.getElementById('pinInput');
+const keypadButtons = document.querySelectorAll('#keypad button');
+
+let pin = "";
+
+keypadButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const val = btn.textContent;
+
+    if (val === '←') {
+      pin = pin.slice(0, -1);
+    } else {
+      pin += val;
+    }
+
+    pinInput.value = '*'.repeat(pin.length);
+
+    if (pin === "900281200#" || pin === "0413") {
+      lockScreen.style.display = "none";
+      pin = "";
+      pinInput.value = "";
+    } else if (pin.length >= 15) {
+      // Prevent spamming
+      pin = "";
+      pinInput.value = "";
+    }
+  });
+});
+
+</script>
+</body>
+</html>

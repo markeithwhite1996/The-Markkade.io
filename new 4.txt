@@ -1,0 +1,62 @@
+create a googleplay store/apple app store "The Markkade.io" 
+
+use
+| `playerColor1`          | `"#00ff6e"`                       | Primary UI theme color (used for highlights and buttons)  |
+| `playerColor2`          | `"#00e5ff"`                       | Secondary UI theme color (used for gradients and accents) |
+| `playerBackgroundColor` | `"#121212"`                       | Background color for profile/game UIs                     |
+| `playerParticleColor`   | `"#00e5ff"`                       | Color of animated background particles                    |
+ to design and theme
+
+under title logo add search bar with category buttons underneith  at the top to show specific catigorys of games in a vertical row with a all game category that shows all categories in a vertical list with game in a horizontal list
+
+add hamburger side bar button to show side bar from the right 
+ showing | `playerName`            | `"Markk"`                         | Player’s display name shown in profile                    |
+| `playerUsername`        | `"Markk123"`                      | Unique username for identification                        |
+| `playerCash`        | `"1000"`                        | Amount of **Markka\$h** (primary game currency)        |
+| `playerCoins`       | `"10000"`                        | Amount of **Markkoin\$** (secondary or bonus currency) |
+| `playerXP`          | `"0000"`                       | Total experience points                                |
+| `playerRank`        | `"Elite Markkster"`            | Custom rank/title                                      |
+ in side bar 
+
+add buttons at bottom of side bar,
+Player' to TheMarkkade.io-PlayerSettings.html
+Admin' to TheMarkkade.io-AdminSettings
+
+add a cart side bar button to show side bar from the left of cart items
+
+
+in categories 
+
+when all games catigory is press 
+display games in a horizontal list by categories in a vertical list
+when showing other categories are pressed
+show their games in a veritcal list
+
+
+Games/Bingo/Bingo.html
+Games/Connect4/Connect4.html
+Games/Food-O-Mania/Food-O-Mania.html
+Games/GuessWho/GuessWho.html
+Games/HangMan/HangMan.html
+Games/HaveYouEverGottenThisHigh/HaveYouEverGottenThisHigh.html
+Games/HitIt/HitIt.html
+Games/HoldYourWaterDONTSPIT/HoldYourWaterDONTSPIT.html
+Games/Markk'dBills/MarkkdBills.html
+Games/Markk'dforFortune/MarkkdforFortune.html
+Games/Markk's10xFruitFreezy/Markks10xFruitFreezy.html
+Games/Markk'sEmotions/MarkksEmotions.html
+Games/Markk'sMobile/MarkksMobile.html
+Games/McMarkk'sBurgers/McMarkksBurgers.html
+Games/McMarkk'sBurgers2/McMarkksBurgers2.html
+Games/MemoryMatch/MemoryMatch.html
+Games/PettySlots/PettySlots.html
+Games/PowerSpinMegaWin/PowerSpinMegaWin.html
+Games/PuffPuffPass&Play/PuffPuffPassPlay.html
+Games/RiddleMeThis/RiddleMeThis.html
+Games/RockPaperScissors/RockPaperScissors.html
+Games/RockPaperScissors/RockPaperScissors2.html
+Games/stickzcoder-lotto/stickzcoder-lotto.html
+Games/This+That/ThisThat.html
+Games/TicTacToe/TicTacToe.html
+Games/TrUtHoRlIe/TrUtHoRlIe.html
+Games/WordSearch/WordSearch.html

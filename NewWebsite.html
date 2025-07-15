@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Website Builder Client Application</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(120deg, #dff9fb 0%, #f6e58d 100%);
+      margin: 0;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+    .container {
+      max-width: 960px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      animation: pop 1s ease-in-out;
+    }
+    @keyframes pop {
+      0% { transform: scale(0.95); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      text-align: center;
+      color: #2C3E50;
+      animation: wiggle 3s infinite;
+    }
+    h2, h3 {
+      color: #34495E;
+      border-left: 4px solid #4CAF50;
+      padding-left: 10px;
+      margin-top: 30px;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 20px;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 12px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 15px;
+      animation: wiggle 4s infinite ease-in-out;
+    }
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      box-shadow: 0 0 8px #4CAF50;
+    }
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      margin-top: 20px;
+      cursor: pointer;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      animation: wiggle 2.5s infinite;
+    }
+    button:hover {
+      background: #45a049;
+      transform: scale(1.05);
+    }
+    .section {
+      margin-bottom: 40px;
+    }
+    .content-group {
+      margin-top: 10px;
+      background: #f9f9f9;
+      padding: 15px;
+      border-radius: 8px;
+      border-left: 4px solid #4CAF50;
+      margin-bottom: 20px;
+    }
+    .add-btn {
+      background: #2196F3;
+      margin-top: 10px;
+    }
+    .page-group {
+      background: #fffbe7;
+      border: 2px dashed #f1c40f;
+      border-radius: 12px;
+      padding: 15px;
+      margin-top: 20px;
+    }
+    @keyframes wiggle {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(1deg); }
+      50% { transform: rotate(-1deg); }
+      75% { transform: rotate(1deg); }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>🌟 Website Builder Application</h1>
+  <form id="clientForm">
+    <div class="section">
+      <h2>🔧 Project Basics</h2>
+      <label>Device Type</label>
+      <select name="deviceType">
+        <option>Mobile Only</option>
+        <option>Desktop Only</option>
+        <option>Both (Mobile & Desktop)</option>
+      </select>
+      <label>Full Name</label>
+      <input type="text" name="fullName" required>
+      <label>Email</label>
+      <input type="email" name="email" required>
+      <label>Phone Number</label>
+      <input type="text" name="phone">
+      <label>Business / Project Name</label>
+      <input type="text" name="businessName">
+      <label>Describe your business or project in detail</label>
+      <textarea name="businessDesc" rows="4"></textarea>
+      <label>What is the purpose of your website?</label>
+      <input type="text" name="websitePurpose">
+      <label>Who is your target audience?</label>
+      <input type="text" name="targetAudience">
+      <label>Who are your competitors?</label>
+      <textarea name="competitors" rows="2"></textarea>
+      <label>Do you want this site to support multiple languages?</label>
+      <select name="multiLang">
+        <option>No</option>
+        <option>Yes</option>
+      </select>
+    </div>
+
+    <div id="pagesContainer"></div>
+    <button type="button" onclick="addPageSection()">+ Add a New Page Section</button>
+
+    <div class="section">
+      <h2>🎨 Branding & Design</h2>
+      <label>Preferred Background Color</label>
+      <input type="text" name="bgColor">
+      <label>Button Color</label>
+      <input type="text" name="btnColor">
+      <label>Banner Color</label>
+      <input type="text" name="bannerColor">
+      <label>Preferred Fonts</label>
+      <input type="text" name="fonts">
+      <label>Logo Details</label>
+      <textarea name="logoDesc" rows="2"></textarea>
+      <label>Design inspirations (websites or themes you like)</label>
+      <textarea name="style" rows="3"></textarea>
+      <label>Would you like visual effects?</label>
+      <select name="visualEffects">
+        <option>No</option>
+        <option>Yes</option>
+      </select>
+      <label>If yes, describe (animations, sounds, glows)</label>
+      <textarea name="effectsDesc" rows="3"></textarea>
+    </div>
+
+    <div class="section">
+      <h2>🔌 Features & Functionality</h2>
+      <label>Do you need a blog?</label>
+      <select name="blog">
+        <option>No</option>
+        <option>Yes</option>
+      </select>
+      <label>Will the site include forms? (Contact, Quote, etc.)</label>
+      <input type="text" name="forms">
+      <label>Do you need a login/membership system?</label>
+      <select name="membership">
+        <option>No</option>
+        <option>Yes</option>
+      </select>
+      <label>Do you need an admin dashboard?</label>
+      <select name="adminPanel">
+        <option>No</option>
+        <option>Yes</option>
+      </select>
+      <label>Will the site integrate with other tools? (Zapier, CRMs)</label>
+      <input type="text" name="integrations">
+      <label>Additional Features or Requirements</label>
+      <textarea name="features" rows="4"></textarea>
+    </div>
+
+    <div class="section">
+      <h2>📦 Media and Uploads</h2>
+      <label>Do you have media (images, videos) to provide?</label>
+      <select name="hasMedia">
+        <option>No</option>
+        <option>Yes</option>
+      </select>
+      <label>Describe the media or provide links</label>
+      <textarea name="mediaDesc" rows="3"></textarea>
+    </div>
+
+    <div class="section">
+      <h2>📝 Notes or Special Requests</h2>
+      <textarea name="notes" rows="5"></textarea>
+    </div>
+
+    <button type="button" id="copyButton">Copy All to Clipboard</button>
+  </form>
+</div>
+
+<script>
+function addContent(sectionName, parent) {
+  const textarea = document.createElement("textarea");
+  textarea.rows = 2;
+  textarea.name = sectionName;
+  textarea.placeholder = "Additional content...";
+  textarea.style.marginTop = "10px";
+  parent.appendChild(textarea);
+}
+
+function addPageSection() {
+  const container = document.getElementById("pagesContainer");
+  const index = container.children.length + 1;
+  const wrapper = document.createElement("div");
+  wrapper.classList.add("page-group");
+  wrapper.innerHTML = `
+    <h2>📄 Page ${index}</h2>
+    <div class="content-group">
+      <h3>Header</h3>
+      <textarea name="header" rows="2"></textarea>
+      <button type="button" class="add-btn" onclick="addContent('header', this.parentElement)">+ Add Header</button>
+    </div>
+    <div class="content-group">
+      <h3>Body</h3>
+      <textarea name="body" rows="3"></textarea>
+      <button type="button" class="add-btn" onclick="addContent('body', this.parentElement)">+ Add Body</button>
+    </div>
+    <div class="content-group">
+      <h3>Sidebar</h3>
+      <textarea name="sidebar" rows="2"></textarea>
+      <button type="button" class="add-btn" onclick="addContent('sidebar', this.parentElement)">+ Add Sidebar</button>
+    </div>
+    <div class="content-group">
+      <h3>Footer</h3>
+      <textarea name="bottom" rows="2"></textarea>
+      <button type="button" class="add-btn" onclick="addContent('bottom', this.parentElement)">+ Add Footer</button>
+    </div>
+    <div class="content-group">
+      <h3>Banner</h3>
+      <textarea name="banner" rows="2"></textarea>
+      <button type="button" class="add-btn" onclick="addContent('banner', this.parentElement)">+ Add Banner</button>
+    </div>
+  `;
+  container.appendChild(wrapper);
+}
+
+// Copy All
+function generateOutput(formData) {
+  let output = '📄 WEBSITE PROJECT APPLICATION\n\n';
+  const map = {};
+  for (let [key, value] of formData.entries()) {
+    if (!map[key]) map[key] = [];
+    map[key].push(value);
+  }
+  for (let key in map) {
+    output += `🔹 ${key.toUpperCase()}\n`;
+    map[key].forEach((val, i) => {
+      output += `  ${i + 1}. ${val}\n`;
+    });
+    output += '\n';
+  }
+  return output;
+}
+
+document.getElementById("copyButton").addEventListener("click", () => {
+  const form = document.getElementById("clientForm");
+  const formData = new FormData(form);
+  const output = generateOutput(formData);
+
+  const tempTextArea = document.createElement("textarea");
+  tempTextArea.value = output;
+  document.body.appendChild(tempTextArea);
+  tempTextArea.select();
+  try {
+    document.execCommand("copy");
+    alert("✅ All info copied to clipboard! Paste into your email or message.");
+  } catch (err) {
+    alert("❌ Failed to copy. Please manually copy the text below:");
+    prompt("Copy this:", output);
+  }
+  document.body.removeChild(tempTextArea);
+});
+</script>
+</body>
+</html>

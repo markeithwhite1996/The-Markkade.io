@@ -1,0 +1,149 @@
+APPLICATION TEMPLATE - GAME DEVELOPMENT APP
+
+\========================
+BRANDING
+========
+
+Brand Name: The Markkade Games By, Markk
+Logo Slot: \[PLACE LOGO HERE - Default colors: Black / White / Grey text]
+
+Details: If details are not provided, the developer will decide based on other provided information and overall theme.
+
+\========================
+GAME INFORMATION
+================
+
+Game Title:
+
+Game Type (select multiple):
+
+* Action
+* Puzzle
+* Strategy
+* RPG
+* Arcade
+* Sports
+* Educational
+* Simulation
+* Idle
+* Platformer
+* Card Game
+* Shooter
+* Rhythm/Music
+* Sandbox
+* Other: \_\_\_\_\_\_\_\_\_\_
+
+Game Theme:
+(Describe the main setting, mood, or story concept of the game)
+
+\========================
+VISUAL DESIGN
+=============
+
+Color Choices:
+
+* Primary (text): \_\_\_\_\_\_\_\_\_\_\_
+* Secondary (accents/text borders): \_\_\_\_\_\_\_\_\_\_\_
+
+  * Use? (Yes/No)
+  * Type (select multiple): Solid / Gradient / Outline / Glow
+* Thrimary (shadows): \_\_\_\_\_\_\_\_\_\_\_
+
+  * Use? (Yes/No)
+  * Effects? (Yes/No)
+  * Type (select multiple): Soft Shadow / Hard Shadow / Drop Shadow / Inner Shadow
+* Quadmary (glow): \_\_\_\_\_\_\_\_\_\_\_
+
+  * Use? (Yes/No)
+  * Effects? (Yes/No)
+  * Type (select multiple): Soft Glow / Neon Glow / Pulse Glow / Static Glow
+* Main Background Particles:
+
+  * Use? (Yes/No)
+  * Type (select multiple): Emoji / Text / Letter / Number / Symbol / Icon
+* Main Background: \_\_\_\_\_\_\_\_\_\_\_
+* Game Background: \_\_\_\_\_\_\_\_\_\_\_
+
+Font Options:
+
+* Title Font: \_\_\_\_\_\_\_\_\_\_\_
+* Body Text Font: \_\_\_\_\_\_\_\_\_\_\_
+
+Buttons & Design:
+
+* Button Style (select multiple): Flat / Raised / Glassmorphic / Outlined / Rounded
+* Button Color: \_\_\_\_\_\_\_\_\_\_\_
+* Button Font: \_\_\_\_\_\_\_\_\_\_\_
+* Button Effects:
+
+  * Use? (Yes/No)
+  * Type (select multiple): Hover / Shadow / Glow / Pulse / Ripple
+* Button Movement (select multiple):
+
+  * No
+  * Wiggle
+  * Shake
+  * Tremble
+  * Pop
+  * Wave
+
+(Add more button designs if necessary)
+
+\========================
+GAME FEATURES
+=============
+
+How to Play:
+(Provide instructions or a short guide to gameplay mechanics)
+
+Pay Table (select one):
+
+* Yes
+
+  * \[Include Excel-style table with item, reward, cost, etc.]
+* No
+
+Wins/Losses (select one):
+
+* Yes
+
+  * Win Amount: \_\_\_\_\_\_\_\_\_\_\_
+  * Loss Amount: \_\_\_\_\_\_\_\_\_\_\_
+* No
+
+Score System:
+
+* Use Scores? (Yes/No): \_\_\_\_\_\_\_\_\_\_\_
+* Use Points? (Yes/No): \_\_\_\_\_\_\_\_\_\_\_
+
+  * Scoring (-/+) \_\_\_\_\_ point(s) per \_\_\_\_\_\_\_\_\_\_\_
+  * * Add new rule: \_\_\_\_\_\_\_\_\_\_\_
+* Use \$Markks (The Markkade Money)? (Yes/No): \_\_\_\_\_\_\_\_\_\_\_
+
+  * Scoring (-/+) \_\_\_\_\_ \$Markk(s) per \_\_\_\_\_\_\_\_\_\_\_
+  * * Add new rule: \_\_\_\_\_\_\_\_\_\_\_
+  * Show Balance? \[ ] (Check box)
+  * Starting Balance: \_\_\_\_\_\_\_\_\_\_\_
+  * Rewards/Penalties Chart: \_\_\_\_\_\_\_\_\_\_\_
+
+\========================
+ADDITIONAL FEATURES
+===================
+
+* Levels? (Yes/No): \_\_\_\_\_\_\_\_\_\_\_
+
+  * List: \_\_\_\_\_\_\_\_\_\_\_ levels
+* Stages? (Yes/No): \_\_\_\_\_\_\_\_\_\_\_
+
+  * List: \_\_\_\_\_\_\_\_\_\_\_ levels per stage
+* In-Game Store? (Yes/No): \_\_\_\_\_\_\_\_\_\_\_
+* Multiplayer? (Yes/No): \_\_\_\_\_\_\_\_\_\_\_
+* Leaderboard? (Yes/No): \_\_\_\_\_\_\_\_\_\_\_
+* Custom Avatar? (Yes/No): \_\_\_\_\_\_\_\_\_\_\_
+
+\========================
+COMMENTS & NOTES
+================
+
+(Use this section for any additional ideas, branding notes, copyright info, or collaboration requests)
+

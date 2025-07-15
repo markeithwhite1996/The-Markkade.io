@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Markkord - TheMarkkado.io</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #1e1f22;
+      --bg-light: #f0f0f0;
+      --text-dark: #f0f0f0;
+      --text-light: #1e1f22;
+      --accent: #5865f2;
+    }
+    body {
+      margin: 0;
+      font-family: 'Roboto Mono', monospace;
+      background: var(--bg-dark);
+      color: var(--text-dark);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .sidebar {
+      width: 220px;
+      background: #2b2d31;
+      padding: 10px;
+      box-sizing: border-box;
+      overflow-y: auto;
+      border-right: 2px solid #1e1f22;
+    }
+    .sidebar h2 {
+      color: #ccc;
+      font-size: 1rem;
+      margin-top: 10px;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+    .channel {
+      padding: 8px;
+      margin: 3px 0;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background 0.2s;
+      color: #ccc;
+    }
+    .channel:hover, .channel.active {
+      background: var(--accent);
+      color: #fff;
+    }
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-dark);
+    }
+    .chat-header {
+      padding: 10px;
+      border-bottom: 2px solid #2b2d31;
+      background: #202225;
+      font-weight: bold;
+    }
+    .chat-window {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+    }
+    .message {
+      margin-bottom: 10px;
+    }
+    .message .username {
+      color: #8ea1e1;
+      font-weight: bold;
+    }
+    .message .timestamp {
+      color: #999;
+      font-size: 0.8em;
+      margin-left: 5px;
+    }
+    .message .text {
+      margin-top: 2px;
+    }
+    .chat-input {
+      border-top: 2px solid #2b2d31;
+      display: flex;
+      padding: 10px;
+      background: #202225;
+    }
+    .chat-input input {
+      flex: 1;
+      padding: 10px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      background: #2b2d31;
+      color: white;
+    }
+    .chat-input button {
+      margin-left: 8px;
+      background: var(--accent);
+      border: none;
+      padding: 10px 14px;
+      color: white;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .topbar {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
+    }
+    .topbar button {
+      background: #444;
+      color: #fff;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <h2>General</h2>
+    <div class="channel" data-channel="general-chat"># general-chat</div>
+    <div class="channel" data-channel="memes"># memes</div>
+    <div class="channel" data-channel="screenshots"># screenshots</div>
+    <div class="channel" data-channel="suggestions"># suggestions</div>
+    <div class="channel" data-channel="bug-reports"># bug-reports</div>
+
+    <h2>Games</h2>
+    <!-- Game channels will be inserted here dynamically -->
+
+    <h2>System</h2>
+    <div class="channel" data-channel="rules"># rules</div>
+    <div class="channel" data-channel="support"># support</div>
+    <div class="channel" data-channel="updates"># updates</div>
+    <div class="channel" data-channel="admin-chat"># admin-chat</div>
+  </div>
+
+  <!-- Main Chat Area -->
+  <div class="main">
+    <div class="chat-header" id="chatHeader"># general-chat</div>
+    <div class="chat-window" id="chatWindow"></div>
+    <div class="chat-input">
+      <input type="text" id="messageInput" placeholder="Type a message..." />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <!-- Topbar controls -->
+  <div class="topbar">
+    <button onclick="toggleTheme()">Toggle Theme</button>
+  </div>
+
+  <script>
+    const games = [
+      {id:'Bingo', title:'Bingo'},
+      {id:'Connect4', title:'Connect 4'},
+      {id:'FoodOMania', title:'Food-O-Mania'},
+      {id:'GuessWho', title:'Guess Who'},
+      {id:'HangMan', title:'HangMan'},
+      {id:'HaveYouEverGottenThisHigh', title:'Have You Ever Gotten This High'},
+      {id:'HitIt', title:'Hit It'},
+      {id:'HoldYourWaterDONTSPIT', title:'Hold Your Water: Don’t Spit'},
+      {id:'MarkkdBills', title:"Markk'd Bills"},
+      {id:'MarkkdforFortune', title:"Markk'd for Fortune"},
+      {id:'Markks10xFruitFreezy', title:"Markk's 10x Fruit Freezy"},
+      {id:'MarkksEmotions', title:"Markk's Emotions"},
+      {id:'MarkksMobile', title:"Markk's Mobile"},
+      {id:'McMarkksBurgers', title:"McMarkk's Burgers"},
+      {id:'McMarkksBurgers2', title:"McMarkk's Burgers 2"},
+      {id:'MemoryMatch', title:'Memory Match'},
+      {id:'PettySlots', title:'Petty Slots'},
+      {id:'PowerSpinMegaWin', title:'Power Spin Mega Win'},
+      {id:'PuffPuffPassAndPlay', title:'Puff Puff Pass & Play'},
+      {id:'RiddleMeThis', title:'Riddle Me This'},
+      {id:'RockPaperScissors', title:'Rock Paper Scissors'},
+      {id:'RockPaperScissors2', title:'Rock Paper Scissors 2'},
+      {id:'stickzcoder-lotto', title:'Stickz Coder Lotto'},
+      {id:'ThisPlusThat', title:'This + That'},
+      {id:'TicTacToe', title:'Tic Tac Toe'},
+      {id:'TrUtHoRlIe', title:'TrUtH oR lIe'},
+      {id:'WordSearch', title:'Word Search'}
+    ];
+
+    // Generate game chatrooms in sidebar
+    const sidebar = document.getElementById('sidebar');
+    const gamesSection = sidebar.querySelector('h2:nth-of-type(2)');
+    games.forEach(game => {
+      const div = document.createElement('div');
+      div.className = 'channel';
+      div.dataset.channel = game.id.toLowerCase();
+      div.textContent = `# ${game.title}`;
+      gamesSection.insertAdjacentElement('afterend', div);
+    });
+	
+	let currentChannel = 'general-chat';
+let isAdmin = false;
+
+const emojiMap = {
+  ':smile:': '😄',
+  ':fire:': '🔥',
+  ':heart:': '❤️',
+  ':cool:': '😎',
+  ':laugh:': '😂',
+  ':cry:': '😢',
+  ':poop:': '💩',
+  ':star:': '⭐',
+};
+
+function parseEmojis(text) {
+  for (const [code, emoji] of Object.entries(emojiMap)) {
+    text = text.replaceAll(code, emoji);
+  }
+  return text;
+}
+
+function saveMessages(channel, messages) {
+  localStorage.setItem(`markkord_messages_${channel}`, JSON.stringify(messages));
+}
+
+function loadMessages(channel) {
+  return JSON.parse(localStorage.getItem(`markkord_messages_${channel}`)) || [];
+}
+
+function renderMessages(channel) {
+  const chatWindow = document.getElementById('chatWindow');
+  chatWindow.innerHTML = '';
+  const messages = loadMessages(channel);
+  messages.forEach(msg => {
+    const div = document.createElement('div');
+    div.className = 'message';
+    div.innerHTML = `
+      <div>
+        <span class="username">${msg.username}</span>
+        <span class="timestamp">${msg.timestamp}</span>
+        ${isAdmin ? `<button onclick="deleteMessage('${channel}', ${msg.id})" style="float:right;background:#ff5555;border:none;color:white;border-radius:4px;padding:2px 6px;">🗑</button>` : ''}
+      </div>
+      <div class="text">${msg.text}</div>
+    `;
+    chatWindow.appendChild(div);
+  });
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+function deleteMessage(channel, id) {
+  let messages = loadMessages(channel);
+  messages = messages.filter(msg => msg.id !== id);
+  saveMessages(channel, messages);
+  renderMessages(channel);
+}
+
+function sendMessage() {
+  const input = document.getElementById('messageInput');
+  const text = parseEmojis(input.value.trim());
+  if (!text) return;
+
+  const username = isAdmin ? 'Admin' : 'User';
+  const timestamp = new Date().toLocaleTimeString();
+  const messages = loadMessages(currentChannel);
+
+  messages.push({
+    id: Date.now(),
+    username,
+    text,
+    timestamp
+  });
+
+  saveMessages(currentChannel, messages);
+  input.value = '';
+  renderMessages(currentChannel);
+}
+
+function switchChannel(channelId, element) {
+  if (channelId === 'admin-chat' && !isAdmin) {
+    const code = prompt("Enter admin code:");
+    if (code !== '900281200#' && code !== '0413') {
+      alert("Wrong code. Access denied.");
+      return;
+    }
+    isAdmin = true;
+  }
+
+  currentChannel = channelId;
+  document.getElementById('chatHeader').textContent = `# ${channelId}`;
+  renderMessages(channelId);
+
+  document.querySelectorAll('.channel').forEach(el => el.classList.remove('active'));
+  element.classList.add('active');
+}
+
+function toggleTheme() {
+  const root = document.documentElement;
+  const isDark = getComputedStyle(root).getPropertyValue('--bg-dark').trim() === '#1e1f22';
+
+  if (isDark) {
+    root.style.setProperty('--bg-dark', '#f0f0f0');
+    root.style.setProperty('--bg-light', '#1e1f22');
+    root.style.setProperty('--text-dark', '#1e1f22');
+    root.style.setProperty('--text-light', '#f0f0f0');
+  } else {
+    root.style.setProperty('--bg-dark', '#1e1f22');
+    root.style.setProperty('--bg-light', '#f0f0f0');
+    root.style.setProperty('--text-dark', '#f0f0f0');
+    root.style.setProperty('--text-light', '#1e1f22');
+  }
+
+  document.body.style.background = getComputedStyle(root).getPropertyValue('--bg-dark');
+  document.body.style.color = getComputedStyle(root).getPropertyValue('--text-dark');
+}
+
+// Add click listeners to all channels after they're rendered
+setTimeout(() => {
+  document.querySelectorAll('.channel').forEach(el => {
+    el.addEventListener('click', () => switchChannel(el.dataset.channel, el));
+    if (el.dataset.channel === 'general-chat') el.classList.add('active');
+  });
+  renderMessages(currentChannel);
+}, 100);
+
+  </script>
+</body>
+</html>

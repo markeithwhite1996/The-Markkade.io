@@ -1,0 +1,93 @@
+editable
+
+
+| **Key**                 | **Default Value**                 | **Purpose**                                               |
+| ----------------------- | --------------------------------- | --------------------------------------------------------- |
+| `playerName`            | `"Markk"`                         | Player’s display name shown in profile                    |
+| `playerUsername`        | `"Markk123"`                      | Unique username for identification                        |
+| `playerZodiac`          | `"Zodiac Emoji"`                            | Player’s zodiac sign or symbolic identity                 |
+| `playerAge`             | `"28"`                            | Player’s age                                              |
+| `playerColor1`          | `"#00ff6e"`                       | Primary UI theme color (used for highlights and buttons)  |
+| `playerColor2`          | `"#00e5ff"`                       | Secondary UI theme color (used for gradients and accents) |
+| `playerBackgroundColor` | `"#121212"`                       | Background color for profile/game UIs                     |
+| `playerParticleColor`   | `"#00e5ff"`                       | Color of animated background particles                    |
+| `playerFont`            | `"Orbitron"`                      | Font family used in the interface                         |
+| `playerEmoji`           | `"🌿"`                            | Favorite emoji displayed in profile                       |
+| `playerLevel`           | `"12"`                            | Player's experience level                                 |
+| `playerTheme`           | `"NeoGlow"`                       | Current theme preset (for future theme switching support) |
+| `playerMusic`           | `"lofi.mp3"`                      | Background music selection                                |
+| `playerSoundEffects`    | `"on"`                            | Sound FX toggle                                           |
+| `playerGameMode`        | `"Arcade"`                        | Last selected game mode (Arcade, Challenge, Puzzle, etc.) |
+| `playerFavorites`       | `"['TicTacToe','HangMan']"`       | Favorite games list (can be JSON.stringified array)       |
+| `playerMood`            | `"Mood Emoji"`                         | Mood/status to display                                    |
+| `playerLanguage`        | `"en-US"`                         | Preferred language for UI                                 |
+| `playerRegion`          | `"NA"`                            | Region for leaderboard sorting, stats, etc.               |
+| `playerCode`            | `"MK2025"`                        | Unique referral or friend code                            |
+| `playerNotifications`   | `"enabled"`                       | Whether player receives in-game alerts                    |
+
+not editale
+
+
+| **Key**             | **Default Value**              | **Purpose**                                            |
+| ------------------- | ------------------------------ | ------------------------------------------------------ |
+| `playerJoinedDate`  | `"yyyy-dd-mm"`                 | Date account was created                               |
+| `playerVisitedDays` | `"0"`                         | Number of distinct login days                          |
+| `playerPlaytime`    | `"0h 0m"`                      | Total recorded playtime in hours and minutes           |
+| `playerCash`        | `"1000"`                        | Amount of **Markka\$h** (primary game currency)        |
+| `playerCoins`       | `"10000"`                        | Amount of **Markkoin\$** (secondary or bonus currency) |
+| `playerXP`          | `"0000"`                       | Total experience points                                |
+| `playerRank`        | `"Elite Markkster"`            | Custom rank/title                                      |
+| `playerAchievements`    | `"[{'id':1,'name':'Big Brain'}]"` | Unlocked achievements (stringified objects or ids)        |
+| `playerLastPlayed`      | `"Connect4"`                      | Last played game name                                     |
+| `playerProfilePic`      | `"🧠"`                            | Player avatar emoji or image ref                          |
+
+| `currentTickets`    | `"Markk'dforFortune Tickets"`  | Name of currently owned ticket type                    |
+| `playerScratchers`  | `"Markk'sEmotions Scratchers"` | Name of currently owned scratcher set                  |
+
+
+
+* Action
+* Puzzle
+* Strategy
+* RPG
+* Arcade
+* Sports
+* Educational
+* Simulation
+* Idle
+* Platformer
+* Card Game
+* Shooter
+* Rhythm/Music
+* Sandbox
+
+
+
+
+Games/Bingo/Bingo.html
+Games/Connect4/Connect4.html
+Games/Food-O-Mania/Food-O-Mania.html
+Games/GuessWho/GuessWho.html
+Games/HangMan/HangMan.html
+Games/HaveYouEverGottenThisHigh/HaveYouEverGottenThisHigh.html
+Games/HitIt/HitIt.html
+Games/HoldYourWaterDONTSPIT/HoldYourWaterDONTSPIT.html
+Games/Markk'dBills/MarkkdBills.html
+Games/Markk'dforFortune/MarkkdforFortune.html
+Games/Markk's10xFruitFreezy/Markks10xFruitFreezy.html
+Games/Markk'sEmotions/MarkksEmotions.html
+Games/Markk'sMobile/MarkksMobile.html
+Games/McMarkk'sBurgers/McMarkksBurgers.html
+Games/McMarkk'sBurgers2/McMarkksBurgers2.html
+Games/MemoryMatch/MemoryMatch.html
+Games/PettySlots/PettySlots.html
+Games/PowerSpinMegaWin/PowerSpinMegaWin.html
+Games/PuffPuffPass&Play/PuffPuffPassPlay.html
+Games/RiddleMeThis/RiddleMeThis.html
+Games/RockPaperScissors/RockPaperScissors.html
+Games/RockPaperScissors/RockPaperScissors2.html
+Games/stickzcoder-lotto/stickzcoder-lotto.html
+Games/This+That/ThisThat.html
+Games/TicTacToe/TicTacToe.html
+Games/TrUtHoRlIe/TrUtHoRlIe.html
+Games/WordSearch/WordSearch.html

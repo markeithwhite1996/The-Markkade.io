@@ -1,0 +1,60 @@
+Bingo
+Connect4
+Food-O-Mania
+GuessWho
+HangMan
+HaveYouEverGottenThisHigh
+hit-it
+HoldYourWaterDONTSPIT
+Markk'dBills
+Markk'dforFortune
+Markk's10xFruitFreezy
+Markk'sEmotions
+Markk'sMobile
+McMarkk'sBurgers
+MemoryMatch
+PowerSpinMegaWin
+PuffPuffPass&Play
+RiddleMeThis
+stickzcoder-lotto
+This+That
+TicTacToe
+TrUtHoRlIe
+WordSearch
+
+  const menu = [
+    // Drinks
+    { name: '🧃 Fresh Fruit Juice', price: 4 },
+    { name: '☕️ Hot Coffee', price: 2 },
+    { name: '🥤 Soda Pop', price: 2 },
+    { name: '🍵 Green Tea', price: 2 },
+    { name: '🍺 Craft Beer', price: 5 },
+    { name: '🍷 Red Wine Glass', price: 7 },
+    { name: '🥛 Milkshake (Chocolate/Vanilla)', price: 4 },
+    // Food
+    { name: '🍔 Classic Cheeseburger', price: 6 },
+    { name: '🍗 Crispy Chicken', price: 7 },
+    { name: '🥪 Veggie Delight Sandwich', price: 6 },
+    { name: '🌭 Loaded Hot Dog', price: 5 },
+    { name: '🍕 Pepperoni Pizza Slice', price: 4 },
+    { name: '🍤 Fried Shrimp', price: 9 },
+    { name: '🍣 Sushi', price: 10 },
+    { name: '🥩 Steak', price: 13 },
+    { name: '🥙 Falafel Wrap', price: 7 },
+    { name: '🍝 Spaghetti Bolognese', price: 9 },
+    { name: '🍜 Noodle Soup', price: 5 },
+    // Sides
+    { name: '🍟 French Fries', price: 3 },
+    { name: '🥗 Garden Salad', price: 3 },
+    { name: '🧀 Mozzarella Sticks', price: 4 },
+    { name: '🥒 Pickle Spears', price: 2 },
+    { name: '🥔 Baked Potato', price: 3 },
+    { name: '🥕 Glazed Carrots', price: 3 },
+    // Desserts
+    { name: '🍦 Soft Serve Ice Cream', price: 3 },
+    { name: '🍩 Glazed Donut', price: 2 },
+    { name: '🍪 Chocolate Chip Cookies', price: 2 },
+    { name: '🧁 Cupcake Surprise', price: 4 },
+    { name: '🍰 Cake', price: 5 },
+    { name: '🍮 Caramel Flan', price: 4 }
+  ];
