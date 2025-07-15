@@ -5,202 +5,296 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Food-O-Mania Game</title>
 <style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #fff3e6;
-    user-select: none;
-    height: 100%;
-    width: 100%;
-    overflow-x: hidden;
-  }
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #fff9f4;
+  user-select: none;
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+}
 
-  body::before {
-    content: "";
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: radial-gradient(circle, #ffd699 1px, transparent 1px);
-    background-size: 40px 40px;
-    z-index: -1;
-    opacity: 0.3;
-  }
+body::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: radial-gradient(circle, #ffe0b2 1px, transparent 1px);
+  background-size: 50px 50px;
+  z-index: -1;
+  opacity: 0.1;
+}
 
-  h1, h2, h3 {
-    margin: 0 0 10px 0;
-    color: #cc5500;
-  }
+h1, h2, h3 {
+  margin: 0 0 10px 0;
+  color: #d35400;
+}
 
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: #ff8c42;
+  color: white;
+  font-weight: bold;
+  font-size: 1.1rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.top-bar .left,
+.top-bar .right {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+button {
+  padding: 12px 18px;
+  font-size: clamp(15px, 1.6vw, 17px);
+  border: none;
+  border-radius: 8px;
+  background: #ff8c42;
+  color: white;
+  cursor: pointer;
+  position: relative;
+  min-width: 140px;
+  max-width: 100%;
+  user-select: none;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+button:hover:enabled {
+  background: #ff7b29;
+}
+
+button:disabled {
+  background: #ccc;
+  cursor: default;
+}
+
+.bubble {
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  background: #e53935;
+  color: white;
+  border-radius: 50%;
+  padding: 2px 7px;
+  font-size: 12px;
+  font-weight: bold;
+  pointer-events: none;
+  box-shadow: 0 0 3px #0006;
+}
+
+main {
+  padding: 15px 20px;
+}
+
+main > section {
+  display: none;
+  border: 2px solid #ffcc80;
+  border-radius: 10px;
+  padding: 15px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  max-height: 60vh;
+  overflow-y: auto;
+  margin-bottom: 20px;
+}
+
+main > section.active {
+  display: block;
+}
+
+.customer, .receipt, .order {
+  padding: 14px;
+  margin: 10px 0;
+  border-radius: 10px;
+  background: #fefefe;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.customer:hover,
+.receipt:hover,
+.order:hover {
+  transform: scale(1.02);
+}
+
+.customer.red { background: #ffebee; }
+.customer.yellow { background: #fffde7; }
+.customer.green { background: #e8f5e9; }
+
+.order.red { background: #ffebee; }
+.order.yellow { background: #fffde7; }
+.order.green { background: #e8f5e9; }
+
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  z-index: 900;
+}
+
+.modal {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.25);
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: none;
+  z-index: 1000;
+}
+
+.order-item {
+  cursor: pointer;
+  padding: 10px 14px;
+  margin: 8px 0;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 0.95rem;
+  transition: background 0.3s ease;
+}
+
+.order-item:hover {
+  background: #fff3e0;
+}
+
+.order-item.read {
+  color: green;
+  text-decoration: line-through;
+  background: #e8f5e9;
+}
+
+.modal-buttons {
+  margin-top: 20px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.modal-buttons button {
+  flex: 1;
+  min-width: 130px;
+}
+
+#balanceDisplay {
+  font-size: 1rem;
+  margin-top: 10px;
+  font-weight: bold;
+  color: #2e7d32;
+  text-align: right;
+}
+
+#failedOrdersDisplay {
+  font-size: 0.9rem;
+  color: #c62828;
+  text-align: right;
+}
+
+@media (max-width: 600px) {
   .top-bar {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 15px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: flex-start;
     gap: 10px;
   }
 
   button {
-    padding: 10px 15px;
-    font-size: clamp(14px, 1.5vw, 16px);
-    border: none;
-    border-radius: 6px;
-    background: #ff8c42;
-    color: white;
-    cursor: pointer;
-    position: relative;
-    min-width: 120px;
-    max-width: 100%;
-    user-select: none;
-    transition: background 0.3s ease;
-  }
-
-  button:hover:enabled {
-    background: #ff7b29;
-  }
-
-  button:disabled {
-    background: #bbb;
-    cursor: default;
-  }
-
-  .bubble {
-    position: absolute;
-    top: -8px;
-    right: -10px;
-    background: #ff5722;
-    color: white;
-    border-radius: 50%;
-    padding: 2px 7px;
-    font-size: 12px;
-    font-weight: bold;
-    pointer-events: none;
-  }
-
-  main {
-    padding: 10px;
-  }
-
-  main > section {
-    display: none;
-    border: 2px solid #ff8c42;
-    border-radius: 8px;
-    padding: 15px;
-    max-height: 60vh;
-    overflow-y: auto;
-    background: #fffdf8;
-    box-shadow: 0 0 8px rgba(0,0,0,0.05);
-  }
-
-  main > section.active {
-    display: block;
-  }
-
-  .customer {
-    padding: 10px;
-    margin: 5px 0;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-  }
-
-  .customer.red { background: #ffe5e0; }
-  .customer.yellow { background: #fff5cc; }
-  .customer.green { background: #e6ffe6; }
-
-  .receipt, .order {
-    padding: 8px;
-    margin: 6px 0;
-    border-radius: 6px;
-    background: #f9f9f9;
-    cursor: pointer;
-  }
-
-  .order.yellow { background: #fff5cc; }
-  .order.green { background: #e6ffe6; }
-  .order.red { background: #ffe5e0; }
-
-  .modal-overlay {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.5);
-    display: none;
-    z-index: 900;
+    font-size: 14px;
+    min-width: 100px;
+    padding: 10px 12px;
   }
 
   .modal {
-    position: fixed;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    background: white;
-    border-radius: 10px;
     padding: 20px;
-    box-shadow: 0 0 15px #0008;
-    max-width: 90vw;
-    max-height: 90vh;
-    overflow-y: auto;
-    display: none;
-    z-index: 1000;
-  }
-
-  .order-item {
-    cursor: pointer;
-    padding: 6px 10px;
-    margin: 5px 0;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    transition: background 0.3s ease;
-  }
-
-  .order-item:hover {
-    background: #ffe8cc;
-  }
-
-  .order-item.read {
-    color: green;
-    text-decoration: line-through;
-    background: #e6ffe6;
   }
 
   .modal-buttons {
-    margin-top: 20px;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
+    flex-direction: column;
   }
+}
+#menuSection {
+  margin-top: 20px;
+  background: #fffefb;
+}
 
-  .modal-buttons button {
-    flex: 1;
-    min-width: 120px;
+.menu-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.menu-category {
+  flex: 1 1 280px;
+  background: #ffffff;
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  border: 1px solid #ffe0b2;
+}
+
+.menu-category h3 {
+  color: #ff7b29;
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+}
+
+.menu-category ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.menu-category ul li {
+  padding: 6px 0;
+  font-size: 1rem;
+  border-bottom: 1px dashed #ffe0b2;
+}
+
+.menu-category ul li:last-child {
+  border-bottom: none;
+}
+
+@media (max-width: 600px) {
+  .menu-grid {
+    flex-direction: column;
   }
+}
 
-  #balanceDisplay {
-    font-size: 1rem;
-    margin-top: 10px;
-    color: #cc5500;
-  }
-
-  #failedOrdersDisplay {
-    font-size: 0.9rem;
-    color: #e60000;
-  }
-
-  @media (max-width: 600px) {
-    button {
-      font-size: 14px;
-      min-width: 100px;
-      padding: 8px 12px;
-    }
-
-    .modal {
-      padding: 15px;
-    }
-  }
 </style>
 
 </head>
+<style>
+#musicToggle {
+  position: fixed;
+  bottom: 10px;
+  left: 10px;
+  background: #ff8c42;
+  padding: 6px 12px;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  z-index: 9999;
+}
+</style>
+
 <body>
 
 
@@ -241,9 +335,62 @@
 <div class="modal" id="modal">
   <!-- dynamic content -->
 </div>
-<section id="menuSection" style="border: 2px solid #ff8c42; border-radius: 8px; padding: 10px; max-height: 150px; overflow-y: auto; background: #fffdf8; box-shadow: 0 0 8px rgba(0,0,0,0.05); margin: 10px;">
-  <h2>Menu</h2>
-  <ul id="menuList" style="list-style: none; padding-left: 0; margin: 0; font-size: 0.9rem;"></ul>
+<section id="menuSection" class="active">
+  <h2>📋 Full Menu</h2>
+  <div class="menu-grid">
+    <div class="menu-category">
+      <h3>🥤 Drinks</h3>
+      <ul>
+        <li>🧃 Fresh Fruit Juice — $4</li>
+        <li>☕️ Hot Coffee — $2</li>
+        <li>🥤 Soda Pop — $2</li>
+        <li>🍵 Green Tea — $2</li>
+        <li>🍺 Craft Beer — $5</li>
+        <li>🍷 Red Wine Glass — $7</li>
+        <li>🥛 Milkshake (Chocolate/Vanilla) — $4</li>
+      </ul>
+    </div>
+    <div class="menu-category">
+      <h3>🍽️ Main Dishes</h3>
+      <ul>
+        <li>🍔 Classic Cheeseburger — $6</li>
+        <li>🍗 Crispy Chicken — $7</li>
+        <li>🥪 Veggie Delight Sandwich — $6</li>
+        <li>🌭 Loaded Hot Dog — $5</li>
+        <li>🍕 Pepperoni Pizza Slice — $4</li>
+        <li>🍤 Fried Shrimp — $9</li>
+        <li>🍣 Sushi — $10</li>
+        <li>🥩 Steak — $13</li>
+        <li>🥙 Falafel Wrap — $7</li>
+        <li>🍝 Spaghetti Bolognese — $9</li>
+        <li>🍜 Noodle Soup — $5</li>
+      </ul>
+    </div>
+    <div class="menu-category">
+      <h3>🍟 Sides</h3>
+      <ul>
+        <li>🍟 French Fries — $3</li>
+        <li>🥗 Garden Salad — $3</li>
+        <li>🧀 Mozzarella Sticks — $4</li>
+        <li>🥒 Pickle Spears — $2</li>
+        <li>🥔 Baked Potato — $3</li>
+        <li>🥕 Glazed Carrots — $3</li>
+      </ul>
+    </div>
+    <div class="menu-category">
+      <h3>🍰 Desserts</h3>
+      <ul>
+        <li>🍦 Soft Serve Ice Cream — $3</li>
+        <li>🍩 Glazed Donut — $2</li>
+        <li>🍪 Chocolate Chip Cookies — $2</li>
+        <li>🧁 Cupcake Surprise — $4</li>
+        <li>🍰 Cake — $5</li>
+        <li>🍮 Caramel Flan — $4</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
 </section>
 
 <script>
@@ -807,6 +954,7 @@ function openServeModal(orderIndex) {
       target = target.parentElement;
     }
   });
+  
 
   // Init
   showSection(sectionCustomers);
@@ -821,17 +969,179 @@ function renderMenu() {
   });
 }
 
+
+
 })();
+
+
+</script>
+<script>
+// Audio
+const sounds = {
+  placeOrder: new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_2465c28ac5.mp3'),
+  charge: new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_12d6be6da2.mp3'),
+  fail: new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_5a9053efdf.mp3'),
+  tip: new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_432f3683e7.mp3'),
+  bgm: new Audio('https://cdn.pixabay.com/audio/2023/03/14/audio_b796939c13.mp3')
+};
+sounds.bgm.loop = true;
+sounds.bgm.volume = 0.25;
+
+// Load balance from localStorage
+let balance = parseFloat(localStorage.getItem("playerCash")) || 0;
+
+// Add customer timer info
+function addCustomer() {
+  if (gameOver) return;
+  const itemCount = Math.floor(Math.random() * 3) + 1;
+  const items = [];
+  for (let i = 0; i < itemCount; i++) {
+    const item = menu[Math.floor(Math.random() * menu.length)];
+    items.push(item);
+  }
+  const id = randomId();
+  const total = items.reduce((acc, i) => acc + i.price, 0);
+  customerQueue.push({
+    id,
+    orderItems: items,
+    total,
+    status: 'red',
+    readStatus: Array(items.length).fill(false),
+    arrivalTime: Date.now()
+  });
+  renderCustomers();
+}
+
+// Update balance UI + save
+function updateBubbles() {
+  customerCount.textContent = customerQueue.length;
+  receiptCount.textContent = receipts.length;
+  orderCount.textContent = orders.length;
+  failedOrdersDisplay.textContent = failedOrders > 0 ? `Failed Orders: ${failedOrders}` : '';
+  balanceDisplay.textContent = `Balance: $${balance.toFixed(2)}`;
+  localStorage.setItem("playerCash", balance.toFixed(2));
+}
+
+// Place order
+function placeOrder(index) {
+  const customer = customerQueue[index];
+  if (!customer.readStatus.every(x => x)) {
+    alert("Please confirm all items before placing the order.");
+    return;
+  }
+  customer.status = 'yellow';
+  receipts.push({ id: customer.id, total: customer.total });
+  closeModal();
+  renderCustomers();
+  renderReceipts();
+  showSection(sectionCustomers);
+  sounds.placeOrder.play();
+}
+
+// Charge customer
+function chargeCustomer(inputId, inputTotal) {
+  const receiptIdx = receipts.findIndex(r => r.id == inputId && r.total === inputTotal);
+  if (receiptIdx === -1) {
+    alert("Incorrect order number or total. Customer complained!");
+    failedOrders++;
+    updateBubbles();
+    closeModal();
+    sounds.fail.play();
+    return;
+  }
+  const customerIdx = customerQueue.findIndex(c => c.id == inputId && c.status === 'yellow');
+  if (customerIdx === -1) {
+    alert("Customer not found or already processed.");
+    closeModal();
+    return;
+  }
+
+  receipts.splice(receiptIdx, 1);
+  const customer = customerQueue[customerIdx];
+  customer.status = 'green';
+
+  const cookingTimeMs = Math.floor(Math.random() * 180000) + 120000;
+  orders.push({
+    id: customer.id,
+    items: customer.orderItems,
+    total: customer.total,
+    status: 'cooking',
+    readyAt: Date.now() + cookingTimeMs,
+    serveTimer: null
+  });
+
+  balance += customer.total;
+  closeModal();
+  renderCustomers();
+  renderReceipts();
+  renderOrders();
+  updateBubbles();
+  showSection(sectionReceipts);
+  sounds.charge.play();
+}
+
+// Fill Order
+function fillOrder(orderIndex) {
+  const order = orders[orderIndex];
+  if (!order) return;
+  closeModal();
+
+  if (confirm("Was the order served correctly? OK=Yes, Cancel=No")) {
+    const tipPercent = Math.random() * 0.15;
+    const tip = order.total * tipPercent;
+    balance += tip;
+    alert(`Order Complete! You earned a tip of $${tip.toFixed(2)}.`);
+    removeOrder(order.id);
+    sounds.tip.play();
+  } else {
+    alert("Order Incomplete. Customer wants a refund.");
+    balance -= order.total;
+    removeOrder(order.id);
+    failedOrders++;
+    sounds.fail.play();
+  }
+  updateBubbles();
+}
+
+// Rush Hour Monitor — customers leave after 25–45 sec of waiting
+setInterval(() => {
+  if (gameOver) return;
+  const now = Date.now();
+  const expired = customerQueue.filter(c =>
+    c.status === 'red' &&
+    now - c.arrivalTime > (25000 + Math.random() * 20000)
+  );
+  expired.forEach(c => {
+    alert(`Customer #${c.id} left! You missed their order.`);
+    failedOrders++;
+    const idx = customerQueue.findIndex(x => x.id === c.id);
+    if (idx !== -1) customerQueue.splice(idx, 1);
+    renderCustomers();
+    updateBubbles();
+    sounds.fail.play();
+  });
+}, 3000);
+
+// Play music after user interacts
+window.addEventListener('click', () => {
+  if (sounds.bgm.paused) sounds.bgm.play();
+}, { once: true });
+
+</script>
+
+<button id="musicToggle">🔈 Music On</button>
+<script>
+document.getElementById('musicToggle').onclick = () => {
+  if (sounds.bgm.paused) {
+    sounds.bgm.play();
+    document.getElementById('musicToggle').textContent = "🔈 Music On";
+  } else {
+    sounds.bgm.pause();
+    document.getElementById('musicToggle').textContent = "🔇 Music Off";
+  }
+};
 </script>
 
 </body>
 </html>
 
-move enter order number: and eenter order total and charge customer button to when recipt is click in recipts; 
-
-leave "Charge customer #_____ in yellow costomer click
-
-
-remove enter order number and endter order number from custumer queue options
-
-when orders complete make the game sometime get them wrong ensuring the player have to check the recipt or order befor confirming

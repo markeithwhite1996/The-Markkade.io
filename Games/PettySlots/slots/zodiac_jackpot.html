@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Zodiac Jackpot 4x8 Slot</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #001f3f, #0074D9);
+      color: #fff;
+      margin: 0; padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      user-select: none;
+    }
+    h1 {
+      margin: 15px 0 5px;
+      font-weight: 900;
+      font-size: 2rem;
+      text-shadow: 0 0 10px #00ffff;
+    }
+    .slot-container {
+      background: #003366cc;
+      border-radius: 16px;
+      padding: 20px 25px;
+      max-width: 720px;
+      width: 95vw;
+      box-shadow: 0 0 30px #00ffffaa;
+    }
+    .cash-display {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      text-align: center;
+      letter-spacing: 1px;
+      text-shadow: 0 0 6px #00ffffbb;
+    }
+    .reels {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      grid-gap: 8px;
+      margin: 20px 0 25px;
+    }
+    .reel {
+      width: 60px;
+      height: 60px;
+      border-radius: 14px;
+      background: #0055aa;
+      box-shadow: 0 0 12px #00ffff44 inset;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 2.6rem;
+      cursor: default;
+      transition: box-shadow 0.3s ease, transform 0.3s ease;
+      position: relative;
+      user-select: none;
+      color: #aaffff;
+    }
+    .reel.glow {
+      box-shadow:
+        0 0 12px 4px #00ffffaa,
+        0 0 25px 10px #00ffffbb;
+      transform: scale(1.15);
+      z-index: 10;
+    }
+    .reel.spin-animation {
+      animation: spinAnim 0.4s ease-in-out;
+    }
+    @keyframes spinAnim {
+      0% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(15deg); }
+      100% { transform: translateY(0) rotate(0deg); }
+    }
+    button {
+      width: 100%;
+      padding: 15px 0;
+      font-size: 1.3rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 14px;
+      background: #00ffff;
+      color: #003344;
+      cursor: pointer;
+      box-shadow: 0 5px 15px #00ffffcc;
+      transition: background 0.3s ease;
+      user-select: none;
+    }
+    button:disabled {
+      background: #00446688;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    button:hover:not(:disabled) {
+      background: #00dddd;
+    }
+    .result {
+      margin-top: 15px;
+      font-weight: 700;
+      font-size: 1.3rem;
+      min-height: 36px;
+      text-align: center;
+      text-shadow: 0 0 8px #00ffffaa;
+    }
+    .paytable {
+      margin-top: 25px;
+      background: #002244aa;
+      border-radius: 12px;
+      padding: 16px 20px;
+      font-size: 1rem;
+      line-height: 1.4;
+      color: #a0ffffdd;
+      user-select: none;
+    }
+    .paytable h2 {
+      margin-top: 0;
+      text-align: center;
+      font-weight: 900;
+      font-size: 1.4rem;
+      text-shadow: 0 0 10px #00ffffaa;
+    }
+    .paytable ul {
+      padding-left: 18px;
+      margin: 0;
+    }
+    .paytable ul li {
+      margin-bottom: 8px;
+    }
+
+    @media (max-width: 640px) {
+      .reel {
+        width: 45px;
+        height: 45px;
+        font-size: 2rem;
+      }
+      .slot-container {
+        max-width: 100vw;
+      }
+    }
+    @media (max-width: 400px) {
+      .reel {
+        width: 38px;
+        height: 38px;
+        font-size: 1.6rem;
+      }
+      button {
+        font-size: 1.1rem;
+        padding: 12px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="slot-container" role="main" aria-label="Zodiac Jackpot Slot Machine Game">
+    <h1>Zodiac Jackpot ♈️♉️♊️♋️</h1>
+    <div class="cash-display" aria-live="polite" id="playerCash">Player Cash: 0 coins</div>
+    <div class="reels" id="reels" aria-label="Slot machine reels"></div>
+    <button id="spinBtn" aria-label="Spin the slot machine">Spin (Cost: 25 coins)</button>
+    <div class="result" aria-live="polite" id="result"></div>
+    <div class="paytable" aria-label="Paytable and payout information">
+      <h2>Pay Table</h2>
+      <ul>
+        <li>Match 3 or more same zodiac symbols horizontally, vertically, or diagonally</li>
+        <li>Payout: 180 coins per winning combo</li>
+        <li>Spin Cost: 25 coins</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    const symbols = ['♈️','♉️','♊️','♋️','♌️','♍️','♎️','♏️','♐️','♑️','♒️','♓️'];
+    const rows = 4;
+    const cols = 8;
+    const spinCost = 25;
+
+    const reelsContainer = document.getElementById('reels');
+    const spinBtn = document.getElementById('spinBtn');
+    const resultDisplay = document.getElementById('result');
+    const playerCashDisplay = document.getElementById('playerCash');
+
+    // Build reels grid
+    for(let i=0; i < rows * cols; i++) {
+      const div = document.createElement('div');
+      div.classList.add('reel');
+      div.textContent = symbols[i % symbols.length];
+      reelsContainer.appendChild(div);
+    }
+    const reels = Array.from(document.querySelectorAll('.reel'));
+
+    // Initialize playerCash from localStorage or default
+    let playerCash = parseInt(localStorage.getItem('PlayerCoins') || '0', 10);
+    if (isNaN(playerCash) || playerCash < spinCost) {
+      playerCash = 1500;
+      localStorage.setItem('PlayerCoins', playerCash);
+    }
+    playerCashDisplay.textContent = `Player Cash: ${playerCash} coins`;
+
+    function updateCash(amount) {
+      playerCash += amount;
+      if (playerCash < 0) playerCash = 0;
+      localStorage.setItem('PlayerCoins', playerCash);
+      playerCashDisplay.textContent = `Player Cash: ${playerCash} coins`;
+      spinBtn.disabled = playerCash < spinCost;
+    }
+
+    function animateReels(finalSymbols) {
+      return new Promise(resolve => {
+        reels.forEach(reel => {
+          reel.classList.add('spin-animation');
+          reel.classList.remove('glow');
+        });
+        const spinDuration = 2000;
+        const intervalTime = 90;
+        let elapsed = 0;
+        const spinInterval = setInterval(() => {
+          reels.forEach(reel => {
+            reel.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+          });
+          elapsed += intervalTime;
+          if (elapsed >= spinDuration) {
+            clearInterval(spinInterval);
+            reels.forEach((reel, idx) => {
+              reel.textContent = finalSymbols[idx];
+              reel.classList.remove('spin-animation');
+            });
+            resolve();
+          }
+        }, intervalTime);
+      });
+    }
+
+    // Check for matches of 3+ horizontally, vertically, diagonally
+    function checkWins(gridSymbols) {
+      let winningIndexes = new Set();
+
+      function addRun(indexes) {
+        if(indexes.length >= 3) {
+          indexes.forEach(i => winningIndexes.add(i));
+          return true;
+        }
+        return false;
+      }
+
+      let combos = 0;
+
+      // Horizontal check
+      for(let r=0; r < rows; r++) {
+        let run = [r*cols];
+        for(let c=1; c < cols; c++) {
+          let currIdx = r*cols + c;
+          let prevIdx = r*cols + c - 1;
+          if(gridSymbols[currIdx] === gridSymbols[prevIdx]) {
+            run.push(currIdx);
+          } else {
+            if(addRun(run)) combos++;
+            run = [currIdx];
+          }
+        }
+        if(addRun(run)) combos++;
+      }
+
+      // Vertical check
+      for(let c=0; c < cols; c++) {
+        let run = [c];
+        for(let r=1; r < rows; r++) {
+          let currIdx = r*cols + c;
+          let prevIdx = (r-1)*cols + c;
+          if(gridSymbols[currIdx] === gridSymbols[prevIdx]) {
+            run.push(currIdx);
+          } else {
+            if(addRun(run)) combos++;
+            run = [currIdx];
+          }
+        }
+        if(addRun(run)) combos++;
+      }
+
+      // Diagonal (top-left to bottom-right) ↘
+      for(let r=0; r <= rows - 3; r++) {
+        for(let c=0; c <= cols - 3; c++) {
+          let run = [r*cols + c];
+          let symbol = gridSymbols[r*cols + c];
+          for(let offset=1; offset < Math.min(rows - r, cols - c); offset++) {
+            if(gridSymbols[(r+offset)*cols + (c+offset)] === symbol) {
+              run.push((r+offset)*cols + (c+offset));
+            } else break;
+          }
+          if(addRun(run)) combos++;
+        }
+      }
+
+      // Diagonal (bottom-left to top-right) ↗
+      for(let r=rows-1; r >= 2; r--) {
+        for(let c=0; c <= cols - 3; c++) {
+          let run = [r*cols + c];
+          let symbol = gridSymbols[r*cols + c];
+          for(let offset=1; offset < Math.min(r+1, cols - c); offset++) {
+            if(gridSymbols[(r-offset)*cols + (c+offset)] === symbol) {
+              run.push((r-offset)*cols + (c+offset));
+            } else break;
+          }
+          if(addRun(run)) combos++;
+        }
+      }
+
+      return {winningIndexes: Array.from(winningIndexes), combos};
+    }
+
+    async function spin() {
+      if(playerCash < spinCost) {
+        resultDisplay.textContent = "Not enough coins to spin!";
+        resultDisplay.style.color = '#ff6666';
+        return;
+      }
+      spinBtn.disabled = true;
+      updateCash(-spinCost);
+      resultDisplay.textContent = "Spinning...";
+      resultDisplay.style.color = '#00ffff';
+
+      let finalSymbols = [];
+      for(let i=0; i < rows*cols; i++) {
+        finalSymbols.push(symbols[Math.floor(Math.random() * symbols.length)]);
+      }
+
+      await animateReels(finalSymbols);
+
+      const {winningIndexes, combos} = checkWins(finalSymbols);
+
+      if(winningIndexes.length > 0) {
+        const payout = combos * 180;
+        updateCash(payout);
+        resultDisplay.textContent = `You win ${payout} coins with ${combos} combo${combos > 1 ? 's' : ''}! ✨`;
+        resultDisplay.style.color = '#00ffcc';
+
+        reels.forEach((reel, idx) => {
+          if(winningIndexes.includes(idx)) {
+            reel.classList.add('glow');
+          } else {
+            reel.classList.remove('glow');
+          }
+        });
+
+        setTimeout(() => {
+          reels.forEach(reel => reel.classList.remove('glow'));
+        }, 2500);
+      } else {
+        resultDisplay.textContent = "No win, try again!";
+        resultDisplay.style.color = '#ff6666';
+      }
+      spinBtn.disabled = playerCash < spinCost;
+    }
+
+    spinBtn.addEventListener('click', spin);
+
+    if(playerCash < spinCost) spinBtn.disabled = true;
+  </script>
+</body>
+</html>

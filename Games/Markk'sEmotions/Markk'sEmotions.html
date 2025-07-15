@@ -374,7 +374,7 @@ h1 {
   // Load balance and scratchers count from localStorage on page load
   function loadState() {
     balance = Number(localStorage.getItem("playerCash")) || 20; // Start with $20 if none saved
-    scratchers = Number(localStorage.getItem("scratchers")) || 0;
+    scratchers = Number(localStorage.getItem("playerScratchers")) || 0;
     updateBalanceDisplay();
     updateScratchersDisplay();
     updateButtons();

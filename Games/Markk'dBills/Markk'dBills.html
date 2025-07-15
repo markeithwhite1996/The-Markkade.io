@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -491,7 +490,7 @@
 
   function updateBalanceDisplay() {
     walletDisplay.textContent = `Balance: $${balance.toFixed(2)}`;
-    localStorage.setItem('balance', balance.toFixed(2));
+    localStorage.setItem('playerCash', balance.toFixed(2));
   }
 
   function updateFreeSpinsDisplay() {

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bingo Game Hub</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="hub-screen">
+  <h1>🎯 Markk's Bingo Blast</h1>
+
+  <div class="menu">
+    <button onclick="toggleMode('multi')">🎮 Multiplayer</button>
+    <div id="multi" class="sub-menu">
+      <button onclick="location.href='bingo_host.html'">🧑‍✈️ Host Game</button>
+      <button onclick="location.href='bingo_client.html'">🎲 Join Game</button>
+    </div>
+
+    <button onclick="location.href='bingo_ai.html'">🤖 Player vs AI</button>
+  </div>
+
+  <footer>🚀 Developed by The Markkade Studios</footer>
+
+  <script>
+    function toggleMode(id) {
+      document.getElementById(id).classList.toggle('active');
+    }
+  </script>
+</body>
+</html>

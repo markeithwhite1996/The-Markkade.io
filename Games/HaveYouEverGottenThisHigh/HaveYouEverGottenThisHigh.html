@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Have You Ever Gotten This High?</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #1e1e1e, #292929);
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 36px;
+      color: #a5ffcd;
+      text-shadow: 0 0 10px #00ff99;
+    }
+
+    #howToPlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #000000f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      z-index: 10000;
+      text-shadow: 0 0 10px lime;
+      text-align: center;
+      flex-direction: column;
+      padding: 20px;
+    }
+
+    #gameContainer {
+      display: none;
+    }
+
+    #setupContainer {
+      margin-bottom: 20px;
+    }
+
+    #playerInput, #startBtn {
+      padding: 12px;
+      margin: 10px;
+      font-size: 18px;
+      border-radius: 8px;
+      border: none;
+    }
+
+    #playerInput {
+      width: 250px;
+    }
+
+    #startBtn {
+      background-color: #00cc99;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 0 10px #00ff99;
+    }
+
+    #startBtn:hover {
+      background-color: #00aa88;
+    }
+
+    .player-btn {
+      margin: 10px;
+      padding: 15px 25px;
+      font-size: 20px;
+      background: #2e8b57;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      box-shadow: 0 0 15px #00ffb3;
+    }
+
+    .player-btn:hover {
+      background: #3cb371;
+      transform: scale(1.05);
+    }
+
+    .player-btn:disabled {
+      background: #444;
+      cursor: default;
+      opacity: 0.6;
+      box-shadow: none;
+    }
+
+    #question {
+      font-size: 24px;
+      margin: 30px 0;
+      color: #ffc;
+    }
+
+    #playersContainer {
+      margin-top: 30px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    #bongPopup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.9);
+      color: #00ff99;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      z-index: 9999;
+      text-shadow: 0 0 10px #00ff99;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="howToPlay">
+    🌿 <strong>How to Play</strong><br><br>
+    Take a hit if the prompt applies to you.<br>
+    👆 Tap your name to track hits.<br>
+    💨 Every 5 hits = Bong rip!<br><br>
+    Get ready...
+  </div>
+
+  <div id="gameContainer">
+    <h1>🌿 Have You Ever Gotten This High?</h1>
+
+    <div id="setupContainer">
+      <p>Enter player names, separated by commas:</p>
+      <input type="text" id="playerInput" placeholder="e.g. Mark, Jess, Leo" />
+      <button id="startBtn">Start Game</button>
+    </div>
+
+    <div id="question"></div>
+    <div id="playersContainer"></div>
+  </div>
+
+  <div id="bongPopup"></div>
+
+  <script>
+    const questions = [
+      "kissed someone at a party",
+      "eaten an entire pizza by yourself",
+      "used someone else's toothbrush",
+      "called your ex while high",
+      "snuck out past midnight",
+      "laughed until you cried",
+      "been too high to function",
+      "forgot what you were saying mid-sentence",
+      "had munchies hit HARD",
+      "watched the same movie more than 10 times"
+    ];
+
+    let players = [];
+    let scores = {};
+    let clickedThisRound = {};
+    let questionTimer;
+
+    // Show how-to-play screen for 5s
+    window.onload = () => {
+      setTimeout(() => {
+        document.getElementById('howToPlay').style.display = 'none';
+        document.getElementById('gameContainer').style.display = 'block';
+      }, 5000);
+    };
+
+    document.getElementById('startBtn').addEventListener('click', startGame);
+
+    function startGame() {
+      const input = document.getElementById('playerInput').value.trim();
+      if (!input) return alert("Please enter player names.");
+
+      players = input.split(',').map(name => name.trim()).filter(name => name);
+      if (players.length === 0) return alert("No valid player names.");
+
+      scores = {};
+      document.getElementById('playersContainer').innerHTML = '';
+      players.forEach(player => {
+        scores[player] = 0;
+
+        const btn = document.createElement('button');
+        btn.className = 'player-btn';
+        btn.id = `btn-${player}`;
+        btn.innerText = `${player} (0)`;
+        btn.addEventListener('click', () => handlePlayerClick(player));
+
+        document.getElementById('playersContainer').appendChild(btn);
+      });
+
+      // Hide input fields
+      document.getElementById('setupContainer').style.display = 'none';
+
+      document.getElementById('question').innerText = '';
+      if (questionTimer) clearInterval(questionTimer);
+      showQuestion();
+      questionTimer = setInterval(showQuestion, 15000);
+    }
+
+    function handlePlayerClick(player) {
+      if (clickedThisRound[player]) return; // already clicked
+
+      clickedThisRound[player] = true;
+      scores[player]++;
+      const btn = document.getElementById(`btn-${player}`);
+      btn.innerText = `${player} (${scores[player]})`;
+      btn.disabled = true;
+
+      if (scores[player] % 5 === 0) {
+        showBongPopup(player);
+      }
+    }
+
+    function showQuestion() {
+      const q = questions[Math.floor(Math.random() * questions.length)];
+      document.getElementById('question').innerText = `🌬 Take a hit if you've ever ${q}...`;
+
+      // Reset player buttons for new round
+      clickedThisRound = {};
+      players.forEach(player => {
+        const btn = document.getElementById(`btn-${player}`);
+        btn.disabled = false;
+      });
+    }
+
+    function showBongPopup(player) {
+      const popup = document.getElementById('bongPopup');
+      popup.innerText = `${player}, take a Bong rip! 💨`;
+      popup.style.display = 'flex';
+
+      setTimeout(() => {
+        popup.style.display = 'none';
+      }, 15000);
+    }
+  </script>
+
+</body>
+</html>

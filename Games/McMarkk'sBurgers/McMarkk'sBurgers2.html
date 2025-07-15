@@ -795,15 +795,15 @@
 
     exitBtn.addEventListener('click', () => {
       if(confirm('Exit game? Your balance will be saved.')) {
-        // Save balance in localStorage
-        localStorage.setItem('mmBurgerBalance', balance);
+        // Save balance in Storage
+        localStorage.setItem('playerCash', balance);
         window.location.href = '../../index.html';
       }
     });
 
     // Load balance from localStorage on load
     window.addEventListener('load', () => {
-      const savedBalance = localStorage.getItem('mmBurgerBalance');
+      const savedBalance = localStorage.getItem('playerCash');
       if (savedBalance !== null) {
         balance = Number(savedBalance);
       }

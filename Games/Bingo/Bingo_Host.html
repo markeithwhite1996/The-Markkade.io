@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bingo Host</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="host-screen">
+  <h1>👑 Host Panel</h1>
+
+  <div class="host-controls">
+    <p>Last Called: <span id="lastCalled">---</span></p>
+    <button onclick="callNextNumber()">Call Next Number</button>
+    <input type="text" id="winnerName" placeholder="Player Name"/>
+    <button onclick="addWinner()">Add Winner</button>
+  </div>
+
+  <div class="winners-box">
+    <h2>🏆 Winners</h2>
+    <ul id="winnersList"></ul>
+  </div>
+
+  <script>
+    let numbersLeft = Array.from({ length: 75 }, (_, i) => i + 1);
+
+    function callNextNumber() {
+      if (numbersLeft.length === 0) return alert("All numbers called!");
+      const idx = Math.floor(Math.random() * numbersLeft.length);
+      const number = numbersLeft.splice(idx, 1)[0];
+      document.getElementById('lastCalled').textContent = number;
+      localStorage.setItem('bingoNumber', number);
+    }
+
+    function addWinner() {
+      const name = document.getElementById('winnerName').value.trim();
+      if (!name) return alert("Enter a player name");
+      const li = document.createElement('li');
+      li.textContent = name;
+      document.getElementById('winnersList').appendChild(li);
+      document.getElementById('winnerName').value = "";
+    }
+
+    setInterval(() => {
+      const latest = localStorage.getItem("bingoNumber");
+      if (latest) document.getElementById("lastCalled").textContent = latest;
+    }, 1000);
+  </script>
+</body>
+</html>
