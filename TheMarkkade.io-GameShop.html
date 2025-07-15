@@ -587,92 +587,98 @@ Object.values(cart).forEach(g => {
     alert('Purchase successful! Games added to your library.');
   });
 
-  // Game modal
-  function openGameModal(game) {
-    modalGameTitle.textContent = game.title;
-    modalGameCategory.textContent = 'Category: ' + game.category;
-    modalGameDesc.textContent = game.description;
-    modalGamePrice.textContent = game.price;
-    modalButtons.innerHTML = '';
+// Game modal
+function openGameModal(game) {
+  modalGameTitle.textContent = game.title;
+  modalGameCategory.textContent = 'Category: ' + game.category;
+  modalGameDesc.textContent = game.description;
+  modalGamePrice.textContent = game.price + ' Markka$h';
+  modalButtons.innerHTML = '';
 
-if (purchasedGames[game.id]) {
-  if (downloadedGames[game.id]) {
-    const playBtn = document.createElement('button');
-    playBtn.textContent = 'Play';
-    playBtn.onclick = () => {
-      window.open(game.path, '_blank');
-      closeGameModal();
-    };
-    modalButtons.appendChild(playBtn);
-
-    const uninstallBtn = document.createElement('button');
-    uninstallBtn.textContent = 'Uninstall';
-    uninstallBtn.onclick = () => {
-      if(confirm(`Are you sure you want to uninstall ${game.title}?`)) {
-        delete downloadedGames[game.id];
-        localStorage.setItem('downloadedGames', JSON.stringify(downloadedGames));
-        renderGames();
+  if (purchasedGames[game.id]) {
+    if (downloadedGames[game.id]) {
+      const playBtn = document.createElement('button');
+      playBtn.textContent = 'Play';
+      playBtn.onclick = () => {
+        window.open(game.path, '_blank');
         closeGameModal();
-        alert(`${game.title} uninstalled.`);
-      }
-    };
-    modalButtons.appendChild(uninstallBtn);
+      };
+      modalButtons.appendChild(playBtn);
+
+      const uninstallBtn = document.createElement('button');
+      uninstallBtn.textContent = 'Uninstall';
+      uninstallBtn.onclick = () => {
+        if (confirm(`Are you sure you want to uninstall ${game.title}?`)) {
+          delete downloadedGames[game.id];
+          localStorage.setItem('downloadedGames', JSON.stringify(downloadedGames));
+          closeGameModal();
+          renderGames();
+          alert(`${game.title} uninstalled.`);
+        }
+      };
+      modalButtons.appendChild(uninstallBtn);
+    } else {
+      const downloadBtn = document.createElement('button');
+      downloadBtn.textContent = 'Download';
+      downloadBtn.onclick = () => {
+        downloadedGames[game.id] = true;
+        localStorage.setItem('downloadedGames', JSON.stringify(downloadedGames));
+        closeGameModal();
+        renderGames();
+        alert(`${game.title} downloaded and ready to play!`);
+      };
+      modalButtons.appendChild(downloadBtn);
+    }
   } else {
-    const downloadBtn = document.createElement('button');
-    downloadBtn.textContent = 'Download';
-    downloadBtn.onclick = () => {
-      downloadedGames[game.id] = true;
-      localStorage.setItem('downloadedGames', JSON.stringify(downloadedGames));
-      renderGames();
+    // Not purchased yet — show Add to Cart button
+    const addToCartBtn = document.createElement('button');
+    addToCartBtn.textContent = cart[game.id] ? 'In Cart' : 'Add to Cart';
+    addToCartBtn.disabled = !!cart[game.id];
+    addToCartBtn.onclick = () => {
+      addToCart(game);
       closeGameModal();
-      alert(`${game.title} downloaded and ready to play!`);
     };
-    modalButtons.appendChild(downloadBtn);
+    modalButtons.appendChild(addToCartBtn);
   }
+
+  gameModal.classList.add('active');
 }
 
 
-    gameModal.classList.add('active');
-  }
+function closeGameModal() {
+  gameModal.classList.remove('active');
+}
 
-  function closeGameModal() {
-    gameModal.classList.remove('active');
-  }
+// Library modal functions
+function openLibraryGameModal(game) {
+  libModalGameTitle.textContent = game.title;
+  libModalButtons.innerHTML = '';
 
-  // Library modal functions
-  function showLibrary() {
-    libraryModal.classList.add('active');
-    renderLibrary();
-  }
-  function closeLibraryModal() {
-    libraryModal.classList.remove('active');
-  }
-  function closeLibraryGameModal() {
-    libraryGameModal.classList.remove('active');
-  }
+  const playBtn = document.createElement('button');
+  playBtn.textContent = 'Play';
+  playBtn.onclick = () => {
+    window.open(game.path, '_blank');
+    closeLibraryGameModal();
+  };
+  libModalButtons.appendChild(playBtn);
 
-  function renderLibrary() {
-    libraryList.innerHTML = '';
-const keys = Object.keys(downloadedGames);
-    if(keys.length === 0) {
-      libraryList.innerHTML = '<p>You have not purchased any games yet.</p>';
-      return;
+  const uninstallBtn = document.createElement('button');
+  uninstallBtn.textContent = 'Uninstall';
+  uninstallBtn.onclick = () => {
+    if (confirm(`Are you sure you want to uninstall ${game.title}?`)) {
+      delete downloadedGames[game.id];
+      localStorage.setItem('downloadedGames', JSON.stringify(downloadedGames));
+      closeLibraryGameModal();       // ✅ close first
+      renderLibrary();               // ✅ then refresh
+      renderGames();                 // ✅ keep game state up to date
+      alert(`${game.title} uninstalled.`);
     }
-    keys.forEach(id => {
-      const game = games.find(g => g.id === id);
-      if(!game) return;
-      const div = document.createElement('div');
-      div.classList.add('library-item');
-      div.textContent = game.title;
-      div.title = game.description;
-      div.tabIndex = 0;
-      div.onclick = () => openLibraryGameModal(game);
-      div.onkeypress = (e) => {
-        if(e.key === 'Enter') openLibraryGameModal(game);
-      };
-      libraryList.appendChild(div);
-    });
-  }
+  };
+  libModalButtons.appendChild(uninstallBtn);
+
+  libraryGameModal.classList.add('active');
+}
+
 
   function openLibraryGameModal(game) {
     libModalGameTitle.textContent = game.title;
