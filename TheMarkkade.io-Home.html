@@ -12,20 +12,20 @@
       --background-color: #121212;
       --particle-color: #00ff6e;
     }
-    body {
-      margin: 0;
-      background: var(--background-color);
-      color: var(--text-color);
-      font-family: 'Roboto Mono', monospace;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-      padding: 1rem 0;
-      user-select: none;
-      position: relative;
-      overflow: hidden;
-    }
+body {
+  margin: 0;
+  background: var(--background-color);
+  color: var(--text-color);
+  font-family: 'Roboto Mono', monospace;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 1rem 0;
+  overflow-x: hidden; /* disables side scroll */
+}
+
+
     #clock {
       font-size: 4rem;
       font-weight: 700;
@@ -47,36 +47,52 @@
       color: var(--text-color);
       text-shadow: 0 0 6px var(--highlight-color);
     }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-      gap: 1.2rem;
-      width: 90vw;
-      max-width: 480px;
-      z-index: 1;
-    }
-    .app {
-      background: #1e1e1e;
-      border-radius: 20px;
-      padding: 0.8rem 0.5rem;
-      text-align: center;
-      font-size: 0.9rem;
-      cursor: pointer;
-      box-shadow: 0 0 8px var(--highlight-color);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-      height: 100px;
-      color: var(--text-color);
-      user-select: none;
-    }
-    .app:hover:not(.disabled) {
-      transform: scale(1.1);
-      box-shadow: 0 0 15px var(--highlight-color);
-      background: #222;
-    }
+
+.grid-wrapper {
+  flex-grow: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  padding: 0.5rem;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+}
+
+
+.app {
+  background: #1e1e1e;
+  border-radius: 16px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  box-shadow: 0 0 6px var(--highlight-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+  user-select: none;
+  width: 100%;              /* Fills the grid column exactly */
+  aspect-ratio: 1 / 1;      /* Stays square */
+  padding: 0.4rem;
+  box-sizing: border-box;   /* Prevents overflow from padding */
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.app:hover:not(.disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px var(--highlight-color);
+  background: #222;
+}
+
     .app.disabled {
       opacity: 0.4;
       cursor: default;
@@ -112,6 +128,7 @@
       pointer-events: none;
       z-index: 0;
     }
+	
   </style>
 </head>
 <body>
@@ -121,8 +138,9 @@
   <div id="date"></div>
   <div id="playerName">Markk</div>
 
+<div class="grid-wrapper">
   <div class="grid" id="appGrid">
-    <!-- Apps inserted here -->
+  <!-- Apps inserted here -->
   </div>
 
   <script>
@@ -170,7 +188,7 @@
       {id:'MarkksEmotions', title:'Markks Emotions', path:'Games/MarkksEmotions/MarkksEmotions.html', icon:'😊'},
       {id:'MarkksMobile', title:'Markks Mobile', path:'Games/MarkksMobile/MarkksMobile.html', icon:'📱'},
       {id:'McMarkksBurgers', title:'McMarkks Burgers', path:'Games/McMarkksBurgers/McMarkksBurgers.html', icon:'🍔'},
-      {id:'McMarkksBurgers2', title:'McMarkks Burgers 2', path:'Games/McMarkksBurgers2/McMarkksBurgers2.html', icon:'🍔'},
+      {id:'McMarkksBurgers2', title:'McMarkks Burgers 2', path:'Games/McMarkksBurgers/McMarkksBurgers2.html', icon:'🍔'},
       {id:'MemoryMatch', title:'Memory Match', path:'Games/MemoryMatch/MemoryMatch.html', icon:'🧠'},
       {id:'PettySlots', title:'Petty Slots', path:'Games/PettySlots/PettySlots.html', icon:'🎰'},
       {id:'PowerSpinMegaWin', title:'Power Spin Mega Win', path:'Games/PowerSpinMegaWin/PowerSpinMegaWin.html', icon:'🎡'},
@@ -193,12 +211,12 @@
     // System apps to show always
     const systemApps = [
       { title: "🛍️ App Store", path: "TheMarkkade.io-GameShop.html", className: "app-store" },
-      { title: "🧮 Calculator", path: "SystemApps/Calculator.html", className: "calculator" },
-      { title: "📝 Notepad", path: "SystemApps/Notepad.html", className: "notepad" },
-      { title: "⏱️ Timer", path: "SystemApps/Timer.html", className: "timer" },
+    //  { title: "🧮 Calculator", path: "SystemApps/Calculator.html", className: "calculator" },
+    //  { title: "📝 Notepad", path: "SystemApps/Notepad.html", className: "notepad" },
+    //  { title: "⏱️ Timer", path: "SystemApps/Timer.html", className: "timer" },
       { title: "⚙️ Settings", path: "TheMarkkade.io-PlayerSettings.html", className: "settings" },
 	    { title: "🛠️ Admin Settings", path: "TheMarkkade.io-AdminSettings.html", className: "admin-settings" },
-     { title: "💬 Discord", path: "TheMarkkade.io-Markkord.html", className: "discord" },
+   //  { title: "💬 Discord", path: "TheMarkkade.io-Markkord.html", className: "discord" },
 
  // { title: "💬 Discord", path: "https://discord.gg/TVXn8G5PkG", className: "discord" },
 

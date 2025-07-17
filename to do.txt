@@ -1,0 +1,22 @@
+For all Apps
+
+
+
+Create an Exit button to TheMarkkade.io-Home.html 
+
+
+use
+| `playerCash`        | `"1000"`                        | Amount of **Markka\$h** (primary game currency)        |
+for money
+
+use
+| `playerCoins`       | `"10000"`                        | Amount of **Markkoin\$** (secondary or bonus currency) |
+for eextras/bonuses
+
+
+
+
+
+
+
+hangman to DontHangMarkk
