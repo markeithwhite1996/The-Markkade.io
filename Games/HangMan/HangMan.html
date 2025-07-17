@@ -2,286 +2,581 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Hangman - Multi-Round</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Hangman iOS Style with Timer Penalty & Shuffle</title>
   <style>
+    :root {
+      --bg-color: #0a0a0a;
+      --accent: #00ff6a;
+      --error: #ff3b30;
+      --shadow: rgba(0, 0, 0, 0.25);
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * {
+      box-sizing: border-box;
+    }
     body {
-      background: #111;
-      color: #fff;
-      font-family: 'Courier New', monospace;
-      text-align: center;
-      padding: 20px;
+      margin: 0; padding: 0;
+      background: var(--bg-color);
+      color: white;
+      font-family: var(--font);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      align-items: center;
+      padding: 1rem;
       overflow-x: hidden;
     }
-
-    h1 { font-size: 2em; }
-    #balance, #timer { font-size: 1.2em; margin: 5px 0; }
-    .notification { margin: 10px 0; font-weight: bold; min-height: 24px; }
-
-    .hangman-board {
-      margin: 20px auto; width: 200px; height: 250px;
-      border-left: 5px solid #fff; border-top: 5px solid #fff;
-      position: relative;
+    .game-container {
+      width: 100%;
+      max-width: 460px;
+      background: #1c1c1e;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px var(--shadow);
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
     }
-
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      padding-bottom: 0.3rem;
+      border-bottom: 1px solid #333;
+    }
+    #cash {
+      user-select: text;
+    }
+    #timer {
+      user-select: text;
+    }
+    #gameTitle {
+      font-weight: 700;
+      font-size: 1.4rem;
+      margin-bottom: 0.75rem;
+      text-align: center;
+      user-select: none;
+      min-height: 1.8rem;
+      overflow-wrap: break-word;
+    }
+    /* Hangman above word display */
+    .hangman-board {
+      width: 140px;
+      height: 250px;
+      position: relative;
+      border-left: 5px solid white;
+      border-top: 5px solid white;
+      margin: 0 auto 1rem;
+      flex-shrink: 0;
+    }
     .gallow-top, .gallow-rope, .head, .body, .arm-left, .arm-right, .leg-left, .leg-right {
       display: none;
+      position: absolute;
+      background: white;
     }
-    .show { display: block; }
-
-    .gallow-top { position: absolute; top: 0; left: 0; width: 100px; height: 5px; background: #fff; }
-    .gallow-rope { position: absolute; top: 0; left: 100px; width: 5px; height: 30px; background: #fff; }
-    .head { position: absolute; top: 30px; left: 87px; width: 25px; height: 25px; border-radius: 50%; border: 3px solid #fff; }
-    .body { position: absolute; top: 55px; left: 98px; width: 3px; height: 50px; background: #fff; }
-    .arm-left { position: absolute; top: 90px; left: 95px; width: 3px; height: 25px; background: #fff; transform: rotate(20deg); transform-origin: top; }
-    .arm-right { position: absolute; top: 90px; left: 100px; width: 3px; height: 25px; background: #fff; transform: rotate(-20deg); transform-origin: top; }
-    .leg-left { position: absolute; top: 105px; left: 98px; width: 30px; height: 3px; background: #fff; transform: rotate(45deg); transform-origin: left; }
-    .leg-right { position: absolute; top: 105px; left: 70px; width: 30px; height: 3px; background: #fff; transform: rotate(-45deg); transform-origin: right; }
-
+    .show {
+      display: block !important;
+    }
+    .gallow-top {
+      top: 0; left: 0;
+      width: 100px; height: 5px;
+      background: white;
+    }
+    .gallow-rope {
+      top: 0; left: 100px;
+      width: 5px; height: 30px;
+      background: white;
+    }
+    .head {
+      top: 30px; left: 87px;
+      width: 25px; height: 25px;
+      border-radius: 50%;
+      border: 3px solid white;
+      background: transparent;
+    }
+    .body {
+      top: 55px; left: 98px;
+      width: 3px; height: 50px;
+      background: white;
+    }
+    .arm-left {
+      top: 90px; left: 95px;
+      width: 3px; height: 25px;
+      background: white;
+      transform: rotate(20deg);
+      transform-origin: top;
+    }
+    .arm-right {
+      top: 90px; left: 100px;
+      width: 3px; height: 25px;
+      background: white;
+      transform: rotate(-20deg);
+      transform-origin: top;
+    }
+    .leg-left {
+      top: 105px; left: 98px;
+      width: 30px; height: 3px;
+      background: white;
+      transform: rotate(45deg);
+      transform-origin: left;
+    }
+    .leg-right {
+      top: 105px; left: 70px;
+      width: 30px; height: 3px;
+      background: white;
+      transform: rotate(-45deg);
+      transform-origin: right;
+    }
+    /* Word display fits container with wrap */
     .word-display {
-      font-size: 2em;
-      letter-spacing: 10px;
-      margin: 20px auto 10px;
+      font-size: 2rem;
+      letter-spacing: 0.25em;
+      user-select: none;
+      text-align: center;
+      white-space: normal;
+      margin-bottom: 1rem;
+      word-break: break-word;
+      min-height: 2.8rem;
+      padding: 0 0.5rem;
     }
-
-    .keyboard { display: flex; flex-direction: column; gap: 10px; max-width: 600px; margin: 0 auto 20px; }
-    .keyboard-row { display: flex; justify-content: center; gap: 5px; }
-    .key {
-      background: #333; color: #fff; border: 2px solid #555; padding: 10px 14px;
-      border-radius: 5px; cursor: pointer; user-select: none; position: relative;
+    /* Keyboard grid using original QWERTY rows */
+    .keyboard {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-bottom: 1rem;
+      user-select: none;
     }
-    .key:hover { background: #555; }
-    .key.disabled { background: #111; color: #777; pointer-events: none; }
-
-    .start-btn, .exit-btn {
-      padding: 10px 20px; font-size: 1em; margin: 10px; background: #28a745;
-      color: #fff; border: none; border-radius: 6px; cursor: pointer;
+    .keyboard-row {
+      display: flex;
+      justify-content: center;
+      gap: 0.3rem;
     }
-    .start-btn:hover, .exit-btn:hover { background: #218838; }
-    .start-btn:disabled, .exit-btn:disabled { background: #555; cursor: not-allowed; }
-
+    .keyboard button {
+      background: #2c2c2e;
+      color: white;
+      font-size: 1.25rem;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 12px;
+      transition: transform 0.1s ease;
+      user-select: none;
+      min-width: 40px;
+      flex-shrink: 0;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.6);
+    }
+    .keyboard button:active {
+      transform: scale(0.95);
+    }
+    .keyboard button:disabled {
+      opacity: 0.4;
+      cursor: default;
+      box-shadow: none;
+    }
+    /* Controls */
+    .controls {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-bottom: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .controls button {
+      flex: 1 1 100px;
+      padding: 0.75rem;
+      background: var(--accent);
+      color: #000;
+      font-weight: bold;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      user-select: none;
+      cursor: pointer;
+      box-shadow: 0 5px 8px rgba(0,255,106,0.5);
+      transition: background-color 0.2s ease;
+      min-width: 100px;
+      text-align: center;
+    }
+    .controls button:hover:not(:disabled) {
+      background: #00d658;
+    }
+    .controls button:disabled {
+      background: #555;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    #notification {
+      text-align: center;
+      color: var(--accent);
+      font-size: 1.25rem;
+      margin: 0.25rem 0 0.5rem;
+      min-height: 1.5rem;
+      user-select: none;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
     .popup {
-      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      background: #28a745; padding: 20px; border-radius: 10px;
-      color: #fff; font-size: 1.5em; z-index: 10000;
-      box-shadow: 0 0 20px #0f0;
-      opacity: 0; pointer-events: none;
-      transition: opacity 0.3s ease;
+      position: fixed;
+      bottom: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1c1c1e;
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 15px;
+      box-shadow: 0 0 20px var(--shadow);
+      z-index: 1000;
+      font-size: 1.25rem;
+      animation: fade 2s ease-in-out forwards;
+      user-select: none;
     }
-    .popup.show {
-      opacity: 1; pointer-events: auto;
+    @keyframes fade {
+      0% { opacity: 1; }
+      100% { opacity: 0; transform: translate(-50%, 20px); }
+    }
+	    .title-bar {
+      width: 100%;
+      text-align: center;
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+      z-index: 999;
     }
 
-    .floating-text {
-      position: absolute; font-weight: bold; pointer-events: none;
-      user-select: none; animation: floatUp 1s ease-out forwards;
-      white-space: nowrap; z-index: 9999;
-    }
-    .floating-text.red { color: #f44336; }
-    .floating-text.lime { color: #8bc34a; }
-
-    @keyframes floatUp {
-      0% { opacity: 1; transform: translateY(0); }
-      100% { opacity: 0; transform: translateY(-30px); }
+    .title-bar h1 {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: var(--accent);
+      text-shadow: 0 0 6px var(--accent);
+      margin: 0;
     }
 
-    @keyframes hintFlash {
-      0% { background-color: #eee; color: #000; }
-      100% { background-color: #222; color: #fff; }
-    }
-    .hint-flash { animation: hintFlash 0.4s; }
   </style>
 </head>
 <body>
-  <h1>Hangman: Multi-Round</h1>
-  <div id="balance">Balance: $<span id="cash">0</span></div>
-  <div id="timer">Time Left: <span id="time">2:00</span></div>
+  <div class="game-container" role="main" aria-label="Hangman Game">
+    <div class="top-bar" aria-live="polite">
+      <div id="cash" aria-label="Player cash">💰 Markka$h: 1000</div>
+      <div id="timer" aria-label="Time left">⏱️ 60s</div>
+    </div>
 
-  <button class="start-btn" onclick="startGame()">Start New Game</button>
-  <div id="challengeTitle"></div>
-  <div id="hintBox"></div>
-  <button id="hintBtn" class="start-btn" onclick="getHint()">New Hint (-$5)</button>
+    <div id="gameTitle" aria-live="polite" aria-atomic="true"></div>
 
-  <div class="hangman-board">
-    <div class="gallow-top show"></div>
-    <div class="gallow-rope show"></div>
-    <div class="head" id="part0"></div>
-    <div class="body" id="part1"></div>
-    <div class="arm-left" id="part2"></div>
-    <div class="arm-right" id="part3"></div>
-    <div class="leg-left" id="part4"></div>
-    <div class="leg-right" id="part5"></div>
+    <div class="hangman-board" aria-hidden="true">
+      <div class="gallow-top show"></div>
+      <div class="gallow-rope show"></div>
+      <div class="head" id="part0"></div>
+      <div class="body" id="part1"></div>
+      <div class="arm-left" id="part2"></div>
+      <div class="arm-right" id="part3"></div>
+      <div class="leg-left" id="part4"></div>
+      <div class="leg-right" id="part5"></div>
+    </div>
+
+    <div class="word-display" id="wordDisplay" aria-label="Word to guess">_ _ _ _ _</div>
+
+    <div class="keyboard" id="keyboard" role="application" aria-label="On-screen keyboard">
+      <!-- Keyboard rows will always show -->
+    </div>
+
+    <div class="controls">
+      <button id="startBtn" aria-label="Start a new game">Start Game</button>
+      <button id="hintBtn" aria-label="Get a hint" disabled>Hint (-$5)</button>
+      <button id="endGameBtn" aria-label="End game and pay $100" disabled>End Game (-$100)</button>
+      <button id="exitBtn" aria-label="Exit to home page">Exit</button>
+    </div>
+    <div id="notification" aria-live="polite"></div>
   </div>
 
-  <div class="word-display" id="wordDisplay"></div>
-  <div class="notification" id="notification"></div>
-  <div class="keyboard" id="keyboard"></div>
-  <button class="exit-btn" id="exitBtn" onclick="exitGame()">Exit Game</button>
-  <div id="popup" class="popup"></div>
+  <!-- Sounds -->
+  <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+  <audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+  <audio id="winSound" src="https://assets.mixkit.co/sfx/preview/mixkit-unlock-game-notification-253.mp3"></audio>
+  <audio id="loseSound" src="https://assets.mixkit.co/sfx/preview/mixkit-retro-arcade-lose-2027.mp3"></audio>
+  <audio id="hintSound" src="https://assets.mixkit.co/sfx/preview/mixkit-click-melodic-tone-1129.mp3"></audio>
 
-<script>
-const rounds = [
-  {
-    title: "The Markkade Creator's Name",
-    answer: "MARKEITH",
-    hints: ["StickzCoder.Lua", "Markk", "NyBluntKing"]
-  },
-  {
-    title: "Capital of California",
-    answer: "SACRAMENTO",
-    hints: ["City of Trees", "916", "Sacto"]
-  }
-];
+  <script>
+    let playerCash = 1000;
+    const maxWrong = 6;
+    const parts = [
+      document.getElementById("part0"),
+      document.getElementById("part1"),
+      document.getElementById("part2"),
+      document.getElementById("part3"),
+      document.getElementById("part4"),
+      document.getElementById("part5"),
+    ];
+    const wordDisplay = document.getElementById("wordDisplay");
+    const keyboardEl = document.getElementById("keyboard");
+    const cashEl = document.getElementById("cash");
+    const timerEl = document.getElementById("timer");
+    const notification = document.getElementById("notification");
+    const startBtn = document.getElementById("startBtn");
+    const hintBtn = document.getElementById("hintBtn");
+    const endGameBtn = document.getElementById("endGameBtn");
+    const exitBtn = document.getElementById("exitBtn");
+    const gameTitleEl = document.getElementById("gameTitle");
 
-const vowels = ['A', 'E', 'I', 'O', 'U'];
-let guessedLetters = [], wrongGuesses = 0, timer = 120, timerInterval, gameStarted = false;
-let maxWrong = 6, currentRound = 0, shownHints = 0, playerCash = 100, wordToGuess = "";
+    // Sounds
+    const correctSound = document.getElementById("correctSound");
+    const wrongSound = document.getElementById("wrongSound");
+    const winSound = document.getElementById("winSound");
+    const loseSound = document.getElementById("loseSound");
+    const hintSound = document.getElementById("hintSound");
 
-const parts = Array.from({length: maxWrong}, (_, i) => document.getElementById(`part${i}`));
-const wordDisplay = document.getElementById("wordDisplay");
-const keyboard = document.getElementById("keyboard");
-const cashDisplay = document.getElementById("cash");
-const timeDisplay = document.getElementById("time");
-const notification = document.getElementById("notification");
-const popup = document.getElementById("popup");
+    // Original QWERTY keyboard rows
+    const qwertyRows = [
+      ["Q","W","E","R","T","Y","U","I","O","P"],
+      ["A","S","D","F","G","H","J","K","L"],
+      ["Z","X","C","V","B","N","M"]
+    ];
 
-const qwertyRows = [["Q","W","E","R","T","Y","U","I","O","P"],["A","S","D","F","G","H","J","K","L"],["Z","X","C","V","B","N","M"]];
+    const rounds = [
+      {
+        title: "The Markkade Creator's Name",
+        answer: "MARKEITH",
+        hints: ["StickzCoder.Lua", "Markk", "NyBluntKing"]
+      },
+      {
+        title: "Capital of California",
+        answer: "SACRAMENTO",
+        hints: ["City of Trees", "916", "Sacto"]
+      }
+    ];
 
-function startGame() {
-  guessedLetters = [];
-  wrongGuesses = 0;
-  timer = 120;
-  clearInterval(timerInterval);
-  gameStarted = true;
-  shownHints = 1;
-
-  const round = rounds[currentRound];
-  wordToGuess = round.answer.toUpperCase();
-
-  document.getElementById("challengeTitle").textContent = round.title;
-  document.getElementById("hintBox").textContent = "Hint: " + round.hints[0];
-  document.getElementById("hintBtn").disabled = false;
-
-  playerCash = parseInt(localStorage.getItem("playerCash")) || 100;
-  updateDisplay();
-  parts.forEach(p => p.classList.remove("show"));
-  notification.textContent = "";
-  renderKeyboard();
-  startTimer();
-  document.querySelector('.start-btn').disabled = true;
-  document.getElementById('exitBtn').disabled = true;
-}
-
-function updateDisplay() {
-  wordDisplay.textContent = wordToGuess.split('').map(l => guessedLetters.includes(l) ? l : "_").join(" ");
-  cashDisplay.textContent = playerCash;
-  localStorage.setItem("playerCash", playerCash);
-}
-
-function startTimer() {
-  timerInterval = setInterval(() => {
-    timer--;
-    const min = Math.floor(timer / 60), sec = timer % 60;
-    timeDisplay.textContent = `${min}:${sec.toString().padStart(2, '0')}`;
-    if (timer <= 0) clearInterval(timerInterval);
-  }, 1000);
-}
-
-function renderKeyboard() {
-  keyboard.innerHTML = "";
-  qwertyRows.forEach(row => {
-    const rowDiv = document.createElement("div");
-    rowDiv.className = "keyboard-row";
-    row.forEach(letter => {
-      const key = document.createElement("div");
-      key.className = "key";
-      key.textContent = letter;
-      key.onclick = () => handleKeyPress(letter, key);
-      rowDiv.appendChild(key);
-    });
-    keyboard.appendChild(rowDiv);
-  });
-}
-
-function handleKeyPress(letter, keyEl) {
-  if (!gameStarted || guessedLetters.includes(letter)) return;
-  guessedLetters.push(letter);
-  keyEl.classList.add("disabled");
-  const isVowel = vowels.includes(letter);
-  const correct = wordToGuess.includes(letter);
-  let cost = isVowel ? 6 : 2;
-  let reward = isVowel ? 12 : 4;
-
-  playerCash -= cost;
-  if (correct) {
-    playerCash += reward;
-    notification.textContent = `Correct! You just got $${reward}.`;
-  } else {
-    let penalty = isVowel ? 3 : 1;
-    playerCash -= penalty;
-    parts[wrongGuesses]?.classList.add("show");
-    wrongGuesses++;
-    notification.textContent = `Incorrect! That'll cost you $${penalty}.`;
-  }
-
-  updateDisplay();
-
-  const won = wordToGuess.split('').every(l => guessedLetters.includes(l));
-  if (won) {
-    clearInterval(timerInterval);
-    playerCash += 50;
-    showPopup("You got it! +$50");
-    updateDisplay();
-    gameStarted = false;
-    currentRound++;
-    if (currentRound >= rounds.length) {
-      document.getElementById("hintBtn").disabled = true;
-      showPopup("You beat all rounds!");
-    } else {
-      document.querySelector('.start-btn').disabled = false;
-      document.getElementById('exitBtn').disabled = false;
+    // Shuffle helper
+    function shuffleArray(arr) {
+      const array = arr.slice();
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
     }
-    return;
-  }
 
-  if (wrongGuesses >= maxWrong) {
-    clearInterval(timerInterval);
-    playerCash -= 100;
-    updateDisplay();
-    showPopup("You lost! -$100", true);
-    gameStarted = false;
-    document.querySelector('.start-btn').disabled = false;
-    document.getElementById('exitBtn').disabled = false;
-  }
-}
+    let shuffledRounds = [];
+    let currentRoundIndex = 0;
+    let gameStarted = false;
+    let guessedLetters = [];
+    let wrongGuesses = 0;
+    let timer = 60;
+    let timerInterval;
+    let shownHints = 0;
+    let wordToGuess = "";
 
-function getHint() {
-  const round = rounds[currentRound];
-  if (shownHints >= round.hints.length) {
-    notification.textContent = "No more hints available!";
-    return;
-  }
-  playerCash -= 5;
-  updateDisplay();
-  const newHint = round.hints[shownHints];
-  shownHints++;
-  const hintBox = document.getElementById("hintBox");
-  hintBox.textContent = "Hint: " + newHint;
-  hintBox.classList.add("hint-flash");
-  setTimeout(() => hintBox.classList.remove("hint-flash"), 400);
-  notification.textContent = "Here's your hint! That'll be $5.";
-}
+    function initializeRounds() {
+      shuffledRounds = shuffleArray(rounds);
+      currentRoundIndex = 0;
+    }
 
-function showPopup(message, isLose = false) {
-  popup.textContent = message;
-  popup.style.background = isLose ? "#f44336" : "#28a745";
-  popup.classList.add("show");
-  setTimeout(() => popup.classList.remove("show"), 2500);
-}
+    function updateCash(amount) {
+      playerCash += amount;
+      if (playerCash < 0) playerCash = 0;
+      cashEl.textContent = `💰 Markka$h: ${playerCash}`;
+      updateEndGameButton();
+    }
 
-function exitGame() {
-  window.location.href = "../../index.html"; // adjust path if needed
-}
-</script>
+    function startTimer() {
+      clearInterval(timerInterval);
+      timer = 60;
+      timerEl.textContent = `⏱️ ${timer}s`;
+      timerInterval = setInterval(() => {
+        timer--;
+        timerEl.textContent = `⏱️ ${timer}s`;
+        if (timer <= 0) {
+          clearInterval(timerInterval);
+          applyTimerPenalty();
+        }
+      }, 1000);
+    }
+
+    function applyTimerPenalty() {
+      let unguessedLetters = 0;
+      for (const char of wordToGuess) {
+        if (char !== " " && !guessedLetters.includes(char)) unguessedLetters++;
+      }
+      if (unguessedLetters > 0) {
+        const totalPenalty = unguessedLetters * 10;
+        updateCash(-totalPenalty);
+        notification.textContent = `Time's up! -$${totalPenalty} for ${unguessedLetters} missing letters.`;
+        loseSound.play();
+      } else {
+        notification.textContent = "Time's up!";
+      }
+      endRound(false);
+    }
+
+    function resetParts() {
+      parts.forEach(p => p.classList.remove("show"));
+    }
+
+    function renderWord() {
+      let display = "";
+      for (const char of wordToGuess) {
+        if (char === " ") display += "  ";
+        else display += guessedLetters.includes(char) ? char : "_";
+        display += " ";
+      }
+      wordDisplay.textContent = display.trim();
+    }
+
+    function renderKeyboard() {
+      keyboardEl.innerHTML = "";
+      for (const row of qwertyRows) {
+        const rowDiv = document.createElement("div");
+        rowDiv.className = "keyboard-row";
+        for (const letter of row) {
+          const btn = document.createElement("button");
+          btn.textContent = letter;
+          btn.disabled = guessedLetters.includes(letter) || !gameStarted;
+          btn.onclick = () => handleGuess(letter, btn);
+          rowDiv.appendChild(btn);
+        }
+        keyboardEl.appendChild(rowDiv);
+      }
+    }
+
+    function handleGuess(letter, btn) {
+      if (!gameStarted || guessedLetters.includes(letter)) return;
+      guessedLetters.push(letter);
+      btn.disabled = true;
+
+      if (wordToGuess.includes(letter)) {
+        correctSound.play();
+        notification.textContent = `Correct! +$10`;
+        updateCash(10);
+      } else {
+        wrongSound.play();
+        notification.textContent = `Wrong! -$10`;
+        updateCash(-10);
+        parts[wrongGuesses].classList.add("show");
+        wrongGuesses++;
+      }
+      renderWord();
+      checkGameStatus();
+    }
+
+    function checkGameStatus() {
+      // Win condition
+      const allGuessed = wordToGuess.split("").every(c => c === " " || guessedLetters.includes(c));
+      if (allGuessed) {
+        clearInterval(timerInterval);
+        winSound.play();
+        notification.textContent = "You won! +$50";
+        updateCash(50);
+        endRound(true);
+        return;
+      }
+      // Lose condition
+      if (wrongGuesses >= maxWrong) {
+        clearInterval(timerInterval);
+        loseSound.play();
+        notification.textContent = `You lost! The word was: ${wordToGuess} -$100`;
+        updateCash(-100);
+        endRound(false);
+      }
+    }
+
+    function getHint() {
+      if (!gameStarted) return;
+      const round = shuffledRounds[currentRoundIndex];
+      if (shownHints >= round.hints.length) {
+        notification.textContent = "No more hints!";
+        hintBtn.disabled = true;
+        return;
+      }
+      hintSound.play();
+      updateCash(-5);
+      notification.textContent = "Hint: " + round.hints[shownHints];
+      shownHints++;
+    }
+
+    function startGame() {
+      if (!shuffledRounds.length || currentRoundIndex >= shuffledRounds.length) {
+        initializeRounds();
+      }
+
+      gameStarted = true;
+      guessedLetters = [];
+      wrongGuesses = 0;
+      shownHints = 0;
+      resetParts();
+
+      const round = shuffledRounds[currentRoundIndex];
+      wordToGuess = round.answer.toUpperCase();
+      gameTitleEl.textContent = round.title;
+
+      renderWord();
+      renderKeyboard();
+      notification.textContent = "";
+
+      startBtn.disabled = true;
+      hintBtn.disabled = false;
+      endGameBtn.disabled = playerCash < 100;
+      exitBtn.disabled = true;
+
+      startTimer();
+    }
+
+    function endRound(won) {
+      gameStarted = false;
+      startBtn.disabled = false;
+      hintBtn.disabled = true;
+      endGameBtn.disabled = true;
+      exitBtn.disabled = false;
+
+      // Show final keyboard state with all buttons disabled
+      renderKeyboard();
+    }
+
+    function endGame(pay = true) {
+      if (!gameStarted) return;
+      if (pay) {
+        if (playerCash < 100) {
+          notification.textContent = "Not enough Markka$h to end game!";
+          return;
+        }
+        updateCash(-100);
+        notification.textContent = "Game ended early. -$100";
+      }
+      clearInterval(timerInterval);
+      resetParts();
+      gameStarted = false;
+      startBtn.disabled = false;
+      hintBtn.disabled = true;
+      endGameBtn.disabled = true;
+      exitBtn.disabled = false;
+      renderWord();
+      renderKeyboard();
+    }
+
+    function updateEndGameButton() {
+      endGameBtn.disabled = playerCash < 100 || !gameStarted;
+    }
+
+    function exitGame() {
+      window.location.href = "../../TheMarkkade.io-Home.html";
+    }
+
+    // Initial setup
+    cashEl.textContent = `💰 Markka$h: ${playerCash}`;
+    timerEl.textContent = "⏱️ 60s";
+    gameTitleEl.textContent = "";
+
+    // Event listeners
+    startBtn.addEventListener("click", startGame);
+    hintBtn.addEventListener("click", getHint);
+    endGameBtn.addEventListener("click", () => endGame(true));
+    exitBtn.addEventListener("click", exitGame);
+
+    // Always show keyboard (disabled when not playing)
+    renderKeyboard();
+
+  </script>
 </body>
 </html>

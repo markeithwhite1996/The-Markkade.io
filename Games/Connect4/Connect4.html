@@ -93,15 +93,25 @@
     }
     .player {
       background-color: red;
+      animation: dropIn 0.4s ease;
     }
     .ai {
       background-color: yellow;
+      animation: dropIn 0.4s ease;
+    }
+    @keyframes dropIn {
+      0% { transform: translateY(-300px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
     }
     #message {
       margin-top: 1rem;
       font-size: 1.4rem;
       min-height: 2rem;
       text-align: center;
+    }
+    #playAgainBtn, #exitBtn, #forfeitBtn {
+      margin-top: 1rem;
+      display: none;
     }
     @media (max-width: 600px) {
       .btn {
@@ -131,6 +141,7 @@
       <button class="btn" data-amount="50">Play $50</button>
       <button class="btn" data-amount="55">Play $55</button>
     </div>
+    <button class="btn" onclick="window.location.href='../../TheMarkkade.io-Home.html'">Exit</button>
   </div>
 
   <div id="levelScreen" class="screen">
@@ -145,6 +156,9 @@
   <div id="gameScreen" class="screen">
     <div id="gameBoard"></div>
     <div id="message"></div>
+    <button id="playAgainBtn" class="btn">Play Again</button>
+    <button id="forfeitBtn" class="btn" title="Forfeit game and lose $100">Forfeit Game (-$100)</button>
+    <button id="exitBtn" class="btn" onclick="window.location.href='../../TheMarkkade.io-Home.html'">Exit</button>
   </div>
 
   <audio id="dropSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_dcb2d33f26.mp3"></audio>
@@ -159,6 +173,9 @@
     const message = document.getElementById("message");
     const dropSound = document.getElementById("dropSound");
     const winSound = document.getElementById("winSound");
+    const playAgainBtn = document.getElementById("playAgainBtn");
+    const exitBtn = document.getElementById("exitBtn");
+    const forfeitBtn = document.getElementById("forfeitBtn");
 
     let playerCash = parseInt(localStorage.getItem("playerCash")) || 100;
     let entryFee = 0;
@@ -180,6 +197,7 @@
     document.querySelectorAll("#entryMenu .btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         const amount = parseInt(btn.dataset.amount);
+        if (isNaN(amount)) return;
         if (playerCash >= amount) {
           playerCash -= amount;
           updateCashDisplay();
@@ -202,6 +220,9 @@
     function startGame() {
       board = [];
       gameBoard.innerHTML = "";
+      playAgainBtn.style.display = "none";
+      exitBtn.style.display = "none";
+      forfeitBtn.style.display = "inline-block";
       for (let r = 0; r < 6; r++) {
         board[r] = [];
         for (let c = 0; c < 7; c++) {
@@ -226,9 +247,10 @@
       placePiece(row, col, "player");
       dropSound.play();
       if (checkWin("player")) return endGame("You win! +$" + entryFee * 2, true);
+      if (isBoardFull()) return endGame("It's a tie! Entry refunded.", true, true);
       currentPlayer = "ai";
       message.textContent = "AI is thinking...";
-      const delay = Math.floor(Math.random() * 10000) + 1000;
+      const delay = Math.floor(Math.random() * 1000) + 500;
       setTimeout(handleAiMove, delay);
     }
 
@@ -245,6 +267,7 @@
       placePiece(row, col, "ai");
       dropSound.play();
       if (checkWin("ai")) return endGame("AI wins! You lost your entry.", false);
+      if (isBoardFull()) return endGame("It's a tie! Entry refunded.", true, true);
       currentPlayer = "player";
       message.textContent = "Your move.";
     }
@@ -302,15 +325,45 @@
       return false;
     }
 
-    function endGame(msg, won) {
+    function isBoardFull() {
+      return board.every(row => row.every(cell => cell));
+    }
+
+    function endGame(msg, won, tie = false) {
       playing = false;
       winSound.play();
       message.textContent = msg;
+      forfeitBtn.style.display = "none";
       if (won) {
-        playerCash += entryFee * 2;
+        playerCash += tie ? entryFee : entryFee * 2;
         updateCashDisplay();
       }
+      playAgainBtn.style.display = "inline-block";
+      exitBtn.style.display = "inline-block";
     }
+
+    playAgainBtn.addEventListener("click", () => {
+      switchScreen(gameScreen, betScreen);
+    });
+
+    forfeitBtn.addEventListener("click", () => {
+      if (!playing) return;
+      if (playerCash < 100) {
+        alert("Not enough cash to forfeit (-$100)!");
+        return;
+      }
+      playerCash -= 100;
+      updateCashDisplay();
+      playing = false;
+      message.textContent = "You forfeited the game and lost $100.";
+      forfeitBtn.style.display = "none";
+      playAgainBtn.style.display = "inline-block";
+      exitBtn.style.display = "inline-block";
+      // Go back to bet screen after a short delay to show message
+      setTimeout(() => {
+        switchScreen(gameScreen, betScreen);
+      }, 1500);
+    });
 
     updateCashDisplay();
   </script>
