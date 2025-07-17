@@ -2,108 +2,253 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Loading...</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Markkade.io Loading</title>
   <style>
+    :root {
+      --playerColor1: #00ff6e;
+      --playerColor2: #00e5ff;
+      --playerBackgroundColor: #121212;
+      --playerParticleColor: #00e5ff;
+      --playerFont: 'Orbitron', sans-serif;
+    }
+
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron&display=swap');
+
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
 
-    body, html {
+    html, body {
       width: 100%;
       height: 100%;
-      background: black;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-family: 'Courier New', Courier, monospace;
+      font-family: var(--playerFont);
+      background: var(--playerBackgroundColor);
       overflow: hidden;
+      position: relative;
     }
 
     .screen {
-      position: absolute;
-      opacity: 0;
-      transition: opacity 1s ease;
-      font-size: 2rem;
-      text-align: center;
-    }
-
-    .visible {
-      opacity: 1;
-    }
-
-    /* Glitch effect */
-    .glitch {
-      position: relative;
-      font-size: 2.5rem;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      height: 100vh;
+      background: rgba(18, 18, 18, 0.9);
       color: white;
-      animation: glitch 1s infinite;
+      text-align: center;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1;
+      transition: opacity 0.5s ease;
     }
 
-    @keyframes glitch {
-      0% { transform: translate(0); }
-      20% { transform: translate(-2px, 2px); }
-      40% { transform: translate(-2px, -2px); }
-      60% { transform: translate(2px, 2px); }
-      80% { transform: translate(2px, -2px); }
-      100% { transform: translate(0); }
+    .loading-text h1 {
+      font-size: 2.5em;
+      color: var(--playerColor1);
+      margin-bottom: 0.5em;
+      animation: fadeInUp 1s ease forwards;
     }
-.logo {
-  width: 100vw;
-  height: 100vh;
-  object-fit: contain;
-}
 
+    .loading-text p {
+      font-size: 1.2em;
+      color: var(--playerColor2);
+      animation: fadeInUp 1.5s ease forwards;
+    }
 
+    .logo {
+      max-width: 60%;
+      filter: drop-shadow(0 0 15px var(--playerColor1));
+      animation: pulseGlow 2s infinite ease-in-out, fadeInUp 1s ease forwards;
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% {
+        filter: drop-shadow(0 0 10px var(--playerColor1));
+      }
+      50% {
+        filter: drop-shadow(0 0 25px var(--playerColor1));
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
   </style>
 </head>
 <body>
+  <canvas id="bgCanvas"></canvas>
 
   <div id="screen1" class="screen">
-  <img src="ChatGPT.png" alt="ChatGPT.png" class="logo" />
+    <div class="loading-text">
+      <h1>Initializing Game Engine...</h1>
+      <p>Loading assets and configurations</p>
+    </div>
   </div>
 
-<div id="screen2" class="screen">
-  <img src="Markk.png" alt="Markk.png" class="logo" />
-</div>
-
+  <div id="screen2" class="screen">
+    <div class="loading-text">
+      <h1>Connecting to Markkade.io...</h1>
+      <p>Verifying license and user data</p>
+    </div>
+  </div>
 
   <div id="screen3" class="screen">
-    <div class="glitch">The Markkade.io</div>
+    <div class="loading-text">
+      <h1>Powered by Creativity</h1>
+      <p>Crafted by ChatGPT & Markk Brandon</p>
+    </div>
+  </div>
+
+  <div id="screen4" class="screen">
+    <div class="loading-text">
+      <h1>Loading Game Boards...</h1>
+      <p>Setting up gameplay interface</p>
+    </div>
+  </div>
+
+  <div id="screen5" class="screen">
+    <div class="loading-text">
+      <h1>Finalizing Setup...</h1>
+      <p>Bringing everything online</p>
+    </div>
+  </div>
+
+  <div id="screen6" class="screen">
+    <img src="TheMarkkade.io.png" alt="TheMarkkade.io Logo" class="logo" />
   </div>
 
   <script>
+    // Load theme from localStorage and apply it to CSS variables
+    const root = document.documentElement;
+    function applyThemeFromStorage() {
+      const themeVars = [
+        'playerColor1',
+        'playerColor2',
+        'playerBackgroundColor',
+        'playerParticleColor',
+        'playerFont'
+      ];
+      themeVars.forEach(key => {
+        const value = localStorage.getItem(key);
+        if (value) {
+          root.style.setProperty(`--${key}`, value);
+        }
+      });
+      const font = localStorage.getItem('playerFont');
+      if (font) {
+        const link = document.createElement('link');
+        link.href = `https://fonts.googleapis.com/css2?family=${font.replace(/ /g, '+')}&display=swap`;
+        link.rel = 'stylesheet';
+        document.head.appendChild(link);
+      }
+    }
+    applyThemeFromStorage();
+
     const screens = [
       { id: "screen1", duration: 1500 },
       { id: "screen2", duration: 2000 },
-      { id: "screen3", duration: 1500 }
+      { id: "screen3", duration: 1500 },
+      { id: "screen4", duration: 1800 },
+      { id: "screen5", duration: 1500 },
+      { id: "screen6", duration: 3200 }
     ];
 
-    let current = 0;
-
-    function showScreen(index) {
-      if (index > 0) {
-        document.getElementById(screens[index - 1].id).classList.remove("visible");
+    let currentScreen = 0;
+    function showNextScreen() {
+      if (currentScreen > 0) {
+        document.getElementById(screens[currentScreen - 1].id).style.display = "none";
       }
-      if (index < screens.length) {
-        const screen = document.getElementById(screens[index].id);
-        screen.classList.add("visible");
-
-        setTimeout(() => {
-          showScreen(index + 1);
-        }, screens[index].duration);
+      if (currentScreen < screens.length) {
+        const screen = document.getElementById(screens[currentScreen].id);
+        screen.style.display = "flex";
+        setTimeout(showNextScreen, screens[currentScreen].duration);
+        currentScreen++;
       } else {
-        // Redirect after last screen
         window.location.href = "TheMarkkade.io-Home.html";
       }
     }
 
-    window.onload = () => {
-      showScreen(0);
-    };
+    screens.forEach(screen => {
+      document.getElementById(screen.id).style.display = "none";
+    });
+    showNextScreen();
+
+    const canvas = document.getElementById("bgCanvas");
+    const ctx = canvas.getContext("2d");
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    function getParticleColor() {
+      return Math.random() > 0.5
+        ? getComputedStyle(root).getPropertyValue('--playerColor1')
+        : getComputedStyle(root).getPropertyValue('--playerParticleColor');
+    }
+
+    function createParticles() {
+      for (let i = 0; i < 150; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          radius: Math.random() * 2 + 1,
+          speedX: (Math.random() - 0.5) * 1.5,
+          speedY: (Math.random() - 0.5) * 1.5,
+          color: getParticleColor()
+        });
+      }
+    }
+
+    function drawParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+      });
+    }
+
+    function updateParticles() {
+      particles.forEach(p => {
+        p.x += p.speedX;
+        p.y += p.speedY;
+        if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
+      });
+    }
+
+    function animateParticles() {
+      drawParticles();
+      updateParticles();
+      requestAnimationFrame(animateParticles);
+    }
+
+    createParticles();
+    animateParticles();
   </script>
 </body>
 </html>
