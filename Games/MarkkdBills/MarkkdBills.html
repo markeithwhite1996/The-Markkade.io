@@ -1,0 +1,641 @@
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Markk’dBills Slot Machine - Lines on Wins</title>
+<style>
+  body {
+    background: #121212;
+    color: #eee;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0; padding: 20px;
+    user-select: none;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 0.2em;
+    color: #0f0;
+    text-shadow: 0 0 5px #0f0;
+  }
+  #walletDisplay {
+    font-size: 1.5em;
+    text-align: center;
+    margin-bottom: 15px;
+  }
+  #betSelector {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  #betSelector button {
+    background: #222;
+    border: 1px solid #0f0;
+    color: #0f0;
+    margin: 0 5px;
+    padding: 8px 14px;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  #betSelector button.selected {
+    background: #0f0;
+    color: #000;
+  }
+  #slotContainer {
+    position: relative;
+    width: 320px; /* 5 cols * 60px + gaps */
+    margin: 0 auto 20px auto;
+  }
+  #slotGrid {
+    display: grid;
+    grid-template-columns: repeat(5, 60px);
+    grid-template-rows: repeat(3, 60px);
+    gap: 8px;
+    justify-content: center;
+  }
+  .slotCell {
+    background: #222;
+    border-radius: 10px;
+    font-size: 2.5em;
+    line-height: 60px;
+    text-align: center;
+    user-select: none;
+    box-shadow: 0 0 8px #0f0 inset;
+    transition: box-shadow 0.3s ease;
+    position: relative;
+    z-index: 1;
+  }
+  .winning {
+    box-shadow: 0 0 20px 5px #ff0 inset, 0 0 10px #ff0;
+  }
+  #linesSvg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 2;
+  }
+@keyframes wiggleGlow {
+  0% {
+    stroke: #0f0;
+    stroke-width: 4;
+    filter: drop-shadow(0 0 5px #0f0);
+    transform: translate(0,0) rotate(0deg);
+    opacity: 0.9;
+  }
+  25% {
+    stroke-width: 5;
+    filter: drop-shadow(0 0 10px #0f0);
+    transform: translate(-1px, 1px) rotate(-1deg);
+    opacity: 1;
+  }
+  50% {
+    stroke-width: 4;
+    filter: drop-shadow(0 0 5px #0f0);
+    transform: translate(1px, -1px) rotate(1deg);
+    opacity: 0.9;
+  }
+  75% {
+    stroke-width: 5;
+    filter: drop-shadow(0 0 10px #0f0);
+    transform: translate(-1px, 0px) rotate(-0.5deg);
+    opacity: 1;
+  }
+  100% {
+    stroke-width: 4;
+    filter: drop-shadow(0 0 5px #0f0);
+    transform: translate(0,0) rotate(0deg);
+    opacity: 0.9;
+  }
+}
+
+.winLine {
+  stroke: #0f0;
+  stroke-width: 4;
+  stroke-linecap: round;
+  opacity: 0.9;
+  animation: wiggleGlow 1s infinite ease-in-out;
+  transform-origin: center;
+}
+
+  #spinBtn {
+    display: block;
+    margin: 0 auto 20px auto;
+    background: #0f0;
+    color: #000;
+    font-weight: bold;
+    font-size: 1.3em;
+    padding: 10px 40px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 0 10px #0f0;
+    transition: background 0.3s ease;
+  }
+  #spinBtn:disabled {
+    background: #444;
+    color: #999;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  #message {
+    text-align: center;
+    font-size: 1.3em;
+    min-height: 1.5em;
+    margin-top: 10px;
+    color: #ff0;
+    text-shadow: 0 0 5px #ff0;
+  }
+  #payTableContainer {
+    background: #1a1a1a;
+    border: 1px solid #0f0;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 15px;
+  }
+  #payTableContainer table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85em;
+  }
+  #payTableContainer th, #payTableContainer td {
+    border: 1px solid #0f0;
+    padding: 4px;
+    text-align: center;
+  }
+  #payTableContainer th {
+    background: #0a0;
+    color: #fff;
+  }
+  a {
+    color: #ffd700;
+  }
+  #freeSpinCounter {
+    text-align: center;
+    font-size: 1.1em;
+    margin-bottom: 15px;
+    color: #ff0;
+    text-shadow: 0 0 8px #ff0;
+  }
+</style>
+</head>
+<body>
+
+<h1>Markk’dBills Slot Machine</h1>
+<div id="walletDisplay">Balance: $0</div>
+
+<div id="betSelector" aria-label="Bet Selector">
+  <strong>Bet:</strong>
+  <button data-bet="10" class="selected">$10</button>
+  <button data-bet="20">$20</button>
+  <button data-bet="30">$30</button>
+  <button data-bet="40">$40</button>
+  <button data-bet="50">$50</button>
+</div>
+
+<div id="freeSpinCounter" style="display:none;">Free Spins Left: 0</div>
+
+<div id="slotContainer" aria-label="Slot Machine Container">
+  <div id="slotGrid" aria-label="Slot Machine Grid" role="grid"></div>
+  <svg id="linesSvg" aria-hidden="true"></svg>
+</div>
+
+<button id="spinBtn" aria-label="Spin Button">Spin</button>
+
+<div id="message"></div>
+
+<div id="payTableContainer">
+  <table>
+    <thead>
+      <tr>
+        <th>Symbol</th>
+        <th>Bet</th>
+        <th>3x</th>
+        <th>4x</th>
+        <th>5x</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- 💴 Japanese Yen -->
+      <tr><td rowspan="5">💴 Yen</td><td>$10</td><td>$11</td><td>$22</td><td>$33</td></tr>
+      <tr><td>$20</td><td>$22</td><td>$44</td><td>$66</td></tr>
+      <tr><td>$30</td><td>$33</td><td>$66</td><td>$99</td></tr>
+      <tr><td>$40</td><td>$44</td><td>$88</td><td>$132</td></tr>
+      <tr><td>$50</td><td>$55</td><td>$110</td><td>$165</td></tr>
+
+      <!-- 💵 US Dollar -->
+      <tr><td rowspan="5">💵 USD</td><td>$10</td><td>$22</td><td>$44</td><td>$66</td></tr>
+      <tr><td>$20</td><td>$44</td><td>$88</td><td>$132</td></tr>
+      <tr><td>$30</td><td>$66</td><td>$132</td><td>$198</td></tr>
+      <tr><td>$40</td><td>$88</td><td>$176</td><td>$264</td></tr>
+      <tr><td>$50</td><td>$110</td><td>$220</td><td>$330</td></tr>
+
+      <!-- 💶 Euro -->
+      <tr><td rowspan="5">💶 Euro</td><td>$10</td><td>$33</td><td>$66</td><td>$99</td></tr>
+      <tr><td>$20</td><td>$66</td><td>$132</td><td>$198</td></tr>
+      <tr><td>$30</td><td>$99</td><td>$198</td><td>$297</td></tr>
+      <tr><td>$40</td><td>$132</td><td>$264</td><td>$396</td></tr>
+      <tr><td>$50</td><td>$165</td><td>$330</td><td>$495</td></tr>
+
+      <!-- 💷 Pound -->
+      <tr><td rowspan="5">💷 Pound</td><td>$10</td><td>$44</td><td>$88</td><td>$132</td></tr>
+      <tr><td>$20</td><td>$88</td><td>$176</td><td>$264</td></tr>
+      <tr><td>$30</td><td>$132</td><td>$264</td><td>$396</td></tr>
+      <tr><td>$40</td><td>$176</td><td>$352</td><td>$528</td></tr>
+      <tr><td>$50</td><td>$220</td><td>$440</td><td>$660</td></tr>
+
+      <!-- 💳 Credit Card -->
+      <tr><td rowspan="5">💳 Card</td><td>$10</td><td>$110</td><td>$220</td><td>$330</td></tr>
+      <tr><td>$20</td><td>$220</td><td>$440</td><td>$660</td></tr>
+      <tr><td>$30</td><td>$330</td><td>$660</td><td>$990</td></tr>
+      <tr><td>$40</td><td>$440</td><td>$880</td><td>$1320</td></tr>
+      <tr><td>$50</td><td>$550</td><td>$1100</td><td>$1650</td></tr>
+
+      <!-- 💲 Wild Bonus -->
+      <tr><td colspan="5">💲 Wild Bonus: 3x = 5 Free Spins | 5x = 10 Free Spins</td></tr>
+      <tr><td colspan="5">🏧 ATM: Wild (replaces any except 💳 & 💲)</td></tr>
+    </tbody>
+  </table>
+</div>
+<div style="text-align: center;">
+  <a href="../../index.html" style="color: #ffd700; user-select: none;">🏠 Back to Arcade</a>
+</div>
+
+
+<script>
+(() => {
+  'use strict';
+
+  const rows = 3;
+  const cols = 5;
+
+  const symbols = [
+    { sym: "💴", name: "Yen" },
+    { sym: "💵", name: "USD" },
+    { sym: "💶", name: "Euro" },
+    { sym: "💷", name: "Pound" },
+    { sym: "💳", name: "Credit Card" },
+    { sym: "💱", name: "Currency Exchange" },
+    { sym: "💲", name: "Wild" },
+    { sym: "🏧", name: "ATM" }
+  ];
+
+  const weights = {
+    "💴": 20,
+    "💵": 20,
+    "💶": 15,
+    "💷": 10,
+    "💳": 5,
+    "💱": 15,
+    "💲": 10,
+    "🏧": 5
+  };
+
+  const payouts = {
+    "💴": { 10: [11, 22, 33], 20: [22, 44, 66], 30: [33, 66, 99], 40: [44, 88, 132], 50: [55, 110, 165] },
+    "💵": { 10: [22, 44, 66], 20: [44, 88, 132], 30: [66, 132, 198], 40: [88, 176, 264], 50: [110, 220, 330] },
+    "💶": { 10: [33, 66, 99], 20: [66, 132, 198], 30: [99, 198, 297], 40: [132, 264, 396], 50: [165, 330, 495] },
+    "💷": { 10: [44, 88, 132], 20: [88, 176, 264], 30: [132, 264, 396], 40: [176, 352, 528], 50: [220, 440, 660] },
+    "💳": { 10: [110, 220, 330], 20: [220, 440, 660], 30: [330, 660, 990], 40: [440, 880, 1320], 50: [550, 1100, 1650] },
+    "💱": { 10: [-11, -22, -33], 20: [-22, -44, -66], 30: [-33, -66, -99], 40: [-44, -88, -132], 50: [-55, -110, -165] }
+  };
+
+  const freeSpinsAward = { 3: 5, 5: 10 };
+
+  const soundPaths = {
+    spin: 'https://cdn.jsdelivr.net/gh/naptha/tiny-soundbank@master/sounds/slot_machine.mp3',
+    stop: 'https://cdn.jsdelivr.net/gh/naptha/tiny-soundbank@master/sounds/doorbell.wav',
+    win: 'https://cdn.jsdelivr.net/gh/naptha/tiny-soundbank@master/sounds/coinwin.mp3',
+    lose: 'https://cdn.jsdelivr.net/gh/naptha/tiny-soundbank@master/sounds/lose.mp3',
+    button: 'https://cdn.jsdelivr.net/gh/naptha/tiny-soundbank@master/sounds/blip1.wav',
+    hover: 'https://cdn.jsdelivr.net/gh/naptha/tiny-soundbank@master/sounds/blip2.wav',
+    freeSpin: 'https://cdn.jsdelivr.net/gh/naptha/tiny-soundbank@master/sounds/powerup.mp3',
+    match: 'https://cdn.jsdelivr.net/gh/naptha/tiny-soundbank@master/sounds/bubble.mp3'
+  };
+
+  const sounds = {};
+  for (const key in soundPaths) {
+    sounds[key] = new Audio(soundPaths[key]);
+  }
+
+  document.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      sounds.button.currentTime = 0;
+      sounds.button.play();
+    });
+    btn.addEventListener('mouseenter', () => {
+      sounds.hover.currentTime = 0;
+      sounds.hover.play();
+    });
+  });
+
+  const walletDisplay = document.getElementById('walletDisplay');
+  const betSelector = document.getElementById('betSelector');
+  const spinBtn = document.getElementById('spinBtn');
+  const slotGrid = document.getElementById('slotGrid');
+  const linesSvg = document.getElementById('linesSvg');
+  const messageEl = document.getElementById('message');
+  const freeSpinCounterEl = document.getElementById('freeSpinCounter');
+
+  let balance = Number(localStorage.getItem('playerCash')) || 1000;
+  let freeSpins = Number(localStorage.getItem('freeSpins')) || 0;
+  let bet = 10;
+  let spinning = false;
+
+  const soundSpin = new Audio('https://actions.google.com/sounds/v1/casino/slot_machine_spin.wav');
+  const soundStop = new Audio('https://actions.google.com/sounds/v1/casino/slot_machine_stop.wav');
+  const soundWin = new Audio('https://actions.google.com/sounds/v1/casino/slot_machine_win.wav');
+  const soundLose = new Audio('https://actions.google.com/sounds/v1/casino/slot_machine_lose.wav');
+
+  const cells = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const cell = document.createElement('div');
+      cell.classList.add('slotCell');
+      cell.setAttribute('role', 'gridcell');
+      cell.setAttribute('aria-rowindex', r + 1);
+      cell.setAttribute('aria-colindex', c + 1);
+      slotGrid.appendChild(cell);
+      cells.push(cell);
+    }
+  }
+
+  function weightedRandomSymbol() {
+    const totalWeight = Object.values(weights).reduce((a,b) => a+b, 0);
+    let rnd = Math.random() * totalWeight;
+    for (const sym of symbols) {
+      rnd -= weights[sym.sym];
+      if (rnd < 0) return sym.sym;
+    }
+    return symbols[0].sym;
+  }
+
+  function fillGridRandom() {
+    const arr = [];
+    for(let i=0; i<rows*cols; i++) {
+      arr.push(weightedRandomSymbol());
+    }
+    return arr;
+  }
+
+  function renderGrid(arr) {
+    for(let i=0; i < arr.length; i++) {
+      cells[i].textContent = arr[i];
+      cells[i].classList.remove('winning');
+    }
+  }
+
+  function clearLines() {
+    while(linesSvg.firstChild) linesSvg.removeChild(linesSvg.firstChild);
+  }
+
+  function drawWinLines(lines) {
+    clearLines();
+    const svgNS = "http://www.w3.org/2000/svg";
+    lines.forEach(lineCells => {
+      if(lineCells.length < 2) return;
+      for(let i=0; i < lineCells.length - 1; i++) {
+        const fromCell = cells[lineCells[i]];
+        const toCell = cells[lineCells[i+1]];
+        const fromRect = fromCell.getBoundingClientRect();
+        const toRect = toCell.getBoundingClientRect();
+        const svgRect = linesSvg.getBoundingClientRect();
+        const x1 = fromRect.left + fromRect.width/2 - svgRect.left;
+        const y1 = fromRect.top + fromRect.height/2 - svgRect.top;
+        const x2 = toRect.left + toRect.width/2 - svgRect.left;
+        const y2 = toRect.top + toRect.height/2 - svgRect.top;
+        const line = document.createElementNS(svgNS, 'line');
+        line.setAttribute('x1', x1);
+        line.setAttribute('y1', y1);
+        line.setAttribute('x2', x2);
+        line.setAttribute('y2', y2);
+        line.classList.add('winLine');
+        linesSvg.appendChild(line);
+      }
+    });
+  }
+
+  function highlightWinningCells(winIndices) {
+    winIndices.forEach(i => cells[i].classList.add('winning'));
+  }
+
+  function findMatches(gridArr) {
+    const matches = [];
+    for(let r=0; r<rows; r++) {
+      let streak = [r*cols];
+      for(let c=1; c<cols; c++) {
+        const currIdx = r*cols + c;
+        const prevIdx = r*cols + c - 1;
+        if (gridArr[currIdx] === gridArr[prevIdx] && isSymbolMatchable(gridArr[currIdx])) {
+          streak.push(currIdx);
+        } else {
+          if(streak.length >= 3) matches.push([...streak]);
+          streak = [currIdx];
+        }
+      }
+      if(streak.length >= 3) matches.push([...streak]);
+    }
+
+    for(let c=0; c<cols; c++) {
+      let streak = [c];
+      for(let r=1; r<rows; r++) {
+        const currIdx = r*cols + c;
+        const prevIdx = (r-1)*cols + c;
+        if(gridArr[currIdx] === gridArr[prevIdx] && isSymbolMatchable(gridArr[currIdx])) {
+          streak.push(currIdx);
+        } else {
+          if(streak.length >= 3) matches.push([...streak]);
+          streak = [currIdx];
+        }
+      }
+      if(streak.length >= 3) matches.push([...streak]);
+    }
+
+    return matches;
+  }
+
+  function isSymbolMatchable(sym) {
+    return ["💴", "💵", "💶", "💷", "💳", "💱"].includes(sym);
+  }
+
+  function calculatePayout(matches, gridArr, bet) {
+    let totalPayout = 0;
+    let wildCount = 0;
+
+    matches.forEach(group => {
+      const sym = gridArr[group[0]];
+      if (sym === "💲") return;
+      const count = group.length;
+      if(payouts[sym] && payouts[sym][bet]) {
+        const payoutArray = payouts[sym][bet];
+        if(count >= 3 && count <= 5) {
+          const payoutVal = payoutArray[count - 3];
+          totalPayout += payoutVal;
+        }
+      }
+    });
+
+    wildCount = gridArr.filter(s => s === "💲").length;
+    if(freeSpinsAward[wildCount]) {
+      freeSpins += freeSpinsAward[wildCount];
+      updateFreeSpinsDisplay();
+      showMessage(`Congrats! You got ${freeSpinsAward[wildCount]} free spins!`);
+    }
+
+    return totalPayout;
+  }
+
+  function showMessage(msg) {
+    messageEl.textContent = msg;
+  }
+
+  function updateBalanceDisplay() {
+    walletDisplay.textContent = `Balance: $${balance.toFixed(2)}`;
+    localStorage.setItem('playerCash', balance.toFixed(2));
+  }
+
+  function updateFreeSpinsDisplay() {
+    if(freeSpins > 0) {
+      freeSpinCounterEl.style.display = 'block';
+      freeSpinCounterEl.textContent = `Free Spins Left: ${freeSpins}`;
+    } else {
+      freeSpinCounterEl.style.display = 'none';
+    }
+    localStorage.setItem('freeSpins', freeSpins);
+  }
+
+  async function spin() {
+    if (spinning) return;
+    spinning = true;
+    clearLines();
+    messageEl.textContent = '';
+
+    const selectedBetBtn = betSelector.querySelector('button.selected');
+    bet = Number(selectedBetBtn.dataset.bet);
+
+    if (bet > balance && freeSpins === 0) {
+      showMessage('Insufficient balance for this bet!');
+      spinning = false;
+      return;
+    }
+
+    spinBtn.disabled = true;
+
+    if (freeSpins > 0) {
+      freeSpins--;
+      updateFreeSpinsDisplay();
+      showMessage('Free spin!');
+    } else {
+      balance -= bet;
+      updateBalanceDisplay();
+      showMessage(`Bet: $${bet}`);
+    }
+
+    soundSpin.currentTime = 0;
+    soundSpin.play();
+
+    // Prepare final grid for spin results
+    const finalGrid = fillGridRandom();
+
+    // Animate each column spinning with staggered start and staggered stop
+    const spinDuration = 3000; // total spin time per column
+    const spinStartDelay = 300; // delay between starting each column spin
+
+    // Function to spin a single column for given duration
+    async function spinColumn(colIndex, duration) {
+      const columnCells = [];
+      for (let r = 0; r < rows; r++) {
+        columnCells.push(cells[r * cols + colIndex]);
+      }
+      const startTime = performance.now();
+
+      return new Promise(resolve => {
+        function animate() {
+          const now = performance.now();
+          if (now - startTime >= duration) {
+            // Set final symbols for column
+            for (let r = 0; r < rows; r++) {
+              columnCells[r].textContent = finalGrid[r * cols + colIndex];
+            }
+            resolve();
+            return;
+          }
+          // Show random symbols during spinning
+          for (let r = 0; r < rows; r++) {
+            columnCells[r].textContent = weightedRandomSymbol();
+          }
+          requestAnimationFrame(animate);
+        }
+        animate();
+      });
+    }
+
+    const spinPromises = [];
+
+    // Start spinning each column one by one
+    for (let col = 0; col < cols; col++) {
+      await new Promise(r => setTimeout(r, spinStartDelay));
+      spinPromises.push(spinColumn(col, spinDuration));
+    }
+
+    // Wait 1 second while all columns spin together
+    await new Promise(r => setTimeout(r, 1000));
+
+    // Stop columns one by one from left to right (await each spin)
+    for (let i = 0; i < spinPromises.length; i++) {
+      await spinPromises[i];
+      soundStop.currentTime = 0;
+      soundStop.play();
+    }
+
+    soundSpin.pause();
+
+    // Show final grid
+    renderGrid(finalGrid);
+    const matches = findMatches(finalGrid);
+
+    if (matches.length === 0) {
+      showMessage('No matches. Better luck next time!');
+      soundLose.currentTime = 0;
+      soundLose.play();
+    } else {
+      const winIndices = matches.flat();
+      highlightWinningCells(winIndices);
+      drawWinLines(matches);
+      const payout = calculatePayout(matches, finalGrid, bet);
+      if (payout > 0) {
+        balance += payout;
+        updateBalanceDisplay();
+        showMessage(`You won $${payout.toFixed(2)}!`);
+        soundWin.currentTime = 0;
+        soundWin.play();
+      } else {
+        showMessage('Matches with no payout.');
+      }
+    }
+
+    spinning = false;
+    spinBtn.disabled = false;
+  }
+
+  betSelector.addEventListener('click', e => {
+    if (e.target.tagName !== 'BUTTON') return;
+    betSelector.querySelectorAll('button').forEach(b => {
+      b.classList.remove('selected');
+      b.setAttribute('aria-pressed', 'false');
+    });
+    e.target.classList.add('selected');
+    e.target.setAttribute('aria-pressed', 'true');
+  });
+
+  spinBtn.addEventListener('click', spin);
+
+  updateBalanceDisplay();
+  updateFreeSpinsDisplay();
+  renderGrid(fillGridRandom());
+
+})();
+</script>
+
+
+</body>
+</html>
