@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trick or Treat - The Markkade</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(145deg, #1a1a1a, #000);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+    }
+    .notification {
+      position: fixed;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #222;
+      padding: 12px 24px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px #0ff;
+      font-weight: bold;
+      z-index: 999;
+      display: none;
+    }
+    #cooldownOverlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(0, 0, 0, 0.95);
+      color: white;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    #cooldownOverlay h2 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+    #avatarPicker button {
+      margin: 20px;
+      font-size: 28px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      background: #333;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    #avatarPicker button:hover {
+      background: #555;
+    }
+    #gameContainer {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .house {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #333, #555);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      cursor: pointer;
+      box-shadow: inset 0 0 10px #000, 0 0 10px #0ff;
+      transition: all 0.2s;
+    }
+    .house.visited {
+      filter: grayscale(100%) brightness(0.5);
+      pointer-events: none;
+    }
+    #avatar {
+      font-size: 32px;
+      position: absolute;
+      transition: all 6s ease;
+      pointer-events: none;
+      z-index: 10;
+    }
+    #stats {
+      margin: 12px;
+      font-size: 18px;
+      font-weight: bold;
+      background: rgba(255,255,255,0.05);
+      padding: 10px 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px #0ff;
+    }
+    #controls {
+      margin-top: 20px;
+    }
+    #controls button {
+      font-size: 18px;
+      margin: 10px;
+      padding: 10px 20px;
+      background: #222;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #0ff;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    #controls button:disabled {
+      background: #555;
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .popup {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: #111;
+      padding: 20px;
+      border-radius: 14px;
+      box-shadow: 0 0 15px #0ff;
+      z-index: 10000;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="notification" class="notification"></div>
+  <div id="cooldownOverlay">
+    <h2>🕒 Can’t Trick or Treat Yet!</h2>
+    <p id="cooldownTimer"></p>
+    <button onclick="location.href='../../TheMarkkade.io-Home'">Exit to Home</button>
+  </div>
+  <div id="avatarPicker">
+    <h2>Choose Your Avatar</h2>
+    <button onclick="startGame('👦')">Boy</button>
+    <button onclick="startGame('👧')">Girl</button>
+  </div>
+  <div id="stats" style="display:none">
+    🍬 Candy: <span id="candy">0</span> | 🪙 Markkoin$: <span id="coins">0</span> | 💵 Markka$h: <span id="cash">0</span>
+  </div>
+  <div id="gameContainer"></div>
+  <div id="controls" style="display:none">
+    <button id="nextBlock">Next Block</button>
+    <button id="goHome">Go Home</button>
+  </div>
+  <div id="avatar"></div>
+  <div id="goHomePopup" class="popup">
+    <h3>Ready to Go Home?</h3>
+    <p id="summaryText"></p>
+    <button onclick="confirmGoHome(true)">Yes, Go In</button>
+    <button onclick="confirmGoHome(false)">Cancel</button>
+  </div>
+
+  <script>
+    let candy = 0, coins = 0, cash = 0, avatarEmoji = '', cooldownUntil = 0;
+    const notification = document.getElementById('notification');
+    const avatar = document.getElementById('avatar');
+    const gameContainer = document.getElementById('gameContainer');
+    const cooldownOverlay = document.getElementById('cooldownOverlay');
+    const cooldownTimer = document.getElementById('cooldownTimer');
+    const goHomePopup = document.getElementById('goHomePopup');
+    const summaryText = document.getElementById('summaryText');
+
+    function startGame(emoji) {
+      avatarEmoji = emoji;
+      document.getElementById('avatarPicker').style.display = 'none';
+      document.getElementById('stats').style.display = 'block';
+      document.getElementById('controls').style.display = 'block';
+      renderHouses();
+      updateStats();
+    }
+
+    function renderHouses() {
+      gameContainer.innerHTML = '';
+      for (let i = 0; i < 20; i++) {
+        const house = document.createElement('div');
+        house.className = 'house';
+        house.textContent = '🏠';
+        house.onclick = () => visitHouse(i);
+        gameContainer.appendChild(house);
+      }
+    }
+
+    function visitHouse(index) {
+      const houses = document.querySelectorAll('.house');
+      houses.forEach(h => h.onclick = null);
+      moveAvatarTo(index);
+
+      showNotification("🚶 Walking to next house...");
+
+      setTimeout(() => {
+        const chance = Math.random();
+        if (chance < 0.02) {
+          showNotification("😱 You got robbed! Lost everything!");
+          candy = 0; coins = 0; cash = 0;
+        } else if (chance < 0.06) {
+          const lost = Math.floor(Math.random() * 30);
+          candy = Math.max(0, candy - lost);
+          showNotification(`😵 You tripped and lost ${lost} candy!`);
+        } else {
+          showNotification("✅ Safe! You made it to the next house!");
+          setTimeout(() => {
+            const outcome = Math.random();
+            let got = 1;
+            if (outcome > 0.95) {
+              got = Math.floor(Math.random() * 26 + 25);
+              showNotification(`🎃 Jackpot! Took whole bucket! +${got} candy`);
+            } else if (outcome > 0.85) {
+              got = Math.floor(Math.random() * 6 + 5);
+              showNotification(`🍭 Got a handful! +${got} candy`);
+            } else if (outcome > 0.65) {
+              got = 1;
+              cash++;
+              showNotification(`🍫 Got a big candy bar! +$1 Markka$h`);
+            } else {
+              got = 2;
+              showNotification(`🍬 Got ${got} small candies`);
+            }
+            candy += got;
+            coins += got * 5;
+            updateStats();
+          }, 1000);
+        }
+        houses.forEach((h, i) => h.onclick = () => visitHouse(i));
+      }, 6000);
+    }
+
+    function moveAvatarTo(index) {
+      const house = document.querySelectorAll('.house')[index];
+      const rect = house.getBoundingClientRect();
+      avatar.style.left = rect.left + 'px';
+      avatar.style.top = rect.top + 'px';
+      avatar.textContent = avatarEmoji;
+    }
+
+    function updateStats() {
+      document.getElementById('candy').textContent = candy;
+      document.getElementById('coins').textContent = coins;
+      document.getElementById('cash').textContent = cash;
+    }
+
+    function showNotification(text) {
+      notification.textContent = text;
+      notification.style.display = 'block';
+      setTimeout(() => notification.style.display = 'none', 3000);
+    }
+
+    document.getElementById('nextBlock').onclick = renderHouses;
+
+    document.getElementById('goHome').onclick = () => {
+      summaryText.textContent = `🍬 Candy: ${candy}, 🪙 Markkoin$: ${coins}, 💵 Markka$h: ${cash}\nAre you sure you want to go in?`;
+      goHomePopup.style.display = 'block';
+    };
+
+    function confirmGoHome(yes) {
+      if (yes) {
+        localStorage.setItem('playerCash', (parseInt(localStorage.getItem('playerCash') || 0) + cash).toString());
+        localStorage.setItem('playerCoins', (parseInt(localStorage.getItem('playerCoins') || 0) + coins).toString());
+        cooldownUntil = Date.now() + 3600000;
+        localStorage.setItem('cooldownUntil', cooldownUntil);
+        location.href = '../../TheMarkkade.io-Home';
+      } else {
+        goHomePopup.style.display = 'none';
+      }
+    }
+
+    function checkCooldown() {
+      const stored = localStorage.getItem('cooldownUntil');
+      if (stored && parseInt(stored) > Date.now()) {
+        cooldownUntil = parseInt(stored);
+        cooldownOverlay.style.display = 'flex';
+        updateCooldownTimer();
+        return true;
+      }
+      return false;
+    }
+
+    function updateCooldownTimer() {
+      const remaining = cooldownUntil - Date.now();
+      if (remaining > 0) {
+        cooldownTimer.textContent = `${Math.ceil(remaining / 60000)} minutes remaining...`;
+        setTimeout(updateCooldownTimer, 1000);
+      } else {
+        cooldownOverlay.style.display = 'none';
+      }
+    }
+
+    window.onload = checkCooldown;
+  </script>
+</body>
+</html>
