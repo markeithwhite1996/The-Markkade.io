@@ -221,21 +221,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .popup {
-      position: fixed;
-      bottom: 10%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #1c1c1e;
-      color: white;
-      padding: 1rem 2rem;
-      border-radius: 15px;
-      box-shadow: 0 0 20px var(--shadow);
-      z-index: 1000;
-      font-size: 1.25rem;
-      animation: fade 2s ease-in-out forwards;
-      user-select: none;
-    }
+
     @keyframes fade {
       0% { opacity: 1; }
       100% { opacity: 0; transform: translate(-50%, 20px); }
@@ -255,10 +241,43 @@
       text-shadow: 0 0 6px var(--accent);
       margin: 0;
     }
+	/* Overlay covers entire screen and blocks interaction */
+#gameWrapper.dimmed::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 999;
+  pointer-events: all;
+}
+
+/* Popup centered absolutely with highest z-index */
+.popup {
+  position: fixed !important;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #1c1c1e;
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 15px;
+  box-shadow: 0 0 20px var(--shadow);
+  z-index: 1000;
+  font-size: 1.25rem;
+  user-select: none;
+  max-width: 90vw;
+  min-width: 260px;
+  text-align: center;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
 
   </style>
 </head>
 <body>
+<div id="gameWrapper" style="position: relative;">
+
   <div class="game-container" role="main" aria-label="Hangman Game">
     <div class="top-bar" aria-live="polite">
       <div id="cash" aria-label="Player cash">💰 Markka$h: 1000</div>
@@ -300,8 +319,29 @@
   <audio id="loseSound" src="https://assets.mixkit.co/sfx/preview/mixkit-retro-arcade-lose-2027.mp3"></audio>
   <audio id="hintSound" src="https://assets.mixkit.co/sfx/preview/mixkit-click-melodic-tone-1129.mp3"></audio>
 
+ <div id="nextRoundPopup" class="popup" style="display: none;">
+    <div style="margin-bottom: 0.5rem;">Next round starts in <span id="countdown">5</span>s...</div>
+    <button onclick="cancelNextRound()" style="
+      background: var(--error);
+      border: none;
+      color: white;
+      font-weight: bold;
+      padding: 0.5rem 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+    ">Cancel</button>
+  </div>
+</div>
+
   <script>
-    let playerCash = 1000;
+  
+  let nextRoundTimer;
+const nextRoundPopup = document.getElementById("nextRoundPopup");
+const countdownEl = document.getElementById("countdown");
+
+
+const storedCash = localStorage.getItem("playerCash");
+let playerCash = storedCash !== null ? parseInt(storedCash, 10) : 0;
     const maxWrong = 6;
     const parts = [
       document.getElementById("part0"),
@@ -337,16 +377,57 @@
     ];
 
     const rounds = [
-      {
-        title: "The Markkade Creator's Name",
-        answer: "MARKEITH",
-        hints: ["StickzCoder.Lua", "Markk", "NyBluntKing"]
-      },
-      {
-        title: "Capital of California",
-        answer: "SACRAMENTO",
-        hints: ["City of Trees", "916", "Sacto"]
-      }
+  {title: "Capital of France", answer: "PARIS", hints: ["City of Light", "Eiffel Tower", "Louvre Museum", "Croissants", "River Seine", "French capital", "Notre-Dame", "Fashion hub", "Champs-Élysées", "Metro"]},
+  {title: "What is the 'Mandragora' in folklore?", answer: "MANDRAKE", hints: ["Human-shaped root", "Screams when pulled", "Magic potion", "Witchcraft", "Hallucinogenic", "Harry Potter", "Mediterranean", "Fertility", "Dug at night", "Latin name"]},
+  {title: "Largest planet in Solar System", answer: "JUPITER", hints: ["Gas giant", "Great Red Spot", "Many moons", "Roman god", "Hydrogen", "Ring system", "Largest size", "Galileo moons", "Huge storms", "Fifth planet"]},
+  {title: "What is a 'Quokka'?", answer: "MARSUPIAL", hints: ["Australia", "Happy animal", "Wallaby-like", "Rottnest Island", "Herbivore", "Has pouch", "Nocturnal", "Selfies", "Cat-sized", "Not endangered"]},
+  {title: "Who wrote 'Romeo and Juliet'?", answer: "SHAKESPEARE", hints: ["Playwright", "16th century", "Bard of Avon", "Hamlet", "Sonnets", "Globe Theatre", "Stratford", "Comedies", "Tragedies", "Died 1616"]},
+  {title: "What causes stars to twinkle?", answer: "SCINTILLATION", hints: ["Earth's atmosphere", "Air turbulence", "Brightness flicker", "Astronomy", "Planets steady", "Adaptive optics", "Distorts images", "Also called stellar", "Not in space", "Light bending"]},
+  {title: "Chemical symbol 'O' represents?", answer: "OXYGEN", hints: ["Respiration", "21% atmosphere", "Atomic number 8", "Joseph Priestley", "Combustion", "Water molecule", "Colorless gas", "Vital", "Medical use", "Ozone"]},
+  {title: "Study of brewing is called?", answer: "ZYMGURY", hints: ["Beer making", "Wine making", "Applied chemistry", "Yeast", "Baking", "Fermentation", "Distilling", "Greek root", "Sugars", "Kombucha"]},
+  {title: "Freezing point of water in Celsius?", answer: "ZERO", hints: ["Ice forms", "Standard temp", "Weather", "Solidifies", "Sea level", "32°F", "Thermometer", "Celsius scale", "Phase change", "Vital"]},
+  {title: "Where is the 'Door to Hell'?", answer: "TURKMENISTAN", hints: ["Gas crater", "Burning since 1971", "Karakum Desert", "Soviet accident", "Darvaza", "Tourist site", "Fiery glow", "Central Asia", "Hell flames", "Gas field"]},
+  {title: "Chemical formula for table salt?", answer: "NACL", hints: ["Sodium", "Chlorine", "Seasoning", "Crystals", "Preservative", "Sodium chloride", "Mineral", "White granules", "Ice melt", "Sea water"]},
+  {title: "What is a Tardigrade?", answer: "WATERBEAR", hints: ["Microscopic", "Extreme survival", "Moss habitat", "Cryptobiosis", "Space vacuum", "Eight legs", "Radiation", "1773", "Slow mover", "Moss piglet"]},
+  {title: "Country with largest population?", answer: "CHINA", hints: ["1.4 billion", "Great Wall", "Beijing", "Yangtze", "Mandarin", "Economy", "Pandas", "Forbidden City", "Rice", "Single-party"]},
+  {title: "What is a Dyson Sphere?", answer: "MEGASTRUCT", hints: ["Encircles star", "Captures energy", "Freeman Dyson", "Sci-fi", "Advanced tech", "Civilizations", "Astrophysics", "Missing stars", "Energy harness", "Hypothetical"]},
+  {title: "Who painted the Mona Lisa?", answer: "DA VINCI", hints: ["Renaissance", "Polymath", "Last Supper", "Sfumato", "Louvre", "Italy", "Anatomy", "Inventor", "Unfinished", "Famous painting"]},
+  {title: "What is a Numinous experience?", answer: "SPIRITUAL", hints: ["Divine presence", "Beyond logic", "Rudolf Otto", "Awe", "Mystery", "Religious", "Transcendence", "Ineffable", "Mystical", "Sacred"]},
+  {title: "Tallest mountain on Earth?", answer: "EVEREST", hints: ["Himalayas", "8848m", "Nepal-China", "George Everest", "Sagarmatha", "Highest point", "Climbing", "Sherpas", "1953", "Documentaries"]},
+  {title: "What is a Pangolin?", answer: "SCALED", hints: ["Keratin scales", "Defense ball", "Asia & Africa", "No teeth", "Eats ants", "Endangered", "Trafficked", "Scaly anteater", "Sticky tongue", "Nocturnal"]},
+  {title: "Primary language of Brazil?", answer: "PORTUGUESE", hints: ["Official language", "Latin root", "200 million speakers", "Not Spanish", "Brazil colony", "Dialects", "Machado Assis", "Carnival", "Mozambique", "Portugal"]},
+  {title: "What is a Cryptozoologist?", answer: "HUNTER", hints: ["Bigfoot", "Unknown animals", "Folklore", "Unverified", "Fieldwork", "Paranormal", "Lake monsters", "Nessie", "Pseudoscience", "Expeditions"]},
+  {title: "Red Planet?", answer: "MARS", hints: ["Fourth planet", "Iron oxide", "Olympus Mons", "Two moons", "Space missions", "Colonization", "War god", "Polar caps", "CO2 atmosphere", "Dust storms"]},
+  {title: "What is Apophenia?", answer: "PATTERNS", hints: ["Seeing connections", "Conspiracies", "Pattern recognition", "Psychology", "False positives", "Creativity", "Pareidolia", "Gambler’s fallacy", "Decision", "Cognitive"]},
+  {title: "Who invented the telephone?", answer: "BELL", hints: ["Scottish", "1876", "Speech", "Bell company", "Patent", "Watson", "Controversy", "Telecom", "Inventor", "1922"]},
+  {title: "What is the Fermi Paradox?", answer: "ALIENS", hints: ["Fermi", "No evidence", "Drake Equation", "Vast universe", "Great Filter", "Astrobiology", "Speculation", "Sci-fi", "Extraterrestrial", "Intelligence"]},
+  {title: "Smallest prime number?", answer: "TWO", hints: ["Only even", "Divisible by one", "First prime", "Cryptography", "Twin primes", "Unique", "Mathematics", "Prime factorization", "Important", "Basic"]},
+  {title: "What is Pareidolia?", answer: "FACES", hints: ["Seeing faces", "Random objects", "Clouds", "Toast", "Brain patterns", "Apophenia", "Ghosts", "Illusions", "Culture", "Evolution"]},
+  {title: "Largest ocean on Earth?", answer: "PACIFIC", hints: ["30% surface", "Asia-Americas", "Mariana Trench", "Magellan", "Islands", "Biodiversity", "El Niño", "Great Barrier Reef", "Deepest", "Shipping"]},
+  {title: "What is Banana Equivalent Dose?", answer: "RADIOACTIVITY", hints: ["Radiation", "Potassium-40", "Informal unit", "Nuclear safety", "Exposure", "Everyday", "Food radioactivity", "Natural", "Public understanding", "Bananas"]},
+  {title: "Who developed relativity?", answer: "EINSTEIN", hints: ["German", "1905", "Special relativity", "General relativity", "E=mc2", "Physics", "Nobel Prize", "Princeton", "Quantum", "Black holes"]},
+  {title: "What is a Jain Tirthankara?", answer: "TEACHER", hints: ["Jainism", "Doctrine", "Liberation", "Twenty-four", "Mahavira", "Non-violence", "Indian religion", "Footprints", "Agamas", "Temples"]},
+  {title: "Capital city of Japan?", answer: "TOKYO", hints: ["Edo", "Metropolitan", "Olympics", "Imperial Palace", "Shibuya", "Sushi", "Honshu", "Finance", "Population", "Subway"]},
+  {title: "What is Limerence?", answer: "INFATUATION", hints: ["Obsession", "Love", "Psychology", "Dorothy Tennov", "Intrusive thoughts", "Reciprocation", "Emotional", "Anxiety", "Dopamine", "Romantic"]},
+  {title: "Symbol for gold?", answer: "AU", hints: ["Latin aurum", "Jewelry", "Atomic 79", "Malleable", "Conducts", "Corrosion", "Yellow", "Coins", "Bullion", "Valued"]},
+  {title: "What is the Taos Hum?", answer: "RUMBLE", hints: ["New Mexico", "Low sound", "Unknown", "Not everyone", "Machinery", "Tinnitus", "Seismic", "Worldwide", "Mystery", "Theories"]},
+  {title: "Main ingredient in miso soup?", answer: "SOYBEAN", hints: ["Fermented paste", "Umami", "Asian origin", "Probiotics", "Baking", "Protein", "Colors", "Salt", "Koji", "Staple"]},
+  {title: "What is a Clathrate?", answer: "COMPOUND", hints: ["Molecules trap", "Water cages", "Methane", "Solid", "Energy source", "Chemistry", "Gases", "Pressure", "Ice-like", "Methane release"]},
+  {title: "Capital of Canada?", answer: "OTTAWA", hints: ["Ontario", "Ottawa River", "Parliament", "Rideau Canal", "Bilingual", "Museums", "Fourth largest", "1826", "Winterlude", "Quebec border"]},
+  {title: "What is Catoptromancy?", answer: "DIVINATION", hints: ["Mirrors", "Fortune telling", "Scrying", "Greek root", "Hidden knowledge", "Occult", "Mystics", "Dark rooms", "Candlelight", "Shamans"]},
+  {title: "Largest desert?", answer: "SAHARA", hints: ["North Africa", "US sized", "Dry", "Nomads", "Oases", "Fossils", "Temperature", "Arabic name", "Rock art", "Wildlife"]},
+  {title: "What does Eldritch mean?", answer: "SUPERNATURAL", hints: ["Lovecraft", "Cosmic horror", "Eerie", "Unknown", "Fantasy", "Ancient", "Indescribable", "Fear", "Dark magic", "Scottish"]},
+  {title: "Most abundant gas in atmosphere?", answer: "NITROGEN", hints: ["78%", "Colorless", "Fertilizer", "Inert", "Diatomic", "Amino acids", "Food packaging", "Electrolyte", "Displaces oxygen", "Nonreactive"]},
+  {title: "What is a Wormhole?", answer: "TUNNEL", hints: ["Space-time", "Relativity", "Faster-than-light", "Einstein-Rosen", "Sci-fi", "Exotic matter", "Universes", "Mouth", "Unstable", "Theory"]},
+  {title: "Who discovered penicillin?", answer: "FLEMING", hints: ["Bacteriologist", "1928", "Mold kills bacteria", "Antibiotic", "Nobel Prize", "Accidental", "Saved lives", "Penicillium", "WWII", "Medicine"]},
+  {title: "What is Cymatics?", answer: "SOUND", hints: ["Visual vibrations", "Water", "Sand", "Patterns", "Chladni", "Art", "Resonance", "Music therapy", "Wave physics", "Geometry"]},
+  {title: "Longest river?", answer: "NILE", hints: ["Africa", "6600 km", "Egypt", "Sudan", "Civilizations", "Species", "Source", "Irrigation", "Cataracts", "Mythology"]},
+  {title: "What is the Bloop?", answer: "SOUND", hints: ["Underwater", "1997", "Loud", "Unknown", "Icequake", "South Pacific", "Mystery", "Microphones", "Sea creature?", "Acoustic"]},
+  {title: "NASA stands for?", answer: "ADMINISTRATION", hints: ["U.S. agency", "1958", "Space", "Apollo", "Hubble", "Mars rovers", "Washington", "Satellites", "ISS", "Aeronautics"]},
+  {title: "Selenology studies?", answer: "MOON", hints: ["Astronomy", "Lunar geology", "Phases", "Surface", "Formation", "Telescopes", "Space missions", "Earth-Moon", "Craters", "Bases"]},
+  {title: "Father of psychoanalysis?", answer: "FREUD", hints: ["Neurologist", "Talk therapy", "Id, ego", "Unconscious", "Dreams", "Psychoanalytic", "Controversial", "Culture", "Early 1900s", "Vienna"]},
+  {title: "Bohr Model describes?", answer: "ATOM", hints: ["Niels Bohr", "Electron orbits", "Hydrogen spectrum", "Quantum precursor", "1913", "Energy levels", "Fixed paths", "Atomic structure", "Physics", "Simple model"]},
+
     ];
 
     // Shuffle helper
@@ -374,12 +455,14 @@
       currentRoundIndex = 0;
     }
 
-    function updateCash(amount) {
-      playerCash += amount;
-      if (playerCash < 0) playerCash = 0;
-      cashEl.textContent = `💰 Markka$h: ${playerCash}`;
-      updateEndGameButton();
-    }
+function updateCash(amount) {
+  playerCash += amount;
+  if (playerCash < 0) playerCash = 0;
+  localStorage.setItem("playerCash", playerCash); // Save to localStorage
+  cashEl.textContent = `💰 Markka$h: ${playerCash}`;
+  updateEndGameButton();
+}
+
 
     function startTimer() {
       clearInterval(timerInterval);
@@ -523,37 +606,64 @@
       startTimer();
     }
 
-    function endRound(won) {
-      gameStarted = false;
-      startBtn.disabled = false;
-      hintBtn.disabled = true;
-      endGameBtn.disabled = true;
-      exitBtn.disabled = false;
+function endRound(won) {
+  gameStarted = false;
+  startBtn.disabled = false;
+  hintBtn.disabled = true;
+  endGameBtn.disabled = true;
+  exitBtn.disabled = false;
+  renderKeyboard();
+  showNextRoundPopup(); // 👈 Now handled cleanly
+}
 
-      // Show final keyboard state with all buttons disabled
-      renderKeyboard();
-    }
+function endGame(pay = true) {
+  if (!gameStarted) return;
 
-    function endGame(pay = true) {
-      if (!gameStarted) return;
-      if (pay) {
-        if (playerCash < 100) {
-          notification.textContent = "Not enough Markka$h to end game!";
-          return;
-        }
-        updateCash(-100);
-        notification.textContent = "Game ended early. -$100";
-      }
-      clearInterval(timerInterval);
-      resetParts();
-      gameStarted = false;
-      startBtn.disabled = false;
-      hintBtn.disabled = true;
-      endGameBtn.disabled = true;
-      exitBtn.disabled = false;
-      renderWord();
-      renderKeyboard();
+  if (pay) {
+    if (playerCash < 100) {
+      notification.textContent = "Not enough Markka$h to end game!";
+      return;
     }
+    updateCash(-100);
+    notification.textContent = "Game ended early. -$100";
+  }
+
+  clearInterval(timerInterval);
+  resetParts();
+  gameStarted = false;
+  startBtn.disabled = false;
+  hintBtn.disabled = true;
+  endGameBtn.disabled = true;
+  exitBtn.disabled = false;
+  renderWord();
+  renderKeyboard();
+
+  // Start 5s countdown for next round
+  let countdown = 5;
+  countdownEl.textContent = countdown;
+  nextRoundPopup.style.display = "block";
+  nextRoundTimer = setInterval(() => {
+    countdown--;
+    countdownEl.textContent = countdown;
+    if (countdown <= 0) {
+      clearInterval(nextRoundTimer);
+      nextRoundPopup.style.display = "none";
+      currentRoundIndex++;
+      startGame(); // Automatically start next round
+    }
+  }, 1000);
+}
+
+	
+function cancelNextRound() {
+  clearInterval(nextRoundTimer);
+  nextRoundPopup.style.display = "none";
+  nextRoundPopup.classList.remove("fade-out");
+  document.getElementById("gameWrapper").classList.remove("dimmed");
+  gameTitleEl.textContent = "Game Over. Tap Start to play again or Exit.";
+}
+
+
 
     function updateEndGameButton() {
       endGameBtn.disabled = playerCash < 100 || !gameStarted;
@@ -577,6 +687,35 @@
     // Always show keyboard (disabled when not playing)
     renderKeyboard();
 
+function showNextRoundPopup() {
+  let countdown = 5;
+  countdownEl.textContent = countdown;
+  nextRoundPopup.classList.remove("fade-out");
+  nextRoundPopup.style.display = "block";
+
+  // Disable all underlying UI by adding overlay
+  document.getElementById("gameWrapper").classList.add("dimmed");
+
+  nextRoundTimer = setInterval(() => {
+    countdown--;
+    countdownEl.textContent = countdown;
+    if (countdown <= 0) {
+      clearInterval(nextRoundTimer);
+
+      // Optional fade effect before hiding
+      nextRoundPopup.classList.add("fade-out");
+      setTimeout(() => {
+        nextRoundPopup.style.display = "none";
+        document.getElementById("gameWrapper").classList.remove("dimmed");
+        currentRoundIndex++;
+        startGame();
+      }, 1000); // Wait for fade to finish
+    }
+  }, 1000);
+}
+
+
   </script>
 </body>
 </html>
+
