@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Markk's 10x Fruity Frenzy</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+<style>
+  html, body {
+    margin: 0; padding: 0;
+    font-family: 'Press Start 2P', cursive;
+    background: radial-gradient(circle at center, #150b30 0%, #0a061a 100%);
+    color: #fff;
+    overflow-x: hidden;
+  }
+  h1 {
+    text-align: center;
+    font-size: 2rem;
+    color: #ffe600;
+    text-shadow: 0 0 10px #ff0, 0 0 30px #f0f;
+    margin: 20px 0 10px;
+  }
+  .game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+  }
+  #balance, #total-winnings {
+    font-size: 1rem;
+    margin: 5px;
+    color: #0ff;
+    font-family: monospace;
+    text-shadow: 0 0 5px #0ff;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 10px;
+    max-width: 600px;
+    margin: 10px auto;
+    user-select: none;
+    aspect-ratio: 5 / 3;
+    width: 90vw;
+  }
+  .cell {
+    background: rgba(255,255,255,0.15);
+    border-radius: 20px;
+    border: 2px solid rgba(255,255,255,0.3);
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 0 10px #0ff8;
+    transition: box-shadow 0.3s, transform 0.3s;
+  }
+  .cell.win {
+    box-shadow: 0 0 20px #0ff, 0 0 40px #0ff;
+    transform: scale(1.2);
+  }
+  .controls {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  button, select {
+    background: #ff3cac;
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 1rem;
+    padding: 12px 20px;
+    cursor: pointer;
+    box-shadow: 0 0 10px #f0f;
+    transition: background-color 0.3s;
+    font-family: 'Press Start 2P', cursive;
+  }
+  button:hover {
+    background: #ff69b4;
+  }
+  .exit-btn {
+    background: red;
+    color: white;
+    font-weight: bold;
+    padding: 10px 20px;
+    margin-top: 10px;
+    cursor: pointer;
+    border: none;
+    font-size: 1rem;
+    box-shadow: 0 0 5px red;
+  }
+  .paytable {
+    width: 95%;
+    max-width: 1000px;
+    margin: 40px auto;
+    border-collapse: collapse;
+    font-size: 0.7rem;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    padding: 10px;
+    border: 1px solid rgba(255,255,255,0.3);
+    text-align: center;
+  }
+  th {
+    background: #111;
+  }
+  @media (max-width: 600px) {
+    .paytable { font-size: 0.5rem; }
+  }
+  #message-popup {
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.85);
+  color: #0ff;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 1.2rem;
+  padding: 20px 30px;
+  border-radius: 15px;
+  box-shadow: 0 0 20px #0ff;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+  z-index: 9999;
+  max-width: 90vw;
+  text-align: center;
+  user-select: none;
+}
+#message-popup.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.paytable-wrapper {
+  overflow-x: auto;
+  width: 100%;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+.paytable {
+  min-width: 800px; /* Ensures table fits horizontally on small screens */
+  margin: 0 auto;
+  font-size: 0.6rem;
+}
+
+th, td {
+  padding: 8px;
+  border: 1px solid rgba(255,255,255,0.3);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.cell.win {
+  animation: glowWin 1s infinite alternate;
+}
+@keyframes glowWin {
+  from { box-shadow: 0 0 10px #0ff; }
+  to { box-shadow: 0 0 30px #0ff; transform: scale(1.1); }
+}
+
+</style>
+</head>
+<body>
+<div class="game-container">
+  <h1>Markk's 10x Fruity Frenzy</h1>
+  <div id="total-winnings">Total Winnings: $0</div>
+  <div id="balance">Balance: $0</div>
+  <div id="message-popup" aria-live="polite" role="alert"></div>
+  <div class="grid" id="slot-grid" aria-label="Slot machine grid"></div>
+  <div class="controls">
+    <button id="spin-btn">SPIN</button>
+    <select id="bet-select" aria-label="Select Bet Amount">
+      <option value="1">$1</option>
+      <option value="10">$10</option>
+      <option value="20">$20</option>
+      <option value="30">$30</option>
+      <option value="40">$40</option>
+      <option value="50">$50</option>
+    </select>
+  </div>
+  <button class="exit-btn" id="exit-btn">EXIT GAME (-$5)</button>
+</div>
+
+<div class="paytable-wrapper">
+<div class="paytable" aria-label="Paytable">
+  <h2 style="text-align:center; color:#0ff;">🎰 Paytable</h2>
+  <table>
+    </div>
+</div>
+
+    <thead>
+      <tr>
+        <th>Fruit</th><th>Symbol</th><th>Match Rule</th>
+        <th>$1</th><th>$10</th><th>$20</th><th>$30</th><th>$40</th><th>$50</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Red Apple</td><td>🍎</td><td>1–3 in a row</td><td>$1 / $2 / $3</td><td>$11 / $22 / $33</td><td>$22 / $44 / $66</td><td>$33 / $66 / $99</td><td>$44 / $88 / $132</td><td>$55 / $110 / $165</td></tr>
+      <tr><td>Green Apple</td><td>🍏</td><td>1–3 in a row</td><td>$1 / $2 / $3</td><td>$11 / $22 / $33</td><td>$22 / $44 / $66</td><td>$33 / $66 / $99</td><td>$44 / $88 / $132</td><td>$55 / $110 / $165</td></tr>
+      <tr><td>Peach</td><td>🍑</td><td>3–5 in a row</td><td>$5 / $10 / $20</td><td>$55 / $110 / $220</td><td>$110 / $220 / $440</td><td>$165 / $330 / $660</td><td>$220 / $440 / $880</td><td>$275 / $550 / $1100</td></tr>
+      <tr><td>Pear</td><td>🍐</td><td>3–5 in a row</td><td>$5 / $10 / $20</td><td>$55 / $110 / $220</td><td>$110 / $220 / $440</td><td>$165 / $330 / $660</td><td>$220 / $440 / $880</td><td>$275 / $550 / $1100</td></tr>
+      <tr><td>Orange</td><td>🍊</td><td>3–5 in a row</td><td>$5 / $10 / $20</td><td>$55 / $110 / $220</td><td>$110 / $220 / $440</td><td>$165 / $330 / $660</td><td>$220 / $440 / $880</td><td>$275 / $550 / $1100</td></tr>
+      <tr><td>Lemon</td><td>🍋</td><td>3–5 in a row</td><td>$5 / $10 / $20</td><td>$55 / $110 / $220</td><td>$110 / $220 / $440</td><td>$165 / $330 / $660</td><td>$220 / $440 / $880</td><td>$275 / $550 / $1100</td></tr>
+      <tr><td>Banana</td><td>🍌</td><td>4–5 in a row</td><td>$8 / $16</td><td>$88 / $176</td><td>$176 / $352</td><td>$264 / $528</td><td>$352 / $704</td><td>$440 / $880</td></tr>
+      <tr><td>Pineapple</td><td>🍍</td><td>4–5 in a row</td><td>$8 / $16</td><td>$88 / $176</td><td>$176 / $352</td><td>$264 / $528</td><td>$352 / $704</td><td>$440 / $880</td></tr>
+      <tr><td>Strawberry</td><td>🍓</td><td>4–5 in a row</td><td>$8 / $16</td><td>$88 / $176</td><td>$176 / $352</td><td>$264 / $528</td><td>$352 / $704</td><td>$440 / $880</td></tr>
+      <tr><td>Mango</td><td>🥭</td><td>4–5 in a row</td><td>$8 / $16</td><td>$88 / $176</td><td>$176 / $352</td><td>$264 / $528</td><td>$352 / $704</td><td>$440 / $880</td></tr>
+      <tr><td>Grapes</td><td>🍇</td><td>4–5 in a row</td><td>$8 / $16</td><td>$88 / $176</td><td>$176 / $352</td><td>$264 / $528</td><td>$352 / $704</td><td>$440 / $880</td></tr>
+      <tr><td>Watermelon</td><td>🍉</td><td>5 in a row</td><td>$25</td><td>$275</td><td>$550</td><td>$825</td><td>$1100</td><td>$1375</td></tr>
+      <tr><td>Melon</td><td>🍈</td><td>5 in a row</td><td>$25</td><td>$275</td><td>$550</td><td>$825</td><td>$1100</td><td>$1375</td></tr>
+      <tr><td>Cherry (Bonus)</td><td>🍒</td><td>3 = 5 Free Spins, 5 = 10 Free Spins</td><td colspan="6">Free Spins (🎟️)</td></tr>
+      <tr><td>Wild Cart</td><td>🛒</td><td>Wild — substitutes any fruit</td><td colspan="6">Helps complete matches</td></tr>
+      <tr><td>Kiwi / Coconut</td><td>🥝 / 🥥</td><td>Triggers respin</td><td colspan="6">Respins (♻️)</td></tr>
+      <tr><td>Tomato</td><td>🍅</td><td>Blocked spot — breaks line</td><td colspan="6">Breaks line (🚫)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+const fruits = [
+  "🍎", "🍏", "🍑", "🍐", "🍊", "🍋", "🍌", "🍍", "🍓", "🥭", "🍇", "🍉", "🍈", "🍒"
+];
+const rows = 3;
+const cols = 5;
+const gridElement = document.getElementById("slot-grid");
+const balanceElement = document.getElementById("balance");
+const winningsElement = document.getElementById("total-winnings");
+const spinBtn = document.getElementById("spin-btn");
+const betSelect = document.getElementById("bet-select");
+const exitBtn = document.getElementById("exit-btn");
+
+let balance = 0;
+let totalWinnings = 0;
+let spinning = false;
+
+let grid = []; // 2d array for current slot symbols
+
+// Load wallet from localStorage on load
+function loadWallet() {
+  balance = Number(localStorage.getItem('playerCash')) || 0; // default 0 if none stored
+  updateBalance();
+  updateTotalWinnings();
+}
+
+// Save wallet to localStorage
+function saveWallet() {
+  localStorage.setItem('playerCash', balance);
+}
+
+// Initialize grid UI and data
+function initGrid() {
+  gridElement.innerHTML = "";
+  grid = [];
+  for (let r = 0; r < rows; r++) {
+    let rowArr = [];
+    for (let c = 0; c < cols; c++) {
+      const cell = document.createElement("div");
+      cell.classList.add("cell");
+      cell.textContent = "❓";
+      gridElement.appendChild(cell);
+      rowArr.push(cell);
+    }
+    grid.push(rowArr);
+  }
+}
+initGrid();
+
+
+const weightedFruits = [
+  "🍎","🍏","🍊","🛒","🍐","🍒", // common fruits
+  "🍇","🍒","🍊","🍋","🍐",
+  "🍑","🍇","🍈","🍉", // rare
+  "🍌","🛒","🍊","🍋","🍐",
+  "🍌","🍍","🍓","🍒", // mid-tier
+  "🥝","🥥","🍅", // blockers or specials
+  "🍑","🍇","🍈","🍉", // rare
+  "🛒","🍒" // wild/bonus, very rare
+];
+
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+shuffleArray(weightedFruits);
+
+function getRandomFruit() {
+  return weightedFruits[Math.floor(Math.random() * weightedFruits.length)];
+}
+
+function getRandomFruit() {
+  return weightedFruits[Math.floor(Math.random() * weightedFruits.length)];
+}
+
+// Spin columns one by one from left to right with delay
+async function spin() {
+  if (spinning) return;
+  const bet = parseInt(betSelect.value);
+  if (bet > balance) {
+    alert("Insufficient balance to place this bet.");
+    return;
+  }
+  spinning = true;
+  clearWinHighlights();
+  balance -= bet;
+  saveWallet();
+  updateBalance();
+
+  // Simulate spinning effect: each column cycles random fruits 15 times with delay
+  const spinSpeed = 50; // ms delay per iteration
+  const spinsPerCol = 15;
+
+  // Prepare result array
+  const results = Array(rows).fill(null).map(() => Array(cols).fill(null));
+
+  for (let c = 0; c < cols; c++) {
+    for (let spinCount = 0; spinCount < spinsPerCol; spinCount++) {
+      for (let r = 0; r < rows; r++) {
+        grid[r][c].textContent = getRandomFruit();
+      }
+      await new Promise(r => setTimeout(r, spinSpeed));
+    }
+    // After spins, fix column with final random fruits
+    for (let r = 0; r < rows; r++) {
+      const finalFruit = getRandomFruit();
+      grid[r][c].textContent = finalFruit;
+      results[r][c] = finalFruit;
+    }
+  }
+
+  // Analyze results and calculate winnings
+  const winInfo = checkWins(results, bet);
+
+  if (winInfo.winningLines.length > 0) {
+    highlightWins(winInfo.winningPositions);
+    balance += winInfo.totalWin;
+    totalWinnings += winInfo.totalWin;
+    saveWallet();
+    updateBalance();
+    updateTotalWinnings();
+showMessage(`You won $${winInfo.totalWin}!`);
+  } else {
+showMessage("You Lost. Try again!");
+  }
+
+  spinning = false;
+}
+
+// Clears all win highlight classes
+function clearWinHighlights() {
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      grid[r][c].classList.remove("win");
+    }
+  }
+}
+
+// Highlight winning positions
+function highlightWins(positions) {
+  positions.forEach(pos => {
+    const [r, c] = pos;
+    if (grid[r] && grid[r][c]) grid[r][c].classList.add("win");
+  });
+}
+
+// Update UI balance
+function updateBalance() {
+  balanceElement.textContent = `Balance: $${balance}`;
+}
+
+// Update UI total winnings
+function updateTotalWinnings() {
+  winningsElement.textContent = `Total Winnings: $${totalWinnings}`;
+}
+
+// Check wins for rows only (simple implementation)
+function checkWins(results, bet) {
+  const payouts = {
+    "🍎": [1, 2, 3],
+    "🍏": [1, 2, 3],
+    "🍑": [5, 10, 20, 0, 0],
+    "🍐": [5, 10, 20, 0, 0],
+    "🍊": [5, 10, 20, 0, 0],
+    "🍋": [5, 10, 20, 0, 0],
+    "🍌": [0, 0, 0, 8, 16],
+    "🍍": [0, 0, 0, 8, 16],
+    "🍓": [0, 0, 0, 8, 16],
+    "🥭": [0, 0, 0, 8, 16],
+    "🍇": [0, 0, 0, 8, 16],
+    "🍉": [0, 0, 0, 0, 25],
+    "🍈": [0, 0, 0, 0, 25],
+  };
+
+  let totalWin = 0;
+  const winningLines = [];
+  const winningPositions = [];
+
+  for (let r = 0; r < rows; r++) {
+    let currentFruit = null;
+    let count = 0;
+    for (let c = 0; c < cols; c++) {
+      const fruit = results[r][c];
+      if (fruit === currentFruit) {
+        count++;
+      } else {
+        if (currentFruit && count >= 1) {
+          const payoutsArr = payouts[currentFruit];
+          if (payoutsArr) {
+            let payoutIndex = count - 1;
+            if (currentFruit === "🍎" || currentFruit === "🍏") {
+              if (payoutIndex > 2) payoutIndex = 2;
+            } else if (["🍑","🍐","🍊","🍋"].includes(currentFruit)) {
+              if (count < 3) payoutIndex = -1;
+              else if (payoutIndex > 2) payoutIndex = 2;
+            } else if (["🍌","🍍","🍓","🥭","🍇"].includes(currentFruit)) {
+              if (count < 4) payoutIndex = -1;
+              else if (payoutIndex > 4) payoutIndex = 4;
+            } else if (["🍉","🍈"].includes(currentFruit)) {
+              if (count !== 5) payoutIndex = -1;
+              else payoutIndex = 4;
+            } else {
+              payoutIndex = -1;
+            }
+            if (payoutIndex >= 0 && payoutsArr[payoutIndex] > 0) {
+              const winAmount = payoutsArr[payoutIndex] * bet;
+              totalWin += winAmount;
+              winningLines.push({row: r, fruit: currentFruit, count});
+              for(let i=c-count; i < c; i++) {
+                winningPositions.push([r, i]);
+              }
+            }
+          }
+        }
+        currentFruit = fruit;
+        count = 1;
+      }
+    }
+    // Evaluate last run in row
+    if (currentFruit && count >= 1) {
+      const payoutsArr = payouts[currentFruit];
+      if (payoutsArr) {
+        let payoutIndex = count - 1;
+        if (currentFruit === "🍎" || currentFruit === "🍏") {
+          if (payoutIndex > 2) payoutIndex = 2;
+        } else if (["🍑","🍐","🍊","🍋"].includes(currentFruit)) {
+          if (count < 3) payoutIndex = -1;
+          else if (payoutIndex > 2) payoutIndex = 2;
+        } else if (["🍌","🍍","🍓","🥭","🍇"].includes(currentFruit)) {
+          if (count < 4) payoutIndex = -1;
+          else if (payoutIndex > 4) payoutIndex = 4;
+        } else if (["🍉","🍈"].includes(currentFruit)) {
+          if (count !== 5) payoutIndex = -1;
+          else payoutIndex = 4;
+        } else {
+          payoutIndex = -1;
+        }
+        if (payoutIndex >= 0 && payoutsArr[payoutIndex] > 0) {
+          const winAmount = payoutsArr[payoutIndex] * bet;
+          totalWin += winAmount;
+          winningLines.push({row: r, fruit: currentFruit, count});
+          for(let i=cols-count; i < cols; i++) {
+            winningPositions.push([r, i]);
+          }
+        }
+      }
+    }
+  }
+
+  return {totalWin, winningLines, winningPositions};
+}
+
+function exitGame() {
+  if (balance >= 5) {
+    balance -= 5;
+    saveWallet();
+    updateBalance();
+    window.location.href = "../../index.html";
+  } else {
+    alert("You need at least $5 to exit the game!");
+  }
+}
+
+spinBtn.addEventListener("click", spin);
+exitBtn.addEventListener("click", exitGame);
+
+// Load wallet and initialize UI on page load
+window.addEventListener("load", () => {
+  loadWallet();
+});
+const messagePopup = document.getElementById("message-popup");
+
+function showMessage(message, duration = 3000) {
+  messagePopup.textContent = message;
+  messagePopup.classList.add("show");
+  setTimeout(() => {
+    messagePopup.classList.remove("show");
+  }, duration);
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hold Your Water: DON'T SPIT!</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: radial-gradient(#1a1a1a, #0a0a0a);
+      overflow: hidden;
+      color: #e0ffe0;
+    }
+    canvas#bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
+    .btn {
+      background-color: #00ff88;
+      color: black;
+      font-weight: bold;
+      transition: transform 0.2s ease;
+    }
+    .btn:hover {
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body class="text-white">
+  <canvas id="bg"></canvas>
+  <div id="app" class="p-6 max-w-3xl mx-auto">
+    <!-- Intro Screen -->
+    <div id="intro" class="text-center">
+      <h1 class="text-5xl font-bold mb-4 text-green-300">Hold Your Water: DON'T SPIT!</h1>
+      <p class="mb-6 text-xl">The Game where AI trolls all players. AI jokes. Real Laughs!</p>
+      <button onclick="showInfo()" class="btn px-4 py-2 rounded mb-4">How to Play</button><br />
+      <button onclick="showNameInput()" class="btn px-6 py-3 rounded text-xl mt-2">Start Game</button>
+    </div>
+
+    <!-- Info Page -->
+    <div id="info" class="hidden">
+      <h2 class="text-3xl font-semibold mb-4 text-green-400">How to Play</h2>
+      <ul class="list-disc text-left pl-6 space-y-2 text-lg">
+        <li>Add each player's name.</li>
+        <li>Each round, one player reads an AI-generated joke aloud.</li>
+        <li>If anyone laughs — they’re OUT!</li>
+        <li>You must read the joke with a straight face. No smiling. No laughing.</li>
+        <li>After reading, tap the name of anyone who laughed. (Yours is BIGGER if you laughed!)</li>
+        <li>Each laugh = 1 point for the reader.</li>
+        <li>Each round lasts 30 seconds max.</li>
+      </ul>
+      <button onclick="showIntro()" class="mt-6 btn px-4 py-2 rounded">Back</button>
+    </div>
+
+    <!-- Name Entry Page -->
+    <div id="nameEntry" class="hidden">
+      <h2 class="text-3xl font-semibold mb-4 text-green-400">Enter Player Names</h2>
+      <div class="flex mb-4">
+        <input id="playerNameInput" type="text" class="flex-1 border px-2 py-1 mr-2 text-black" placeholder="Enter name" />
+        <button onclick="addPlayer()" class="btn px-4 py-1 rounded">Add</button>
+      </div>
+      <ul id="playerList" class="mb-4 list-disc pl-6"></ul>
+      <button onclick="startGame()" class="btn px-6 py-2 rounded">Start Game</button>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game" class="hidden">
+      <h2 class="text-2xl font-bold mb-2 text-green-300">Current Player: <span id="currentPlayer"></span></h2>
+      <div class="bg-black bg-opacity-70 p-4 rounded shadow mb-4">
+        <p class="text-xl font-mono" id="jokeText">[Joke will appear here]</p>
+      </div>
+      <div class="grid grid-cols-2 gap-2 mb-4" id="playerButtons"></div>
+      <div class="mb-4">
+        <button onclick="endRound()" class="btn px-4 py-2 rounded">Submit Round</button>
+      </div>
+      <div class="text-sm text-green-200">Time Left: <span id="timer">30</span>s</div>
+    </div>
+
+    <!-- Scoreboard -->
+    <div id="scoreboard" class="hidden">
+      <h2 class="text-3xl font-bold mb-4 text-green-400">Scoreboard</h2>
+      <ul id="scoreList" class="list-decimal pl-6 mb-4"></ul>
+      <button onclick="nextRound()" class="btn px-6 py-2 rounded">Next Round</button>
+    </div>
+  </div>
+
+  <script>
+    let players = [], scores = {}, currentIndex = 0, selectedLaughs = [], timer;
+
+    const laughSound = new Audio('https://www.soundjay.com/human/laugh-1.mp3');
+    const clickSound = new Audio('https://www.soundjay.com/button/button-4.mp3');
+
+    function playClick() { clickSound.play(); }
+    function playLaugh() { laughSound.play(); }
+
+    function showIntro() {
+      hideAll();
+      document.getElementById('intro').classList.remove('hidden');
+    }
+
+    function showInfo() {
+      hideAll();
+      document.getElementById('info').classList.remove('hidden');
+      playClick();
+    }
+
+    function showNameInput() {
+      hideAll();
+      document.getElementById('nameEntry').classList.remove('hidden');
+      playClick();
+    }
+
+    function addPlayer() {
+      const input = document.getElementById('playerNameInput');
+      const name = input.value.trim();
+      if (name && !players.includes(name)) {
+        players.push(name);
+        scores[name] = 0;
+        const li = document.createElement('li');
+        li.innerText = name;
+        document.getElementById('playerList').appendChild(li);
+        input.value = '';
+        playClick();
+      }
+    }
+
+    function startGame() {
+      if (players.length === 0) return alert("Add players first!");
+      currentIndex = 0;
+      hideAll();
+      startRound();
+      playClick();
+    }
+
+    function startRound() {
+      selectedLaughs = [];
+      document.getElementById('game').classList.remove('hidden');
+      const currentPlayer = players[currentIndex];
+      document.getElementById('currentPlayer').innerText = currentPlayer;
+      document.getElementById('jokeText').innerText = getRandomJoke();
+      const container = document.getElementById('playerButtons');
+      container.innerHTML = '';
+      players.forEach(p => {
+        const btn = document.createElement('button');
+        btn.innerText = p;
+        btn.className = `btn px-4 py-2 m-1 rounded ${p === currentPlayer ? 'text-xl bg-red-400' : 'bg-green-500'}`;
+        btn.onclick = () => toggleLaugh(p, btn);
+        container.appendChild(btn);
+      });
+      startTimer();
+    }
+
+    function toggleLaugh(player, btn) {
+      if (selectedLaughs.includes(player)) {
+        selectedLaughs = selectedLaughs.filter(p => p !== player);
+        btn.classList.remove('bg-yellow-300');
+      } else {
+        selectedLaughs.push(player);
+        btn.classList.add('bg-yellow-300');
+        playLaugh();
+      }
+    }
+
+    function endRound() {
+      clearInterval(timer);
+      const currentPlayer = players[currentIndex];
+      selectedLaughs.forEach(name => {
+        if (name !== currentPlayer) scores[currentPlayer]++;
+      });
+      showScoreboard();
+      playClick();
+    }
+
+    function showScoreboard() {
+      hideAll();
+      const list = document.getElementById('scoreList');
+      list.innerHTML = '';
+      players.forEach(p => {
+        const li = document.createElement('li');
+        li.innerText = `${p}: ${scores[p]} points`;
+        list.appendChild(li);
+      });
+      document.getElementById('scoreboard').classList.remove('hidden');
+    }
+
+    function nextRound() {
+      currentIndex = (currentIndex + 1) % players.length;
+      hideAll();
+      startRound();
+    }
+
+    function hideAll() {
+      document.querySelectorAll('#app > div').forEach(div => div.classList.add('hidden'));
+    }
+
+    function getRandomJoke() {
+      const jokes = [
+        "Why don’t scientists trust atoms? Because they make up everything!",
+        "I told my wife she was drawing her eyebrows too high. She looked surprised.",
+        "Why don't skeletons fight each other? They don't have the guts.",
+        "What do you call cheese that isn't yours? Nacho cheese!",
+        "Why did the scarecrow win an award? Because he was outstanding in his field."
+      ];
+      return jokes[Math.floor(Math.random() * jokes.length)];
+    }
+
+    function startTimer() {
+      let seconds = 30;
+      const timerDisplay = document.getElementById('timer');
+      timerDisplay.innerText = seconds;
+      timer = setInterval(() => {
+        seconds--;
+        timerDisplay.innerText = seconds;
+        if (seconds <= 0) {
+          clearInterval(timer);
+          endRound();
+        }
+      }, 1000);
+    }
+
+    // Moving Particles Background
+    const canvas = document.getElementById('bg');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    let particles = [];
+
+    for (let i = 0; i < 100; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 2 + 1,
+        dx: (Math.random() - 0.5) * 0.5,
+        dy: (Math.random() - 0.5) * 0.5
+      });
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#00ff88';
+      particles.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+        p.x += p.dx;
+        p.y += p.dy;
+        if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
+      });
+      requestAnimationFrame(animateParticles);
+    }
+
+    animateParticles();
+    window.onresize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+
+    showIntro();
+  </script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ultimate Themed Slots</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #111;
+      color: #fff;
+      text-align: center;
+      margin: 0;
+      padding: 1em;
+    }
+    h1 { font-size: 1.5em; margin-bottom: 0.2em; }
+    select, button {
+      padding: 10px;
+      font-size: 1em;
+      margin: 10px auto;
+    }
+    .game-container { margin-top: 1em; }
+    .slot-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 80px);
+      grid-gap: 10px;
+      justify-content: center;
+      margin: 1em 0;
+    }
+    .slot-cell {
+      background: #222;
+      border-radius: 8px;
+      font-size: 2em;
+      padding: 15px;
+      height: 80px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .message {
+      margin-top: 10px;
+      font-size: 1.2em;
+      color: #0f0;
+    }
+    @media (max-width: 500px) {
+      .slot-cell {
+        font-size: 1.5em;
+        padding: 10px;
+        height: 60px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1 id="game-title">🎰 Ultimate Themed Slot Machine 🎰</h1>
+  <p id="game-desc">Choose a theme to start spinning!</p>
+
+  <select id="game-selector" onchange="changeGame()">
+    <option value="">-- Select Game Theme --</option>
+  </select>
+
+  <div class="game-container">
+    <div class="slot-grid" id="slot-grid">
+      <!-- 3x3 slot cells -->
+      <div class="slot-cell" id="s0">❓</div>
+      <div class="slot-cell" id="s1">❓</div>
+      <div class="slot-cell" id="s2">❓</div>
+      <div class="slot-cell" id="s3">❓</div>
+      <div class="slot-cell" id="s4">❓</div>
+      <div class="slot-cell" id="s5">❓</div>
+      <div class="slot-cell" id="s6">❓</div>
+      <div class="slot-cell" id="s7">❓</div>
+      <div class="slot-cell" id="s8">❓</div>
+    </div>
+
+    <button onclick="spin()">🎯 Spin</button>
+    <div class="message" id="message"></div>
+  </div>
+
+  <script>
+    const games = {
+      "Library of Fortune": {
+        symbols: ["📚", "📕", "📗", "📘", "📙", "📖"],
+        description: "Match 3 books in a row to unlock legendary knowledge!",
+        payout: (grid) => {
+          return checkMatch(grid, ["📚", "📕", "📗", "📘", "📙", "📖"]);
+        }
+      },
+      "Zodiac Jackpot": {
+        symbols: ["♈️", "♉️", "♊️", "♋️", "♌️", "♍️", "♎️", "♏️", "♐️", "♑️", "♒️", "♓️"],
+        description: "Align your zodiac signs for cosmic fortune!",
+        payout: (grid) => {
+          return checkMatch(grid, ["♈️", "♉️", "♊️", "♋️", "♌️", "♍️", "♎️", "♏️", "♐️", "♑️", "♒️", "♓️"]);
+        }
+      },
+      "Weather Winnings": {
+        symbols: ["☀️", "🌤", "⛅️", "🌧", "🌩", "❄️"],
+        description: "Stormy spins or sunny rewards? Match 3 skies!",
+        payout: (grid) => {
+          return checkMatch(grid, ["☀️", "🌤", "⛅️", "🌧", "🌩", "❄️"]);
+        }
+      }
+    };
+
+    const select = document.getElementById("game-selector");
+    const title = document.getElementById("game-title");
+    const desc = document.getElementById("game-desc");
+    const message = document.getElementById("message");
+    const cells = Array.from({length: 9}, (_, i) => document.getElementById(`s${i}`));
+    let currentGame = null;
+
+    // Populate dropdown
+    for (const name in games) {
+      const opt = document.createElement("option");
+      opt.value = name;
+      opt.textContent = name;
+      select.appendChild(opt);
+    }
+
+    function changeGame() {
+      const selected = select.value;
+      if (!selected) return;
+      currentGame = games[selected];
+      title.textContent = `🎰 ${selected} 🎰`;
+      desc.textContent = currentGame.description;
+      resetGrid();
+      message.textContent = "";
+    }
+
+    function resetGrid() {
+      cells.forEach(cell => cell.textContent = "❓");
+    }
+
+    function spin() {
+      if (!currentGame) {
+        message.textContent = "Please select a game first.";
+        return;
+      }
+
+      const grid = [];
+      for (let i = 0; i < 9; i++) {
+        const symbol = randomSymbol(currentGame.symbols);
+        cells[i].textContent = symbol;
+        grid.push(symbol);
+      }
+
+      const result = currentGame.payout(grid);
+      message.textContent = result;
+    }
+
+    function randomSymbol(symbols) {
+      return symbols[Math.floor(Math.random() * symbols.length)];
+    }
+
+    function checkMatch(grid, symbols) {
+      const lines = [
+        [0,1,2], [3,4,5], [6,7,8], // rows
+        [0,3,6], [1,4,7], [2,5,8], // cols
+        [0,4,8], [2,4,6]           // diagonals
+      ];
+      for (const [a,b,c] of lines) {
+        if (grid[a] === grid[b] && grid[b] === grid[c]) {
+          return `🎉 Jackpot! Matched ${grid[a]} across!`;
+        }
+      }
+      return "🙈 No matches. Try again!";
+    }
+  </script>
+</body>
+</html>

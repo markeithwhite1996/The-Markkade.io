@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Vault Breakers Slots 5x5</title>
+<style>
+  body {
+    margin:0; padding:0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #2c2f33, #1a1c1e);
+    color: #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    user-select: none;
+  }
+  h1 {
+    margin: 18px 0 14px;
+    font-weight: 900;
+    font-size: 2rem;
+    color: #f5c518;
+    text-align: center;
+    text-shadow: 0 0 10px #f5c518aa;
+  }
+  .slot-container {
+    background: #2e3136cc;
+    border-radius: 20px;
+    padding: 28px;
+    max-width: 360px;
+    width: 95vw;
+    box-shadow: 0 0 20px #000 inset;
+  }
+  .cash-display {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    text-align: center;
+    color: #f5c518;
+    text-shadow: 0 0 8px #f5c51877;
+  }
+  .reels {
+    display: grid;
+    grid-template-columns: repeat(5,1fr);
+    grid-gap: 10px;
+    margin: 20px 0;
+  }
+  .reel {
+    width: 54px; height: 54px;
+    border-radius: 16px;
+    background: #3a3d42;
+    box-shadow: inset 0 0 8px #000a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2.8rem;
+    transition: box-shadow 0.3s, transform 0.3s;
+  }
+  .reel.glow {
+    box-shadow: 0 0 20px 6px #f5c518ff, inset 0 0 12px #f5c518aa;
+    transform: scale(1.2);
+  }
+  .reel.spin {
+    animation: rotateAnim 0.5s ease-in-out;
+  }
+  @keyframes rotateAnim {
+    0% { transform: rotateY(0deg); }
+    50% { transform: rotateY(90deg); }
+    100% { transform: rotateY(0deg); }
+  }
+  button {
+    width:100%;
+    padding:12px;
+    font-size:1.25rem;
+    font-weight:700;
+    border:none;
+    border-radius:20px;
+    background:#f5c518;
+    color:#1a1c1e;
+    box-shadow: 0 6px 16px #f5c51877;
+    cursor:pointer;
+    transition: background 0.3s;
+  }
+  button:hover:not(:disabled) {
+    background:#ffde59;
+  }
+  button:disabled {
+    background:#7f6b0c;
+    cursor:not-allowed;
+    box-shadow:none;
+  }
+  .result {
+    margin-top:14px;
+    font-weight:700;
+    font-size:1.2rem;
+    min-height:38px;
+    text-align:center;
+  }
+  .paytable {
+    margin-top:20px;
+    background:#1f2226;
+    border-radius:16px;
+    padding:16px;
+    font-size:1rem;
+    color:#c0c0c0;
+  }
+  .paytable strong { color:#f5c518; }
+</style>
+</head>
+<body>
+  <div class="slot-container" role="main" aria-label="Vault Breakers Slots">
+    <h1>Vault Breakers 🔒🔓🔏🔐🔑 (5×5)</h1>
+    <div class="cash-display" id="playerCash">Loading cash…</div>
+    <div class="reels" id="reels"></div>
+    <button id="spinBtn">Spin (Cost: 20 coins)</button>
+    <div class="result" id="result"></div>
+    <div class="paytable">
+      <p><strong>Pay Table</strong></p>
+      <ul>
+        <li>Match 3 identical symbols in-line (horiz, vert, diag)</li>
+        <li>Payout: 110 coins per combo</li>
+        <li>Spin Cost: 20 coins</li>
+      </ul>
+    </div>
+  </div>
+
+<script>
+  const symbols = ['🔒','🔓','🔏','🔐','🔑'];
+  const rows = 5, cols = 5;
+  const spinCost = 20, payoutVal = 110;
+  const reelsEl = document.getElementById('reels');
+  const cashEl = document.getElementById('playerCash');
+  const resultEl = document.getElementById('result');
+  const spinBtn = document.getElementById('spinBtn');
+
+  let playerCash = parseInt(localStorage.getItem('PlayerCoins') || '0', 10);
+  if (isNaN(playerCash) || playerCash < spinCost) {
+    playerCash = 600;
+    localStorage.setItem('PlayerCoins', playerCash);
+  }
+  cashEl.textContent = `Cash: ${playerCash} coins`;
+  spinBtn.disabled = playerCash < spinCost;
+
+  // build grid
+  for(let i = 0; i < rows * cols; i++){
+    const d = document.createElement('div');
+    d.className = 'reel';
+    d.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    reelsEl.append(d);
+  }
+  const reels = Array.from(document.querySelectorAll('.reel'));
+
+  function updateCash(diff){
+    playerCash += diff;
+    if(playerCash < 0) playerCash = 0;
+    localStorage.setItem('PlayerCoins', playerCash);
+    cashEl.textContent = `Cash: ${playerCash} coins`;
+    spinBtn.disabled = playerCash < spinCost;
+  }
+
+  function animate(final){
+    return new Promise(r=>{
+      reels.forEach(el=>{
+        el.classList.add('spin');
+        el.classList.remove('glow');
+      });
+      let elapsed = 0, dur = 1800, iv = 40;
+      const ivt = setInterval(() => {
+        reels.forEach(el => el.textContent = symbols[Math.floor(Math.random() * symbols.length)]);
+        if ((elapsed += iv) >= dur) {
+          clearInterval(ivt);
+          reels.forEach((el, i) => {
+            el.textContent = final[i];
+            el.classList.remove('spin');
+          });
+          r();
+        }
+      }, iv);
+    });
+  }
+
+  function check(final){
+    const w = new Set();
+    let combos = 0;
+    const idx = (r, c) => (r * cols + c);
+    // horizontal
+    for(let r = 0; r < rows; r++) for(let c = 0; c <= cols - 3; c++){
+      const a = idx(r, c), b = idx(r, c + 1), c2 = idx(r, c + 2);
+      if(final[a] === final[b] && final[b] === final[c2]){
+        [a,b,c2].forEach(i => w.add(i));
+        combos++;
+      }
+    }
+    // vertical
+    for(let c = 0; c < cols; c++) for(let r = 0; r <= rows - 3; r++){
+      const a = idx(r, c), b = idx(r + 1, c), c2 = idx(r + 2, c);
+      if(final[a] === final[b] && final[b] === final[c2]){
+        [a,b,c2].forEach(i => w.add(i));
+        combos++;
+      }
+    }
+    // diag TL-BR
+    for(let r = 0; r <= rows - 3; r++) for(let c = 0; c <= cols - 3; c++){
+      const a = idx(r, c), b = idx(r + 1, c + 1), c2 = idx(r + 2, c + 2);
+      if(final[a] === final[b] && final[b] === final[c2]){
+        [a,b,c2].forEach(i => w.add(i));
+        combos++;
+      }
+    }
+    // diag TR-BL
+    for(let r = 0; r <= rows - 3; r++) for(let c = 2; c < cols; c++){
+      const a = idx(r, c), b = idx(r + 1, c - 1), c2 = idx(r + 2, c - 2);
+      if(final[a] === final[b] && final[b] === final[c2]){
+        [a,b,c2].forEach(i => w.add(i));
+        combos++;
+      }
+    }
+    return { w: Array.from(w), combos };
+  }
+
+  async function spin(){
+    if(playerCash < spinCost){
+      resultEl.textContent = "Not enough coins";
+      return;
+    }
+    updateCash(-spinCost);
+    resultEl.textContent = "Spinning...";
+    const final = Array.from({length: rows * cols}, () => symbols[Math.floor(Math.random() * symbols.length)]);
+    await animate(final);
+    const { w, combos } = check(final);
+    if(combos){
+      updateCash(payoutVal * combos);
+      resultEl.textContent = `Win ${payoutVal * combos} coins (${combos} combo${combos > 1 ? 's' : ''})!`;
+      w.forEach(i => reels[i].classList.add('glow'));
+      setTimeout(() => reels.forEach(el => el.classList.remove('glow')), 2000);
+    } else {
+      resultEl.textContent = "No win, try again!";
+    }
+  }
+
+  spinBtn.addEventListener('click', spin);
+</script>
+</body>
+</html>

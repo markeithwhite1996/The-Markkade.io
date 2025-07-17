@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bingo vs AI</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="ai-screen">
+  <h1>🤖 Bingo: Player vs AI</h1>
+  <button onclick="callNext()">Call Number</button>
+  <div class="boards">
+    <div>
+      <h2>🟡 You</h2>
+      <div class="board" id="playerBoard"></div>
+    </div>
+    <div>
+      <h2>🔵 AI</h2>
+      <div class="board" id="aiBoard"></div>
+    </div>
+  </div>
+
+  <div class="popup" id="popup">
+    <h2 id="winnerText">🎉 Winner!</h2>
+    <button onclick="startGame()">Play Again</button>
+  </div>
+
+  <script>
+    const playerBoard = document.getElementById("playerBoard");
+    const aiBoard = document.getElementById("aiBoard");
+    const popup = document.getElementById("popup");
+    const winnerText = document.getElementById("winnerText");
+
+    let playerCells = [], aiCells = [], numbers = [], markedP = [], markedA = [];
+
+    function startGame() {
+      numbers = Array.from({ length: 75 }, (_, i) => i + 1);
+      markedP = Array(25).fill(false);
+      markedA = Array(25).fill(false);
+      playerCells = generateBoard(playerBoard, markedP, false);
+      aiCells = generateBoard(aiBoard, markedA, true);
+      popup.style.display = "none";
+    }
+
+    function generateBoard(container, marks, isAI) {
+      container.innerHTML = "";
+      const nums = [];
+      while (nums.length < 25) {
+        let n = Math.floor(Math.random() * 75) + 1;
+        if (!nums.includes(n)) nums.push(n);
+      }
+      return nums.map((num, i) => {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        cell.textContent = i === 12 ? "FREE" : num;
+        if (i === 12) {
+          cell.classList.add("marked");
+          marks[i] = true;
+        } else {
+          marks[i] = false;
+        }
+        if (!isAI) {
+          cell.onclick = () => {
+            if (!cell.classList.contains("marked")) {
+              cell.classList.add("marked");
+              marks[i] = true;
+              checkWinner();
+            }
+          };
+        }
+        container.appendChild(cell);
+        return cell;
+      });
+    }
+
+    function callNext() {
+      if (numbers.length === 0) return;
+      const index = Math.floor(Math.random() * numbers.length);
+      const number = numbers.splice(index, 1)[0];
+
+      [playerCells, aiCells].forEach((cells, type) => {
+        const marks = type === 0 ? markedP : markedA;
+        cells.forEach((cell, i) => {
+          if (parseInt(cell.textContent) === number && !cell.classList.contains("marked")) {
+            cell.classList.add("marked");
+            marks[i] = true;
+          }
+        });
+      });
+
+      checkWinner();
+    }
+
+    function checkWinner() {
+      const winPatterns = [
+        [0,1,2,3,4],[5,6,7,8,9],[10,11,12,13,14],[15,16,17,18,19],[20,21,22,23,24],
+        [0,5,10,15,20],[1,6,11,16,21],[2,7,12,17,22],[3,8,13,18,23],[4,9,14,19,24],
+        [0,6,12,18,24],[4,8,12,16,20]
+      ];
+      const isWin = (marked) => winPatterns.some(p => p.every(i => marked[i]));
+
+      if (isWin(markedP)) {
+        winnerText.textContent = "🟡 You Win!";
+        popup.style.display = "flex";
+      } else if (isWin(markedA)) {
+        winnerText.textContent = "🔵 AI Wins!";
+        popup.style.display = "flex";
+      }
+    }
+
+    startGame();
+  </script>
+</body>
+</html>

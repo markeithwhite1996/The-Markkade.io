@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lunar Luck Slots 6x5</title>
+  <style>
+    body {
+      margin: 0; padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: radial-gradient(circle at center, #0b1a26, #02141f);
+      color: #e0e7ff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      user-select: none;
+    }
+    h1 {
+      margin: 18px 0 14px;
+      font-weight: 900;
+      font-size: 2rem;
+      color: #8ab6f9;
+      text-shadow: 0 0 16px #8ab6f9bb;
+      text-align: center;
+    }
+    .slot-container {
+      background: #192c4cdd;
+      border-radius: 20px;
+      padding: 28px 30px 30px;
+      max-width: 380px;
+      width: 95vw;
+      box-shadow: 0 0 35px #8ab6f9bb inset;
+    }
+    .cash-display {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      text-align: center;
+      letter-spacing: 1.3px;
+      text-shadow: 0 0 10px #8ab6f9aa;
+    }
+    .reels {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-gap: 12px;
+      margin: 22px 0 32px;
+    }
+    .reel {
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      background: #24407c;
+      box-shadow: 0 0 12px #8ab6f999 inset;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 2.6rem;
+      cursor: default;
+      transition: box-shadow 0.3s ease, transform 0.3s ease;
+      position: relative;
+      user-select: none;
+    }
+    .reel.glow {
+      box-shadow:
+        0 0 22px 8px #8ab6f9ff,
+        0 0 44px 15px #8ab6f9cc;
+      transform: scale(1.20);
+      z-index: 10;
+    }
+    .reel.spin-animation {
+      animation: spinAnimLunar 0.5s ease-in-out;
+    }
+    @keyframes spinAnimLunar {
+      0% { transform: rotateX(0deg); }
+      50% { transform: rotateX(90deg); }
+      100% { transform: rotateX(0deg); }
+    }
+    button {
+      width: 100%;
+      padding: 14px 0;
+      font-size: 1.3rem;
+      font-weight: 900;
+      border: none;
+      border-radius: 20px;
+      background: #8ab6f9;
+      color: #0b1a26;
+      cursor: pointer;
+      box-shadow: 0 8px 28px #8ab6f999;
+      transition: background 0.3s ease;
+      user-select: none;
+    }
+    button:disabled {
+      background: #4f75b588;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    button:hover:not(:disabled) {
+      background: #a3c1ff;
+    }
+    .result {
+      margin-top: 22px;
+      font-weight: 700;
+      font-size: 1.35rem;
+      min-height: 40px;
+      text-align: center;
+      color: #8ab6f9;
+      text-shadow: 0 0 20px #8ab6f9bb;
+    }
+    .paytable {
+      margin-top: 32px;
+      background: #31508ccc;
+      border-radius: 18px;
+      padding: 20px 24px;
+      font-size: 1.05rem;
+      line-height: 1.6;
+      color: #cde2ff;
+      user-select: none;
+    }
+    .paytable h2 {
+      margin-top: 0;
+      text-align: center;
+      font-weight: 900;
+      font-size: 1.5rem;
+      text-shadow: 0 0 18px #8ab6f9dd;
+    }
+    .paytable ul {
+      padding-left: 22px;
+      margin: 0;
+    }
+    .paytable ul li {
+      margin-bottom: 10px;
+    }
+    @media (max-width: 480px) {
+      .reel {
+        width: 44px;
+        height: 44px;
+        font-size: 2.3rem;
+      }
+    }
+    @media (max-width: 340px) {
+      .reel {
+        width: 38px;
+        height: 38px;
+        font-size: 2rem;
+      }
+      button {
+        font-size: 1.1rem;
+        padding: 12px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="slot-container" role="main" aria-label="Lunar Luck Slots Game 6 by 5">
+    <h1>Lunar Luck Slots 🌑🌒🌓🌔 (6x5)</h1>
+    <div class="cash-display" aria-live="polite" id="playerCash">Player Cash: 0 coins</div>
+    <div class="reels" id="reels" aria-label="Slot machine reels"></div>
+    <button id="spinBtn" aria-label="Spin the slot machine">Spin (Cost: 15 coins)</button>
+    <div class="result" aria-live="polite" id="result"></div>
+    <div class="paytable" aria-label="Paytable and payout information">
+      <h2>Pay Table</h2>
+      <ul>
+        <li>Match 3 identical moon phase emojis in a row, column, or diagonal</li>
+        <li>Payout: 100 coins per winning combo</li>
+        <li>Spin Cost: 15 coins</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    const symbols = ['🌑','🌒','🌓','🌔','🌕','🌖','🌗','🌘'];
+    const rows = 6;
+    const cols = 5;
+    const spinCost = 15;
+
+    const reelsContainer = document.getElementById('reels');
+    const spinBtn = document.getElementById('spinBtn');
+    const resultDisplay = document.getElementById('result');
+    const playerCashDisplay = document.getElementById('playerCash');
+
+    // Build reels grid
+    for(let i=0; i < rows * cols; i++) {
+      const div = document.createElement('div');
+      div.classList.add('reel');
+      div.textContent = symbols[i % symbols.length];
+      reelsContainer.appendChild(div);
+    }
+    const reels = Array.from(document.querySelectorAll('.reel'));
+
+    // Initialize playerCoins from localStorage or default
+    let playerCoins = parseInt(localStorage.getItem('PlayerCoins') || '0', 10);
+    if (isNaN(playerCoins) || playerCoins < spinCost) {
+      playerCoins = 500;
+      localStorage.setItem('PlayerCoins', playerCoins);
+    }
+    playerCashDisplay.textContent = `Player Cash: ${playerCoins} coins`;
+
+    function updateCash(amount) {
+      playerCoins += amount;
+      if (playerCoins < 0) playerCoins = 0;
+      localStorage.setItem('PlayerCoins', playerCoins);
+      playerCashDisplay.textContent = `Player Cash: ${playerCoins} coins`;
+      spinBtn.disabled = playerCoins < spinCost;
+    }
+
+    function animateReels(finalSymbols) {
+      return new Promise(resolve => {
+        reels.forEach(reel => {
+          reel.classList.add('spin-animation');
+          reel.classList.remove('glow');
+        });
+        const spinDuration = 1800;
+        const intervalTime = 50;
+        let elapsed = 0;
+        const spinInterval = setInterval(() => {
+          reels.forEach(reel => {
+            reel.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+          });
+          elapsed += intervalTime;
+          if (elapsed >= spinDuration) {
+            clearInterval(spinInterval);
+            reels.forEach((reel, idx) => {
+              reel.textContent = finalSymbols[idx];
+              reel.classList.remove('spin-animation');
+            });
+            resolve();
+          }
+        }, intervalTime);
+      });
+    }
+
+    // Check for matches of exactly 3 horizontally, vertically, diagonally
+    function checkWins(gridSymbols) {
+      let winningIndexes = new Set();
+      let combos = 0;
+
+      // Horizontal check
+      for(let r=0; r < rows; r++) {
+        for(let c=0; c <= cols - 3; c++) {
+          let idxs = [r*cols + c, r*cols + c + 1, r*cols + c + 2];
+          if(gridSymbols[idxs[0]] === gridSymbols[idxs[1]] && gridSymbols[idxs[1]] === gridSymbols[idxs[2]]) {
+            idxs.forEach(i => winningIndexes.add(i));
+            combos++;
+          }
+        }
+      }
+      // Vertical check
+      for(let c=0; c < cols; c++) {
+        for(let r=0; r <= rows - 3; r++) {
+          let idxs = [r*cols + c, (r+1)*cols + c, (r+2)*cols + c];
+          if(gridSymbols[idxs[0]] === gridSymbols[idxs[1]] && gridSymbols[idxs[1]] === gridSymbols[idxs[2]]) {
+            idxs.forEach(i => winningIndexes.add(i));
+            combos++;
+          }
+        }
+      }
+      // Diagonal (top-left to bottom-right)
+      for(let r=0; r <= rows - 3; r++) {
+        for(let c=0; c <= cols - 3; c++) {
+          let idxs = [r*cols + c, (r+1)*cols + c +1, (r+2)*cols + c + 2];
+          if(gridSymbols[idxs[0]] === gridSymbols[idxs[1]] && gridSymbols[idxs[1]] === gridSymbols[idxs[2]]) {
+            idxs.forEach(i => winningIndexes.add(i));
+            combos++;
+          }
+        }
+      }
+      // Diagonal (bottom-left to top-right)
+      for(let r=2; r < rows; r++) {
+        for(let c=0; c <= cols - 3; c++) {
+          let idxs = [r*cols + c, (r-1)*cols + c +1, (r-2)*cols + c + 2];
+          if(gridSymbols[idxs[0]] === gridSymbols[idxs[1]] && gridSymbols[idxs[1]] === gridSymbols[idxs[2]]) {
+            idxs.forEach(i => winningIndexes.add(i));
+            combos++;
+          }
+        }
+      }
+
+      return {winningIndexes: Array.from(winningIndexes), combos};
+    }
+
+    async function spin() {
+      if(playerCoins < spinCost) {
+        resultDisplay.textContent = "Not enough coins to spin!";
+        resultDisplay.style.color = '#ff7b7b';
+        return;
+      }
+      spinBtn.disabled = true;
+      updateCash(-spinCost);
+      resultDisplay.textContent = "Spinning...";
+      resultDisplay.style.color = '#8ab6f9';
+
+      let finalSymbols = [];
+      for(let i=0; i < rows*cols; i++) {
+        finalSymbols.push(symbols[Math.floor(Math.random() * symbols.length)]);
+      }
+
+      await animateReels(finalSymbols);
+
+      const {winningIndexes, combos} = checkWins(finalSymbols);
+
+      if(winningIndexes.length > 0) {
+        const payout = combos * 100;
+        updateCash(payout);
+        resultDisplay.textContent = `You win ${payout} coins with ${combos} combo${combos > 1 ? 's' : ''}! 🌕✨`;
+        resultDisplay.style.color = '#a8c8ff';
+
+        reels.forEach((reel, idx) => {
+          if(winningIndexes.includes(idx)) {
+            reel.classList.add('glow');
+          } else {
+            reel.classList.remove('glow');
+          }
+        });
+
+        setTimeout(() => {
+          reels.forEach(reel => reel.classList.remove('glow'));
+        }, 3200);
+      } else {
+        resultDisplay.textContent = "No win, try again!";
+        resultDisplay.style.color = '#ff7b7b';
+      }
+      spinBtn.disabled = playerCoins < spinCost;
+    }
+
+    spinBtn.addEventListener('click', spin);
+
+    if(playerCoins < spinCost) spinBtn.disabled = true;
+  </script>
+</body>
+</html>

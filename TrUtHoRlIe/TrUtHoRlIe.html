@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Markk's Pokerface – Truth or Lie</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Poppins:wght@400;600&display=swap');
+
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+      overflow-x: hidden;
+    }
+
+  .container {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    text-align: center;
+    position: relative;
+    padding: 0 1rem;
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  .visible {
+    display: flex;
+  }
+    button {
+      padding: 1rem 2rem;
+      border: 2px solid #fff;
+      background: transparent;
+      color: #fff;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-radius: 12px;
+      margin: 0.5rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+  button:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: #0f0;
+    box-shadow: 0 0 20px #0f0;
+    color: #0f0;
+  }
+
+  button.lie-button {
+    border-color: #f00;
+    color: #f00;
+    box-shadow: 0 0 10px #f00;
+  }
+
+  button.lie-button:hover:not(:disabled) {
+    background-color: rgba(255, 0, 0, 0.1);
+    box-shadow: 0 0 20px #f00;
+    color: #f00;
+    border-color: #f00;
+  }
+
+  button:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  img {
+    width: 320px;
+    margin-bottom: 2rem;
+    filter: drop-shadow(0 0 10px #ff0);
+  }
+
+  #particles {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: -1;
+  }
+
+  input {
+    margin: 0.5rem;
+    padding: 0.7rem;
+    font-size: 1rem;
+    border-radius: 8px;
+    border: none;
+    width: 260px;
+    max-width: 90vw;
+    box-sizing: border-box;
+    background: #111;
+    color: #fff;
+    border: 1px solid #444;
+    outline: none;
+    transition: 0.3s;
+  }
+
+  input:focus {
+    border-color: #ff0;
+    box-shadow: 0 0 10px #ff0;
+  }
+
+.rules, .player-inputs, .game-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;     /* Center horizontally */
+  justify-content: center; /* Center vertically */
+  text-align: center;
+
+  width: 100%;
+  max-width: 800px;
+  padding: 2rem;
+  margin-bottom: 1rem;
+  overflow-y: auto;
+
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 10px;
+  border: 1px solid #333;
+  box-shadow: 0 0 10px rgba(255,255,255,0.05);
+
+  height: auto;
+  max-height: calc(100vh - 200px); /* Leave space for header/buttons */
+  box-sizing: border-box;
+
+  width: 100%;
+  max-width: 800px;
+      text-align: center;
+  flex-grow: 1;
+  padding: 2rem;
+  margin-bottom: 1rem;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 10px;
+  border: 1px solid #333;
+  box-shadow: 0 0 10px rgba(255,255,255,0.05);
+
+  /* Ensure it fits nicely */
+  height: auto;
+  max-height: calc(100vh - 200px); /* Leaves space for header/footer/buttons */
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .rules, .player-inputs, .game-content {
+    padding: 1rem;
+    font-size: 0.95rem;
+  }
+}
+
+
+
+  .role-truth {
+    color: #0f0;
+    font-size: 1.8rem;
+    font-family: 'Orbitron', sans-serif;
+    text-shadow: 0 0 8px #0f0;
+    margin-bottom: 1rem;
+  }
+
+  .role-lie {
+    color: #f00;
+    font-size: 1.8rem;
+    font-family: 'Orbitron', sans-serif;
+    text-shadow: 0 0 8px #f00;
+    margin-bottom: 1rem;
+  }
+
+  h2, h3 {
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 0.5rem;
+  }
+
+  ul {
+    padding-left: 1.2rem;
+    text-align: left;
+    line-height: 1.5;
+  }
+
+  .timer {
+    font-size: 1.3rem;
+    margin-top: 1rem;
+    font-weight: bold;
+    color: #ff0;
+    text-shadow: 0 0 5px #ff0;
+  }
+
+@keyframes neonGlow {
+  0%   { box-shadow: 0 0 12px #0f0; border-color: #0f0; }
+  33%  { box-shadow: 0 0 12px #f00; border-color: #f00; }
+  66%  { box-shadow: 0 0 12px #ff0; border-color: #ff0; }
+  100% { box-shadow: 0 0 12px #0f0; border-color: #0f0; }
+}
+
+.scoreboard {
+ 
+  top: 0.75rem;
+  background: rgba(0, 0, 0, 0.85);
+  padding: 1rem;
+  border-radius: 14px;
+  font-size: 1rem;
+  max-width: 600px;
+  width: auto;
+  max-height: 30vh;
+  text-align: center;
+  font-weight: bold;
+  border: 2px solid #0f0;
+  animation: neonGlow 4s infinite;
+  backdrop-filter: blur(6px);
+  pointer-events: none;
+}
+
+
+.scoreboard-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+
+
+  audio {
+    margin: 1rem 0;
+    filter: drop-shadow(0 0 5px #0ff);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.98); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  @media (max-width: 75px) {
+    .rules, .player-inputs, .game-content {
+      max-height: 20vh;
+      font-size: 0.95rem;
+    }
+
+    button {
+      font-size: 1rem;
+      padding: 0.8rem 1.5rem;
+    }
+
+    input {
+      width: 90%;
+    }
+
+    img {
+      width: 250px;
+    }
+
+
+
+  
+  button.truth-button {
+  border-color: #0f0;
+  color: #0f0;
+  box-shadow: 0 0 10px #0f0;
+}
+
+button.truth-button:hover:not(:disabled) {
+  background-color: rgba(0, 255, 0, 0.1);
+  box-shadow: 0 0 20px #0f0;
+  color: #0f0;
+  border-color: #0f0;
+}
+
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 800px;
+      box-shadow: 0 0 25px rgba(255, 255, 255, 0.05);
+      margin-bottom: 2rem;
+    }
+</style>
+
+
+</head>
+<body>
+<canvas id="particles"></canvas>
+
+<!-- Main Page -->
+<div id="mainPage" class="container visible">
+  <img src="truthorlie.png" alt="Truth or Lie" />
+  <button onclick="showInstructions()">Instructions</button>
+  <button onclick="showPlayerSetup()">Play Game</button>
+  <button onclick="exitGame()">Exit</button>
+</div>
+
+<!-- Instructions Page -->
+<div id="instructionsPage" class="container">
+<img src="truthorlie.png" alt="Truth or Lie" />
+  <audio id="instructionAudio" controls>
+    <source src="instructions.mp3" type="audio/mpeg" />
+    Your browser does not support the audio element.
+  </audio>
+<div class="rules">
+ <p>Welcome to Markk’s Poker Face: Truth or Lie! </p>
+ 
+ <p>the party game where your bullshit detector better be on full blast, and your liver better be ready for a goddamn WORKOUT!</p>
+
+ <p>Here’s the lowdown:</p>  
+
+  <p>Each round, one lucky bastard gets to be the Answerer. The game whispers a secret to them — “Tell the truth,” or “Tell a fucking LIE.” Nobody else knows which. That’s your power and your curse.</p>
+
+  <p>The Answerer gets hit with a question — something juicy, weird, or downright embarrassing. You gotta answer based on your secret instruction. So you might be telling the cold hard truth... or you might be lying like your life depends on it. Spoiler: it kinda does.</p>
+
+  <p>Then everyone else gets to play detective — one at a time, you guess if that answer was a truth or a damn LIE. No talking, no side-eyeing. The game tells you who to pass the device to — because we don’t need your dumbass ruining it by sneaking peeks.</p>
+
+  <p>When everyone’s had their shot at guessing, BOOM — it’s reveal time. The game spills the tea: truth or lie.</p>
+
+  <p>If you guessed right — HELL YEAH, you get a point and the right to brag like a motherfucker for the rest of the night. If you guessed wrong — sucks to be YOU. No points, and now you gotta choose: take a shot, do a dare, or lose another point. Yeah, it’s a triple threat.</p>
+
+  <p>Answerers, don’t get cocky. If everyone nails your bluff and guesses you right, congratulations — you’re BUSTED. Now it’s your turn to face the punishment. Pick your poison: shot, dare, or lose a point and your pride.</p>
+
+  <p>The next round kicks off with a new Answerer — rinse and repeat until someone’s winning... or staggering.</p>
+
+  <p>Now, I know what you’re thinking — “This sounds easy, I’m a pro liar.” Nah, mate. You gotta be SLICK, FAST, and CONVINCING. Bluff like your reputation depends on it because tonight, it kinda does.</p>
+
+  <p>And hey, if you freeze up or chicken out when it’s punishment time? Well, congratulations, you just lost a point and probably some dignity. Welcome to the club.</p>
+
+  <p>Remember: Take your time, but not too much. We’re here to party, not film a goddamn DOCUMENTARY!</p>
+
+  <p>Before you dive in, a quick serious word:</p>
+
+  <p>Drink responsibly, assholes. Mind your peers.</p>
+
+  <p>This game’s meant to be fun, but sometimes it pulls out truths that hit harder than your ex’s last text.</p>
+
+  <p>Seriously — don’t play this with your spouse, your close family, or your best friends unless you’re ready for some deep shit to surface and maybe a few awkward silences.</p>
+
+  <p>Play smart, play safe, and keep the vibes good.</p>
+
+  <p>Alright — now get out there, lie like a pro, guess with guts, and don’t get caught... or at least don’t get caught sober!</p>
+
+  <p>CHEERS, Cunts!</p>
+</div>
+
+  <button onclick="showPlayerSetup()">Play Game</button>
+  <button onclick="showMainPage()">Back</button>
+</div>
+
+<!-- Player Setup Page -->
+<div id="setupPage" class="container">
+  <h2>Enter Player Names (3–8)</h2>
+  <div class="player-inputs" id="playerInputs"></div>
+  <button onclick="addPlayerInput()">Add Player</button>
+  <button onclick="startGame()">Start Game</button>
+  <button onclick="showMainPage()">Back</button>
+</div>
+
+<!-- Game Page -->
+<div id="gamePage" class="container">
+  <div class="game-content" id="gameContent"></div>
+  <div class="scoreboard-wrapper">
+    <div id="scoreboard" class="scoreboard"></div>
+  </div>	<button onclick="endGameEarly()">End Game</button>
+</div>
+
+<script>
+  const pages = {
+    main: document.getElementById('mainPage'),
+    instructions: document.getElementById('instructionsPage'),
+    setup: document.getElementById('setupPage'),
+    game: document.getElementById('gamePage')
+  };
+
+  const questions = [
+    "What’s the most embarrassing thing you've done drunk?",
+    "Have you ever lied to your best friend?",
+    "What's your biggest secret?",
+    "Have you ever cheated on a test?",
+    "What's a lie you've told that no one found out about?",
+    "Who was your first crush?",
+    "Have you ever faked being sick to skip school?",
+    "What's the worst date you've ever been on?",
+    "Have you ever stolen something?",
+    "What is one thing you regret the most?"
+  ];
+
+  const dares = [
+    "Sing the chorus of your favorite song loudly.",
+    "Do 10 jumping jacks.",
+    "Talk in an accent for the next round.",
+    "Dance for 30 seconds.",
+    "Do your best animal impression.",
+    "Say the alphabet backwards.",
+    "Do a funny walk across the room.",
+    "Imitate someone in the group until someone guesses who.",
+    "Tell a joke and make everyone laugh.",
+    "Post a silly selfie on your social media."
+  ];
+
+  const roles = ["Tell the Truth", "Tell a Lie"];
+
+  const players = [];
+  let currentRound = 0;
+  let currentAnswerer = 0;
+  let role = "";
+  let currentQuestion = "";
+
+  let guesses = [];
+  let currentGuesserIndex = 0;
+
+  // Punishment tracking
+  let currentPunishmentIndex = 0;
+  let isAnswererPunished = false;
+  let punishmentTimeout = null;
+  let punishmentSecondsLeft = 0;
+
+  // Game end constants
+  const MAX_SHOTS = 10;
+  const MAX_DARES = 5;
+  const MAX_ROUNDS = 25;
+
+function showPage(pageKey) {
+  Object.values(pages).forEach(p => p.classList.remove('visible'));
+  pages[pageKey].classList.add('visible');
+
+  // Stop instructions audio if we leave that screen
+  if (pageKey !== 'instructions') {
+    const audio = document.getElementById('instructionAudio');
+    if (!audio.paused) audio.pause();
+    audio.currentTime = 0;
+  }
+
+  updateScoreboard(); // <- keep scoreboard updated
+}
+
+  // Particle Background
+  const canvas = document.getElementById("particles");
+  const ctx = canvas.getContext("2d");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  let particles = [];
+  const colors = ["#0f0", "#ff0", "#f00"];
+
+  for (let i = 0; i < 100; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      radius: Math.random() * 3 + 1,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      speedX: (Math.random() - 0.5) * 2,
+      speedY: (Math.random() - 0.5) * 2,
+    });
+  }
+
+  function animateParticles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.fill();
+      p.x += p.speedX;
+      p.y += p.speedY;
+
+      if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
+      if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
+    });
+    requestAnimationFrame(animateParticles);
+  }
+  animateParticles();
+
+  window.addEventListener("resize", () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  });
+
+  // Page navigations
+  function showMainPage() { showPage('main'); }
+  function showInstructions() { showPage('instructions'); }
+  function showPlayerSetup() {
+    document.getElementById('playerInputs').innerHTML = '';
+    for (let i = 0; i < 3; i++) addPlayerInput();
+    showPage('setup');
+  }
+  function addPlayerInput() {
+    if(document.getElementById('playerInputs').children.length >= 8) {
+      alert('Maximum 8 players allowed.');
+      return;
+    }
+    const input = document.createElement('input');
+    input.placeholder = `Player ${document.getElementById('playerInputs').children.length + 1}`;
+    input.autocomplete = 'off';
+    document.getElementById('playerInputs').appendChild(input);
+  }
+  function startGame() {
+    const inputs = document.querySelectorAll('#playerInputs input');
+    players.length = 0;
+    inputs.forEach(input => {
+      if (input.value.trim()) {
+        players.push({
+          name: input.value.trim(),
+          score: 0,
+          shots: 0,
+          dares: 0
+        });
+      }
+    });
+    if (players.length < 3 || players.length > 8) {
+      alert('Enter between 3 and 8 players.');
+      return;
+    }
+    currentRound = 1;
+    currentAnswerer = 0;
+    guesses = [];
+    currentGuesserIndex = 0;
+    showPage('game');
+    gameLoop();
+  }
+  function exitGame() {
+  alert('Thanks for playing! Close the tab to exit.');
+  window.location.href = '../../index.html'; // or just 'index.html' if placed in root
+}
+
+
+
+  // Game Loop Start - Answerer Phase
+  function gameLoop() {
+    if (checkGameEnd()) return;
+    role = roles[Math.floor(Math.random() * roles.length)];
+    currentQuestion = questions[Math.floor(Math.random() * questions.length)];
+    guesses = [];
+    currentGuesserIndex = 0;
+    showAnswererPhase();
+  }
+
+  function showAnswererPhase() {
+    const gameContent = document.getElementById('gameContent');
+    gameContent.innerHTML = `
+      <h2>Round ${currentRound}</h2>
+      <h3>${players[currentAnswerer].name}, you're up!</h3>
+      <p><strong>Question:</strong> ${currentQuestion}</p>
+      <p class="${role === 'Tell the Truth' ? 'role-truth' : 'role-lie'}">Your role: ${role}</p>
+      <button id="readAnsweredBtn">Read & Answered</button>
+    `;
+    document.getElementById('readAnsweredBtn').onclick = () => {
+      // Pass device to first guesser
+      currentGuesserIndex = (currentAnswerer + 1) % players.length;
+      if (currentGuesserIndex === currentAnswerer) {
+        currentGuesserIndex = (currentGuesserIndex + 1) % players.length;
+      }
+      showPassDevice(players[currentGuesserIndex].name, showGuessForCurrentGuesser);
+    };
+  }
+
+  // Pass the Device Page
+  let passDeviceTimeout = null;
+  function showPassDevice(playerName, callback) {
+    showPage('game');
+    const gameContent = document.getElementById('gameContent');
+    let secondsLeft = 5;
+    gameContent.innerHTML = `
+      <h2>Pass the device to <strong>${playerName}</strong></h2>
+      <div class="timer">Starting in ${secondsLeft} seconds...</div>
+    `;
+    const timerDiv = gameContent.querySelector('.timer');
+    if (passDeviceTimeout) clearInterval(passDeviceTimeout);
+    passDeviceTimeout = setInterval(() => {
+      secondsLeft--;
+      if (secondsLeft <= 0) {
+        clearInterval(passDeviceTimeout);
+        callback();
+      } else {
+        timerDiv.textContent = `Starting in ${secondsLeft} seconds...`;
+      }
+    }, 1000);
+  }
+
+  // Guessing Phase with pass device between each guess
+  function showGuessForCurrentGuesser() {
+    const guesser = players[currentGuesserIndex];
+    const answerer = players[currentAnswerer];
+    const gameContent = document.getElementById('gameContent');
+gameContent.innerHTML = `
+  <h2>Guessing Time</h2>
+  <p><strong>${answerer.name}</strong> has answered.</p>
+  <p><strong>${guesser.name}</strong>, guess: Truth or Lie?</p>
+  <button class="truth-button" onclick="submitGuess('Tell the Truth')">Truth</button>
+  <button class="lie-button" onclick="submitGuess('Tell a Lie')">Lie</button>
+`;
+  }
+
+  function submitGuess(guess) {
+    guesses.push({ guesserIndex: currentGuesserIndex, guess });
+    // next guesser
+    do {
+      currentGuesserIndex = (currentGuesserIndex + 1) % players.length;
+    } while (currentGuesserIndex === currentAnswerer);
+
+    if (guesses.length === players.length - 1) {
+      // all guessers done - pass back to answerer for reveal
+      showPassDevice(players[currentAnswerer].name, revealPhase);
+    } else {
+      showPassDevice(players[currentGuesserIndex].name, showGuessForCurrentGuesser);
+    }
+  }
+
+  // Reveal Phase
+  function revealPhase() {
+    showPage('game');
+    const gameContent = document.getElementById('gameContent');
+    const correctAnswer = role;
+    let html = `<h2>Reveal Time!</h2>`;
+    html += `<p>The correct answer was: <strong class="${correctAnswer === 'Tell the Truth' ? 'role-truth' : 'role-lie'}">${correctAnswer}</strong></p>`;
+    html += `<ul>`;
+    let wrongGuessers = [];
+    guesses.forEach(g => {
+      const guesser = players[g.guesserIndex];
+      const correct = g.guess === correctAnswer;
+      if (correct) {
+        guesser.score++;
+      } else {
+        wrongGuessers.push(g.guesserIndex);
+      }
+      html += `<li>${guesser.name} guessed <strong>${g.guess}</strong> – ${correct ? '✅ Correct' : '❌ Wrong'}</li>`;
+    });
+    html += `</ul>`;
+    html += `<p><strong>Scores:</strong><br>`;
+    players.forEach(p => {
+      html += `${p.name}: ${p.score} pts<br>`;
+    });
+    html += `</p>`;
+    html += `<button onclick="everyoneChickenedOut()">Everyone Chickened Out</button>`;
+    html += `<button onclick="startPunishments()">Start Punishments</button>`;
+    gameContent.innerHTML = html;
+
+    window._wrongGuessers = wrongGuessers;
+  }
+
+  // Reveal Phase buttons
+  function everyoneChickenedOut() {
+    window._wrongGuessers.forEach(i => players[i].score--);
+    alert('-1 point to each wrong guesser!');
+    nextRound();
+  }
+
+  function startPunishments() {
+    if (window._wrongGuessers.length === 0) {
+      currentPunishmentIndex = currentAnswerer;
+      isAnswererPunished = true;
+      passToPunishmentPlayer();
+    } else {
+      currentPunishmentIndex = window._wrongGuessers[0];
+      isAnswererPunished = false;
+      passToPunishmentPlayer();
+    }
+  }
+
+  // Pass to punishment player then show punishment options
+  function passToPunishmentPlayer() {
+    const player = players[currentPunishmentIndex];
+    showPassDevice(player.name, showPunishmentOptions);
+  }
+
+  // Punishment phase
+  function showPunishmentOptions() {
+    showPage('game');
+    clearPunishmentTimer();
+    const player = players[currentPunishmentIndex];
+    const gameContent = document.getElementById('gameContent');
+    gameContent.innerHTML = `
+      <h2>Punishment Time for ${player.name}</h2>
+      <button onclick="takeShot()">Take a Shot</button>
+      <button onclick="doDare()">Do a Dare</button>
+      <button onclick="losePoint()">Lose a Point</button>
+      <div class="timer" id="punishmentTimer">15 seconds remaining</div>
+    `;
+    startPunishmentTimer(15, () => {
+      alert('You took too long! You lose a point.');
+      losePoint(true);
+    });
+  }
+
+  function clearPunishmentTimer() {
+    if (punishmentTimeout) {
+      clearInterval(punishmentTimeout);
+      punishmentTimeout = null;
+    }
+  }
+
+  function startPunishmentTimer(seconds, onExpire) {
+    punishmentSecondsLeft = seconds;
+    const timerDiv = document.getElementById('punishmentTimer');
+    timerDiv.textContent = `${punishmentSecondsLeft} seconds remaining`;
+    punishmentTimeout = setInterval(() => {
+      punishmentSecondsLeft--;
+      if (punishmentSecondsLeft <= 0) {
+        clearPunishmentTimer();
+        onExpire();
+      } else {
+        timerDiv.textContent = `${punishmentSecondsLeft} seconds remaining`;
+      }
+    }, 1000);
+  }
+
+  function takeShot() {
+    clearPunishmentTimer();
+    players[currentPunishmentIndex].shots++;
+    alert(`${players[currentPunishmentIndex].name} took a shot! (Shots taken: ${players[currentPunishmentIndex].shots})`);
+    showShotPage();
+  }
+
+  function showShotPage() {
+    showPage('game');
+    let secondsLeft = 30;
+    const gameContent = document.getElementById('gameContent');
+    gameContent.innerHTML = `
+      <h2>${players[currentPunishmentIndex].name}, hurry up and take a shot!</h2>
+      <div class="timer" id="shotTimer">${secondsLeft} seconds remaining</div>
+      <button id="completeShotBtn" disabled>Complete</button>
+    `;
+
+    const timerDiv = document.getElementById('shotTimer');
+    const completeBtn = document.getElementById('completeShotBtn');
+    const timerInterval = setInterval(() => {
+      secondsLeft--;
+      if (secondsLeft <= 0) {
+        clearInterval(timerInterval);
+        alert('Time expired! You lose a point.');
+        players[currentPunishmentIndex].score--;
+        nextPunishment();
+      } else {
+        timerDiv.textContent = `${secondsLeft} seconds remaining`;
+        if (secondsLeft <= 25) completeBtn.disabled = false;
+      }
+    }, 1000);
+
+    completeBtn.onclick = () => {
+      clearInterval(timerInterval);
+      nextPunishment();
+    };
+  }
+
+  function doDare() {
+    clearPunishmentTimer();
+    players[currentPunishmentIndex].dares++;
+    showDarePage();
+  }
+
+  function showDarePage() {
+    showPage('game');
+    let secondsLeft = 30;
+    const randomDare = dares[Math.floor(Math.random() * dares.length)];
+    const gameContent = document.getElementById('gameContent');
+    gameContent.innerHTML = `
+      <h2>${players[currentPunishmentIndex].name}, your dare:</h2>
+      <p><em>${randomDare}</em></p>
+      <div class="timer" id="dareTimer">${secondsLeft} seconds remaining</div>
+      <button id="completeDareBtn" disabled>Complete</button>
+    `;
+
+    const timerDiv = document.getElementById('dareTimer');
+    const completeBtn = document.getElementById('completeDareBtn');
+    const timerInterval = setInterval(() => {
+      secondsLeft--;
+      if (secondsLeft <= 0) {
+        clearInterval(timerInterval);
+        alert('Time expired! You lose a point.');
+        players[currentPunishmentIndex].score--;
+        nextPunishment();
+      } else {
+        timerDiv.textContent = `${secondsLeft} seconds remaining`;
+        if (secondsLeft <= 25) completeBtn.disabled = false;
+      }
+    }, 1000);
+
+    completeBtn.onclick = () => {
+      clearInterval(timerInterval);
+      nextPunishment();
+    };
+  }
+
+  function losePoint(isTimeout = false) {
+    clearPunishmentTimer();
+    players[currentPunishmentIndex].score--;
+    if (!isTimeout) alert(`${players[currentPunishmentIndex].name} lost a point!`);
+    nextPunishment();
+  }
+
+  // Cycle punishment through all wrong guessers before new round
+  function nextPunishment() {
+    if (isAnswererPunished) {
+      isAnswererPunished = false;
+      nextRound();
+      return;
+    }
+    const wrongs = window._wrongGuessers;
+    const currentIndexInWrongs = wrongs.indexOf(currentPunishmentIndex);
+    if (currentIndexInWrongs === -1) {
+      // Not in wrong guessers (means answerer punished alone)
+      nextRound();
+      return;
+    }
+    if (currentIndexInWrongs + 1 < wrongs.length) {
+      currentPunishmentIndex = wrongs[currentIndexInWrongs + 1];
+      passToPunishmentPlayer();
+    } else {
+      nextRound();
+    }
+  }
+
+  // Next Round
+  function nextRound() {
+    guesses = [];
+    currentGuesserIndex = 0;
+    currentRound++;
+    currentAnswerer = (currentAnswerer + 1) % players.length;
+    if (!checkGameEnd()) {
+      gameLoop();
+    }
+  }
+
+  // Game End Check
+  function checkGameEnd() {
+    let ended = false;
+    let winners = [];
+    for (const p of players) {
+      if (p.shots >= MAX_SHOTS) {
+        ended = true;
+        winners.push(p);
+      }
+      if (p.dares >= MAX_DARES) {
+        ended = true;
+        winners.push(p);
+      }
+    }
+    if (currentRound > MAX_ROUNDS) {
+      ended = true;
+    }
+    if (ended) {
+      showFinalScreen(winners);
+      return true;
+    }
+    return false;
+  }
+
+  function showFinalScreen(winners) {
+    showPage('game');
+    const gameContent = document.getElementById('gameContent');
+    let html = `<h2>Game Over!</h2>`;
+    if (winners.length > 0) {
+      html += `<h3>Winner${winners.length > 1 ? 's' : ''}:</h3><ul>`;
+      winners.forEach(w => {
+        html += `<li>${w.name} (Shots: ${w.shots}, Dares: ${w.dares}, Score: ${w.score})</li>`;
+      });
+      html += '</ul>';
+    } else {
+      html += `<p>Max rounds reached. Final scores:</p>`;
+    }
+    html += `<div class="scoreboard"><strong>Final Scores:</strong><br>`;
+    players.forEach(p => {
+      html += `${p.name}: ${p.score} pts, Shots: ${p.shots}, Dares: ${p.dares}<br>`;
+    });
+    html += `</div>`;
+    html += `<button onclick="showPlayerSetup()">Play Again</button>`;
+    html += `<button onclick="exitGame()">Exit</button>`;
+    gameContent.innerHTML = html;
+  }
+  function updateScoreboard() {
+  const sb = document.getElementById('scoreboard');
+  if (!players.length || !pages.game.classList.contains('visible')) {
+    sb.style.display = 'none';
+    return;
+  }
+  
+  function updateScoreboard() {
+  const scoreboard = document.getElementById('scoreboard');
+  if (!scoreboard) return;
+
+  scoreboard.innerHTML = `<strong>Scores:</strong><br>` + players.map(p =>
+    `${p.name}: ${p.score} pts, Shots: ${p.shots}, Dares: ${p.dares}`
+  ).join('<br>');
+}
+
+  
+function updateScoreboard() {
+  const existing = document.querySelector('.scoreboard');
+  if (existing) existing.remove();
+
+  if (!pages.game.classList.contains('visible')) return;
+
+  const scoreboard = document.createElement('div');
+  scoreboard.className = 'scoreboard';
+  scoreboard.innerHTML = `<strong>Scores:</strong><br>` + players.map(p =>
+    `${p.name}: ${p.score} pts, Shots: ${p.shots}, Dares: ${p.dares}`
+  ).join('<br>');
+
+  document.body.appendChild(scoreboard);
+}
+
+  sb.style.display = 'block';
+  sb.innerHTML = `<strong>Scores</strong><hr>`;
+  players.forEach(p => {
+    sb.innerHTML += `${p.name}: ${p.score} pts<br>`;
+  });
+}
+
+const bgMusic = document.getElementById('bgMusic');
+
+function startGame() {
+  const inputs = document.querySelectorAll('#playerInputs input');
+  players.length = 0;
+  inputs.forEach(input => {
+    if (input.value.trim()) {
+      players.push({
+        name: input.value.trim(),
+        score: 0,
+        shots: 0,
+        dares: 0
+      });
+    }
+  });
+  if (players.length < 3 || players.length > 8) {
+    alert('Enter between 3 and 8 players.');
+    return;
+  }
+
+  currentRound = 1;
+  currentAnswerer = 0;
+  guesses = [];
+  currentGuesserIndex = 0;
+
+  try {
+    bgMusic.play();
+  } catch (e) {
+    console.log("Auto play may be blocked.");
+  }
+
+  showPage('game');
+  gameLoop();
+}
+
+function showFinalScreen(winners) {
+  bgMusic.pause();
+  bgMusic.currentTime = 0;
+
+  showPage('game');
+  const gameContent = document.getElementById('gameContent');
+  
+}
+
+  function endGameEarly() {
+  showEarlyEndScreen();
+  // Clear all active intervals/timers
+  clearPunishmentTimer();
+  if (passDeviceTimeout) {
+    clearInterval(passDeviceTimeout);
+    passDeviceTimeout = null;
+  }
+
+  // Pause background music
+  bgMusic.pause();
+  bgMusic.currentTime = 0;
+
+  // Reset game-related variables
+  guesses = [];
+  currentGuesserIndex = 0;
+  currentPunishmentIndex = 0;
+  isAnswererPunished = false;
+  currentRound = 0;
+  currentAnswerer = 0;
+  window._wrongGuessers = [];
+
+  setTimeout(() => {
+    showMainPage();
+  }, 15000); // 15 seconds
+}
+
+function showEarlyEndScreen() {
+  showPage('game');
+  const gameContent = document.getElementById('gameContent');
+
+  let countdown = 15;
+  gameContent.innerHTML = `
+    <h2>Game Ended Early</h2>
+    <p>Here's where you stood:</p>
+    <div class="scoreboard" style="position: relative; transform: none; margin-top: 2rem;">
+      <strong>Final Scores</strong><hr>
+      ${players.map(p => `${p.name}: ${p.score} pts, Shots: ${p.shots}, Dares: ${p.dares}`).join('<br>')}
+    </div>
+    <p style="margin-top: 2rem;">Returning to main menu in <strong id="countdownTimer">${countdown}</strong> seconds...</p>
+  `;
+
+  const timerElement = document.getElementById('countdownTimer');
+
+  const countdownInterval = setInterval(() => {
+    countdown--;
+    if (countdown <= 0) {
+      clearInterval(countdownInterval);
+      showMainPage();
+    } else {
+      timerElement.textContent = countdown;
+    }
+  }, 1000);
+}
+
+
+</script>
+</body>
+
+<audio id="bgMusic" loop>
+  <source src="videoplayback.m4a" type="audio/mp4" />
+  Your browser does not support the audio element.
+</audio>
+
+</html>

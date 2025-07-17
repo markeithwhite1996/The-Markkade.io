@@ -1,0 +1,284 @@
+<!-- Season/Winter.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Winter - Hard Tic Tac Toe</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Fredoka One', cursive;
+      background: linear-gradient(#e0f7fa, #b2ebf2);
+      background-image: url('https://www.transparenttextures.com/patterns/white-sand.png');
+      text-align: center;
+      padding-top: 40px;
+      animation: icyGlow 15s linear infinite alternate;
+      overflow-x: hidden;
+      color: #01579b;
+    }
+    @keyframes icyGlow {
+      0% { background-position: 0% 0%; }
+      100% { background-position: 100% 100%; }
+    }
+    h1 {
+      color: #0277bd;
+      text-shadow: 0 0 15px #81d4fa;
+      font-size: 3em;
+      animation: floatTitle 2s ease-in-out infinite alternate;
+      margin-bottom: 10px;
+    }
+    @keyframes floatTitle {
+      from { transform: translateY(0); }
+      to { transform: translateY(-10px); }
+    }
+    #wallet {
+      font-size: 1.4em;
+      margin-bottom: 20px;
+      color: #0288d1;
+      text-shadow: 0 0 5px #81d4fa;
+    }
+    #selector button, button {
+      margin: 5px;
+      padding: 12px 24px;
+      font-size: 1.2em;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 0 15px #4fc3f7;
+      background: #039be5;
+      color: #e1f5fe;
+      transition: transform 0.2s, box-shadow 0.3s;
+    }
+    #selector button:hover, button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 25px #b3e5fc;
+    }
+    #selector {
+      margin: 10px auto 30px;
+    }
+    #board {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-gap: 15px;
+      justify-content: center;
+      margin: 20px auto;
+    }
+    .cell {
+      width: 100px;
+      height: 100px;
+      font-size: 2.5em;
+      background: #e1f5fe;
+      border: 2px solid #4fc3f7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.2s, background 0.3s, box-shadow 0.3s;
+      border-radius: 10px;
+      user-select: none;
+      color: #01579b;
+    }
+    .cell:hover {
+      transform: scale(1.1);
+      background: #b3e5fc;
+      box-shadow: 0 0 12px #4fc3f7;
+    }
+    #status {
+      font-weight: bold;
+      margin-top: 20px;
+      font-size: 1.4em;
+      color: #0277bd;
+      text-shadow: 0 0 5px #81d4fa;
+    }
+    #back {
+      display: block;
+      margin-top: 40px;
+      font-size: 1.1em;
+      color: #0288d1;
+      cursor: pointer;
+      text-decoration: underline;
+      animation: floatText 2s ease-in-out infinite alternate;
+    }
+    @keyframes floatText {
+      from { transform: translateY(0); }
+      to { transform: translateY(-5px); }
+    }
+    #startGame {
+      margin-top: 10px;
+      font-size: 1.2em;
+      background: #0288d1;
+      box-shadow: 0 0 15px #81d4fa;
+    }
+    .emoji-particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 9999;
+      font-size: 1.5rem;
+      opacity: 0.7;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Winter Season ❄️</h1>
+  <div id="wallet">Balance: $<span id="balance"></span></div>
+  <div id="selector">
+    Choose Your Symbol:
+    <button onclick="chooseSymbol('X')">❌ X</button>
+    <button onclick="chooseSymbol('O')">⭕ O</button>
+    <br /><button id="startGame" onclick="startGame()">▶️ Start - Cost: $20</button>
+  </div>
+  <div id="board"></div>
+  <div id="status"></div>
+  <button onclick="restartGame()">Play Again</button>
+  <div id="back" onclick="location.href='../TicTacToe.html'">⬅ Back to Main Menu</div>
+
+  <audio id="clickSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_885cbdfb35.mp3?filename=button-click-124467.mp3"></audio>
+  <audio id="winSound" src="https://cdn.pixabay.com/download/audio/2022/03/01/audio_c476e6a4e0.mp3?filename=success-1-6297.mp3"></audio>
+  <audio id="loseSound" src="https://cdn.pixabay.com/download/audio/2022/10/29/audio_9b52852b8f.mp3?filename=error-126627.mp3"></audio>
+
+  <script>
+    let wallet = Number(localStorage.getItem('playerCash')) || 100;
+    const entryCost = 20;
+    const winReward = 40;
+    let playerSymbol = 'X';
+    let aiSymbol = 'O';
+    let gameStarted = false;
+    let symbolChosen = false;
+
+    const clickSound = document.getElementById("clickSound");
+    const winSound = document.getElementById("winSound");
+    const loseSound = document.getElementById("loseSound");
+
+    document.getElementById("balance").textContent = wallet;
+    const board = document.getElementById("board");
+    const statusDiv = document.getElementById("status");
+    let cells, currentPlayer, gameActive;
+
+    function chooseSymbol(symbol) {
+      clickSound.play();
+      playerSymbol = symbol;
+      aiSymbol = symbol === 'X' ? 'O' : 'X';
+      symbolChosen = true;
+    }
+
+    function startGame() {
+      if (!symbolChosen) {
+        alert("Please choose a symbol first.");
+        return;
+      }
+      clickSound.play();
+      if (wallet < entryCost) {
+        statusDiv.textContent = "Not enough money to play.";
+        return;
+      }
+      wallet -= entryCost;
+      localStorage.setItem('playerCash', wallet);
+      document.getElementById("balance").textContent = wallet;
+
+      document.getElementById("selector").style.display = 'none';
+      board.innerHTML = "";
+      cells = Array(9).fill("");
+      currentPlayer = playerSymbol;
+      gameActive = true;
+      statusDiv.textContent = `Your Turn (${playerSymbol})`;
+
+      for (let i = 0; i < 9; i++) {
+        const cell = document.createElement("div");
+        cell.classList.add("cell");
+        cell.dataset.index = i;
+        cell.addEventListener("click", handlePlayerMove);
+        board.appendChild(cell);
+      }
+      gameStarted = true;
+    }
+
+    function handlePlayerMove(e) {
+      clickSound.play();
+      const index = e.target.dataset.index;
+      if (!gameActive || cells[index] !== "") return;
+
+      cells[index] = playerSymbol;
+      e.target.textContent = playerSymbol;
+      if (checkWinner(playerSymbol)) return endGame(playerSymbol);
+      if (cells.every(c => c !== "")) return endGame(null);
+      statusDiv.textContent = `AI's Turn (${aiSymbol})`;
+      setTimeout(aiMove, 500);
+    }
+
+    function aiMove() {
+      let move = findSmartMove();
+      cells[move] = aiSymbol;
+      board.children[move].textContent = aiSymbol;
+      if (checkWinner(aiSymbol)) return endGame(aiSymbol);
+      if (cells.every(c => c !== "")) return endGame(null);
+      statusDiv.textContent = `Your Turn (${playerSymbol})`;
+    }
+
+    function findSmartMove() {
+      let empty = cells.map((v, i) => v === "" ? i : null).filter(v => v !== null);
+      return empty[Math.floor(Math.random() * empty.length)];
+    }
+
+    function checkWinner(player) {
+      const wins = [
+        [0,1,2],[3,4,5],[6,7,8],
+        [0,3,6],[1,4,7],[2,5,8],
+        [0,4,8],[2,4,6]
+      ];
+      return wins.some(combo => combo.every(i => cells[i] === player));
+    }
+
+    function endGame(winner) {
+      gameActive = false;
+      if (winner === playerSymbol) {
+        statusDiv.textContent = `You Win! +$${winReward}`;
+        wallet += winReward;
+        winSound.play();
+      } else if (winner === aiSymbol) {
+        statusDiv.textContent = "AI Wins. Try Again!";
+        loseSound.play();
+      } else {
+        statusDiv.textContent = "It's a Draw!";
+      }
+      localStorage.setItem('playerCash', wallet);
+      document.getElementById("balance").textContent = wallet;
+      setTimeout(() => {
+        board.innerHTML = "";
+        document.getElementById("selector").style.display = 'block';
+        symbolChosen = false;
+      }, 1250);
+    }
+
+    function restartGame() {
+      document.getElementById("selector").style.display = 'block';
+      board.innerHTML = "";
+      statusDiv.textContent = "";
+      gameStarted = false;
+      symbolChosen = false;
+    }
+
+    setInterval(() => {
+      const emoji = document.createElement('div');
+      emoji.textContent = "❄️";
+      emoji.className = 'emoji-particles';
+      emoji.style.left = Math.random() * 100 + 'vw';
+      emoji.style.top = '-2em';
+      document.body.appendChild(emoji);
+
+      let fall = emoji.animate([
+        { transform: 'translateY(0)' },
+        { transform: 'translateY(120vh)' }
+      ], {
+        duration: 3000 + Math.random() * 3000,
+        easing: 'linear'
+      });
+
+      fall.onfinish = () => emoji.remove();
+    }, 600);
+  </script>
+</body>
+</html>

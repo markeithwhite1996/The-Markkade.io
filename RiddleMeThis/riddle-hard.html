@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RiddleMeThis... (I am...) - Hard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: 'Comic Sans MS', sans-serif;
+      background: #440000; /* dark red */
+      overflow: hidden;
+      position: relative;
+      color: #fff;
+    }
+    #game {
+      padding: 10px;
+      text-align: center;
+      position: relative;
+      z-index: 2;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      color: #ffcccc;
+    }
+    h1 {
+      font-size: 1.8em;
+      margin-bottom: 10px;
+      color: #ffaaaa;
+      text-shadow: 0 0 5px #f00;
+    }
+    .question {
+      font-size: 1.2em;
+      margin-bottom: 15px;
+      color: #ffbbbb;
+      background: #660000; /* dark red box */
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px #f00;
+      max-width: 90vw;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .options {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      max-width: 90vw;
+      margin: 0 auto 20px;
+    }
+    .option-btn {
+      background: #550000;
+      color: #ff8888;
+      padding: 12px;
+      border: 2px solid #f00;
+      border-radius: 10px;
+      font-size: 1em;
+      cursor: pointer;
+      box-shadow: 0 0 10px #f00;
+      animation: wiggle 2s infinite;
+      transition: all 0.3s;
+      width: 100%;
+    }
+    .option-btn:hover {
+      box-shadow: 0 0 20px #f00;
+      background: #770000;
+      color: #ffbbbb;
+    }
+    @keyframes wiggle {
+      0%, 100% { transform: translate(0, 0); }
+      20% { transform: translate(-2px, -2px); }
+      40% { transform: translate(2px, 2px); }
+      60% { transform: translate(-2px, 2px); }
+      80% { transform: translate(2px, -2px); }
+    }
+    #cash, #score {
+      font-size: 1em;
+      margin-bottom: 5px;
+      color: #ffaaaa;
+      text-shadow: 0 0 5px #f00;
+    }
+    #exit {
+      margin-top: auto;
+      background: #330000;
+      padding: 10px;
+      font-size: 1em;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 0 10px #f00;
+      width: 90%;
+      max-width: 300px;
+      align-self: center;
+      color: #ff8888;
+      border: 2px solid #f00;
+      transition: background 0.3s, color 0.3s;
+    }
+    #exit:hover {
+      background: #550000;
+      color: #ffbbbb;
+    }
+    canvas#particles {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .popup {
+      position: absolute;
+      top: 30%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #330000;
+      padding: 20px;
+      border-radius: 20px;
+      font-size: 1.5em;
+      color: #ff0000;
+      box-shadow: 0 0 30px #f00;
+      display: none;
+      z-index: 999;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles"></canvas>
+  <div id="game">
+    <h1>RiddleMeThis... (I am...) - Hard</h1>
+    <div id="cash">Cash: $<span id="playerCash">0</span></div>
+    <div id="score">Correct: <span id="right">0</span> | Wrong: <span id="wrong">0</span></div>
+    <div class="question" id="question">Loading...</div>
+    <div class="options" id="options"></div>
+    <button id="exit" onclick="location.href='index.html'">🚪 Exit</button>
+  </div>
+  <div class="popup" id="popup">You got it!</div>
+
+  <audio id="winSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_2070b9992c.mp3?filename=success-1-6297.mp3"></audio>
+  <audio id="loseSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_22d62b0ae2.mp3?filename=failure-drum-1-6551.mp3"></audio>
+
+  <script>
+ const riddles = [
+  {
+    question: "I speak without a mouth and hear without ears. I have nobody, but I come alive with wind. What am I?",
+    answer: "Echo",
+    options: ["Echo", "Shadow", "Whistle", "Wave", "Wind", "Sound"]
+  },
+  {
+    question: "The more you take, the more you leave behind. What am I?",
+    answer: "Footsteps",
+    options: ["Footsteps", "Time", "Memories", "Breath", "Shadow", "Words"]
+  },
+  {
+    question: "I am not alive, but I grow; I don’t have lungs, but I need air; I don’t have a mouth, but water kills me. What am I?",
+    answer: "Fire",
+    options: ["Fire", "Plant", "Shadow", "Cloud", "Smoke", "Fungus"]
+  },
+  {
+    question: "I have cities, but no houses; forests, but no trees; and rivers, but no water. What am I?",
+    answer: "Map",
+    options: ["Map", "Globe", "Painting", "Dream", "Book", "Puzzle"]
+  },
+  {
+    question: "What can run but never walks, has a mouth but never talks, has a head but never weeps, has a bed but never sleeps?",
+    answer: "River",
+    options: ["River", "Clock", "Shadow", "Wind", "Car", "Snake"]
+  },
+  {
+    question: "What comes once in a minute, twice in a moment, but never in a thousand years?",
+    answer: "The letter M",
+    options: ["The letter M", "Time", "Sun", "Moon", "Star", "Wind"]
+  },
+  {
+    question: "I am always hungry, I must always be fed, The finger I touch, Will soon turn red. What am I?",
+    answer: "Fire",
+    options: ["Fire", "Tiger", "Rust", "Blood", "Lava", "Sun"]
+  },
+  {
+    question: "I am a word of letters three; add two and fewer there will be. What am I?",
+    answer: "Few",
+    options: ["Few", "Less", "Fewest", "More", "Many", "Few"]
+  },
+  {
+    question: "What has roots as nobody sees, Is taller than trees, Up, up it goes, And yet it never grows?",
+    answer: "Mountain",
+    options: ["Mountain", "Tree", "River", "Cloud", "Building", "Shadow"]
+  },
+  {
+    question: "I am the beginning of the end, and the end of time and space. I am essential to creation, and I surround every place. What am I?",
+    answer: "The letter E",
+    options: ["The letter E", "Infinity", "Darkness", "Time", "Space", "Love"]
+  },
+  {
+    question: "The person who makes it, sells it. The person who buys it never uses it. The person who uses it never knows they’re using it. What is it?",
+    answer: "Coffin",
+    options: ["Coffin", "Medicine", "Weapon", "Clothes", "Car", "Book"]
+  },
+  {
+    question: "I am taken from a mine and shut up in a wooden case, from which I am never released, and yet I am used by almost every person. What am I?",
+    answer: "Pencil lead",
+    options: ["Pencil lead", "Gold", "Diamond", "Coal", "Silver", "Iron"]
+  },
+  {
+    question: "I fly without wings, I cry without eyes. Wherever I go, darkness follows me. What am I?",
+    answer: "Cloud",
+    options: ["Cloud", "Wind", "Shadow", "Smoke", "Rain", "Fog"]
+  },
+  {
+    question: "What is seen in the middle of March and April that can’t be seen at the beginning or end of either month?",
+    answer: "The letter R",
+    options: ["The letter R", "Rain", "Sun", "Flower", "Day", "Moon"]
+  },
+  {
+    question: "What can fill a room but takes up no space?",
+    answer: "Light",
+    options: ["Light", "Air", "Sound", "Shadow", "Heat", "Smoke"]
+  },
+  {
+    question: "I have lakes with no water, mountains with no stone, and cities with no buildings. What am I?",
+    answer: "Map",
+    options: ["Map", "Painting", "Dream", "Book", "Video game", "Puzzle"]
+  },
+  {
+    question: "What is always coming but never arrives?",
+    answer: "Tomorrow",
+    options: ["Tomorrow", "Future", "Sunrise", "Rain", "Time", "Shadow"]
+  },
+  {
+    question: "What begins with an E but only contains one letter?",
+    answer: "Envelope",
+    options: ["Envelope", "Eel", "Eye", "Ear", "Egg", "East"]
+  },
+  {
+    question: "I’m light as a feather, yet the strongest person can’t hold me for five minutes. What am I?",
+    answer: "Breath",
+    options: ["Breath", "Shadow", "Air", "Thought", "Water", "Cloud"]
+  },
+  {
+    question: "What has a head and a tail, but no body?",
+    answer: "Coin",
+    options: ["Coin", "Snake", "Comet", "Arrow", "Worm", "Line"]
+  },
+  {
+    question: "If you have me, you want to share me. If you share me, you don’t have me. What am I?",
+    answer: "Secret",
+    options: ["Secret", "Love", "Money", "Happiness", "Friendship", "Idea"]
+  },
+  {
+    question: "What can’t talk but will reply when spoken to?",
+    answer: "Echo",
+    options: ["Echo", "Shadow", "Mirror", "Wind", "Parrot", "Bell"]
+  },
+  {
+    question: "The more you have of me, the less you see. What am I?",
+    answer: "Darkness",
+    options: ["Darkness", "Fog", "Night", "Shadow", "Smoke", "Cloud"]
+  },
+  {
+    question: "What has four fingers and a thumb but isn’t alive?",
+    answer: "Glove",
+    options: ["Glove", "Hand", "Robot", "Statue", "Mittens", "Toy"]
+  },
+  {
+    question: "What can’t be used until it’s broken?",
+    answer: "Egg",
+    options: ["Egg", "Seal", "Glass", "Door", "Stick", "Chocolate"]
+  }
+];
+
+
+    let playerCash = parseInt(localStorage.getItem("playerCash")) || 0;
+    let current = 0;
+    let right = 0;
+    let wrong = 0;
+
+    const questionEl = document.getElementById("question");
+    const optionsEl = document.getElementById("options");
+    const playerCashEl = document.getElementById("playerCash");
+    const rightEl = document.getElementById("right");
+    const wrongEl = document.getElementById("wrong");
+    const popup = document.getElementById("popup");
+    const winSound = document.getElementById("winSound");
+    const loseSound = document.getElementById("loseSound");
+    const canvas = document.getElementById("particles");
+    const ctx = canvas.getContext("2d");
+
+    function updateStats() {
+      playerCashEl.textContent = playerCash;
+      rightEl.textContent = right;
+      wrongEl.textContent = wrong;
+      localStorage.setItem("playerCash", playerCash);
+    }
+
+function loadRiddle() {
+  if (current >= riddles.length) {
+    showPopup("All Done!");
+    questionEl.textContent = "";
+    optionsEl.innerHTML = "";
+    return;
+  }
+  const riddle = riddles[current];
+  questionEl.textContent = riddle.question;
+  optionsEl.innerHTML = "";
+
+  // Make a copy of options so we don't modify original data
+  const shuffledOptions = [...riddle.options];
+  shuffleArray(shuffledOptions);
+
+  shuffledOptions.forEach(option => {
+    const btn = document.createElement("button");
+    btn.className = "option-btn";
+    btn.textContent = option;
+    btn.onclick = () => handleAnswer(option);
+    optionsEl.appendChild(btn);
+  });
+
+  createParticlesFromText(riddle.question);
+}
+
+
+    function handleAnswer(choice) {
+      if (current >= riddles.length) return;
+      const riddle = riddles[current];
+      if (choice === riddle.answer) {
+        playerCash += 5;
+        right++;
+        winSound.play();
+        showPopup("Correct!");
+      } else {
+        playerCash -= 1;
+        wrong++;
+        if (wrong >= 5) {
+          loseSound.play();
+          showPopup("Too Many Wrongs!");
+        }
+      }
+      updateStats();
+      current++;
+      setTimeout(() => {
+        popup.style.display = "none";
+        loadRiddle();
+      }, 2000);
+    }
+
+    function showPopup(text) {
+      popup.textContent = text;
+      popup.style.display = "block";
+    }
+
+    // Particle system
+    let particles = [];
+    const maxParticles = 100;
+
+    function createParticlesFromText(text) {
+      particles = [];
+      const words = text.match(/\b\w+\b/g) || [];
+      for(let i = 0; i < maxParticles; i++) {
+        const word = words[i % words.length] || '';
+        particles.push({
+          text: word,
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          dx: (Math.random() - 0.5) * 0.6,
+          dy: (Math.random() - 0.5) * 0.6,
+          size: 12 + Math.random() * 10,
+          alpha: 0.2 + Math.random() * 0.5,
+        });
+      }
+    }
+
+    function drawParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#f00";
+      particles.forEach(p => {
+        ctx.globalAlpha = p.alpha;
+        ctx.font = `bold ${p.size}px Arial`;
+        ctx.fillText(p.text, p.x, p.y);
+        p.x += p.dx;
+        p.y += p.dy;
+        if (p.x < 0) p.x = canvas.width;
+        else if (p.x > canvas.width) p.x = 0;
+        if (p.y < 0) p.y = canvas.height;
+        else if (p.y > canvas.height) p.y = 0;
+      });
+      ctx.globalAlpha = 1;
+      requestAnimationFrame(drawParticles);
+    }
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    updateStats();
+    loadRiddle();
+    drawParticles();
+	
+	function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RiddleWaves: The Wiggly Brain Teaser</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #2b2b2b;
+      --panel: #3e332c;
+      --highlight: #e0a96d;
+      --text: #fefefe;
+      --button: #5a4433;
+      --button-hover: #7a5a42;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      background-color: var(--bg);
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+
+    .game-container {
+      background: var(--panel);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 500px;
+      padding: 24px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .title {
+      font-size: 1.6rem;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 16px;
+      color: var(--highlight);
+    }
+
+    .info-bar {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.95rem;
+      margin-bottom: 20px;
+      color: #d8d8d8;
+    }
+
+    .question-box {
+      background: #1f1f1f;
+      border-radius: 12px;
+      padding: 20px;
+      font-size: 1.1rem;
+      line-height: 1.4;
+      margin-bottom: 24px;
+    }
+
+    .answers {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .btn {
+      background-color: var(--button);
+      color: var(--text);
+      padding: 12px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 10px;
+      transition: background-color 0.2s ease;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background-color: var(--button-hover);
+    }
+
+    .btn:disabled {
+      background-color: #444;
+      color: #aaa;
+      cursor: default;
+    }
+
+    .footer-buttons {
+      margin-top: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .popup {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #1f1f1f;
+      color: var(--highlight);
+      padding: 14px 24px;
+      border-radius: 10px;
+      font-size: 1rem;
+      display: none;
+      z-index: 1000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+
+    @media (max-width: 480px) {
+      .answers {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="popup" id="popup"></div>
+
+  <div class="game-container">
+    <div class="title">☕ RiddleWaves</div>
+    <div class="info-bar">
+      <div>💰 Cash: $<span id="playerCash">100</span></div>
+      <div>✅ <span id="correctCount">0</span> ❌ <span id="wrongCount">0</span></div>
+    </div>
+
+    <div class="question-box" id="question">
+      It's round, but not always around. It's light sometimes, dark sometimes, both sometimes. Everyone wants to walk on it, but only a happy few ever have. What is it?
+    </div>
+
+    <div class="answers">
+      <button class="btn">Moon</button>
+      <button class="btn">Sun</button>
+      <button class="btn">Earth</button>
+      <button class="btn">Stars</button>
+      <button class="btn">Sky</button>
+      <button class="btn">Cloud</button>
+    </div>
+
+    <div class="footer-buttons">
+      <button class="btn" id="skip-btn">Skip Question (-$10)</button>
+      <button class="btn" id="exit-btn">Exit</button>
+    </div>
+  </div>
+
+  <script>
+    let playerCash = parseInt(localStorage.getItem('playerCash')) || 100;
+    let correctAnswers = 0;
+    let wrongAnswers = 0;
+    let guessesLeft = 5;
+
+    const riddles = [
+      {
+        question: "It's round, but not always around. It's light sometimes, dark sometimes, both sometimes. Everyone wants to walk on it, but only a happy few ever have.",
+        answer: "Moon",
+        options: ['Moon', 'Sun', 'Earth', 'Stars', 'Sky', 'Cloud']
+      },
+      {
+        question: "I speak without a mouth and hear without ears. I have no body, but I come alive with wind.",
+        answer: "Echo",
+        options: ['Echo', 'Cloud', 'Wind', 'Sound', 'Breath', 'Voice']
+      },
+      {
+        question: "The more of me you take, the more you leave behind. What am I?",
+        answer: "Footsteps",
+        options: ['Time', 'Footsteps', 'Memories', 'Dust', 'Air', 'Words']
+      }
+    ];
+
+    let currentRiddleIndex = 0;
+
+    function updateCash() {
+      localStorage.setItem('playerCash', playerCash);
+      document.getElementById('playerCash').textContent = playerCash;
+    }
+
+    function updateFeedback() {
+      document.getElementById('correctCount').textContent = correctAnswers;
+      document.getElementById('wrongCount').textContent = wrongAnswers;
+    }
+
+    function showPopup(message) {
+      const popup = document.getElementById('popup');
+      popup.textContent = message;
+      popup.style.display = 'block';
+      setTimeout(() => {
+        popup.style.display = 'none';
+      }, 1800);
+    }
+
+    function checkAnswer(button, answer) {
+      if (guessesLeft <= 0 || button.disabled) return;
+      button.disabled = true;
+
+      const currentRiddle = riddles[currentRiddleIndex];
+      if (answer === currentRiddle.answer) {
+        correctAnswers++;
+        playerCash += 5;
+        showPopup("✅ Correct! +$5");
+        setTimeout(nextRound, 1000);
+      } else {
+        wrongAnswers++;
+        playerCash -= 1;
+        showPopup("❌ Wrong! -$1");
+
+        if (wrongAnswers >= 5) {
+          showPopup("💀 Too many wrong! -$10");
+          playerCash -= 10;
+          resetGame();
+          return;
+        }
+      }
+
+      guessesLeft--;
+      updateCash();
+      updateFeedback();
+    }
+
+    function updateRiddle() {
+      const current = riddles[currentRiddleIndex];
+      document.getElementById('question').textContent = current.question;
+      const buttons = document.querySelectorAll('.answers .btn');
+      current.options.forEach((opt, idx) => {
+        if (buttons[idx]) {
+          buttons[idx].textContent = opt;
+          buttons[idx].disabled = false;
+        }
+      });
+      guessesLeft = 5;
+    }
+
+    function nextRound() {
+      currentRiddleIndex = (currentRiddleIndex + 1) % riddles.length;
+      correctAnswers = 0;
+      wrongAnswers = 0;
+      guessesLeft = 5;
+      updateFeedback();
+      updateRiddle();
+    }
+
+    function resetGame() {
+      playerCash = 100;
+      correctAnswers = 0;
+      wrongAnswers = 0;
+      guessesLeft = 5;
+      updateCash();
+      updateFeedback();
+      updateRiddle();
+    }
+
+    function skipQuestion() {
+      if (playerCash >= 10) {
+        playerCash -= 10;
+        showPopup("⏭️ Skipped! -$10");
+        nextRound();
+        updateCash();
+      } else {
+        showPopup("⚠️ Not enough cash to skip!");
+      }
+    }
+
+    function exitGame() {
+      showPopup("👋 Thanks for playing!");
+      setTimeout(() => location.reload(), 1200);
+    }
+
+    // Init
+    updateCash();
+    updateFeedback();
+    updateRiddle();
+
+    document.querySelectorAll('.answers .btn').forEach(button => {
+      button.addEventListener('click', () => checkAnswer(button, button.textContent));
+    });
+
+    document.getElementById('skip-btn').addEventListener('click', skipQuestion);
+    document.getElementById('exit-btn').addEventListener('click', exitGame);
+  </script>
+</body>
+</html>

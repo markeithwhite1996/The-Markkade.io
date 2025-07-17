@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Casino Royale Slots 4x3</title>
+  <style>
+    body {
+      margin: 0; padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: radial-gradient(circle at center, #3a0a0a, #5b1515);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      user-select: none;
+    }
+    h1 {
+      margin: 18px 0 14px;
+      font-weight: 900;
+      font-size: 2rem;
+      color: #e44c4c;
+      text-shadow: 0 0 16px #e44c4cbb;
+    }
+    .slot-container {
+      background: #4a1616dd;
+      border-radius: 20px;
+      padding: 28px 30px 30px;
+      max-width: 360px;
+      width: 95vw;
+      box-shadow: 0 0 35px #e44c4cbb inset;
+    }
+    .cash-display {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      text-align: center;
+      letter-spacing: 1.3px;
+      text-shadow: 0 0 10px #e44c4caa;
+    }
+    .reels {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-gap: 12px;
+      margin: 22px 0 32px;
+    }
+    .reel {
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      background: #6b2020;
+      box-shadow: 0 0 12px #e44c4c99 inset;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 2.6rem;
+      cursor: default;
+      transition: box-shadow 0.3s ease, transform 0.3s ease;
+      position: relative;
+      user-select: none;
+    }
+    .reel.glow {
+      box-shadow:
+        0 0 22px 8px #e44c4cff,
+        0 0 44px 15px #e44c4ccc;
+      transform: scale(1.20);
+      z-index: 10;
+    }
+    .reel.spin-animation {
+      animation: spinAnimCasino 0.5s ease-in-out;
+    }
+    @keyframes spinAnimCasino {
+      0% { transform: rotateY(0deg); }
+      50% { transform: rotateY(90deg); }
+      100% { transform: rotateY(0deg); }
+    }
+    button {
+      width: 100%;
+      padding: 14px 0;
+      font-size: 1.3rem;
+      font-weight: 900;
+      border: none;
+      border-radius: 20px;
+      background: #e44c4c;
+      color: #330b0b;
+      cursor: pointer;
+      box-shadow: 0 8px 28px #e44c4c99;
+      transition: background 0.3s ease;
+      user-select: none;
+    }
+    button:disabled {
+      background: #a53c3c88;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    button:hover:not(:disabled) {
+      background: #ff6666;
+    }
+    .result {
+      margin-top: 22px;
+      font-weight: 700;
+      font-size: 1.35rem;
+      min-height: 40px;
+      text-align: center;
+      color: #e44c4c;
+      text-shadow: 0 0 20px #e44c4cbb;
+    }
+    .paytable {
+      margin-top: 32px;
+      background: #5a1f1fcc;
+      border-radius: 18px;
+      padding: 20px 24px;
+      font-size: 1.05rem;
+      line-height: 1.6;
+      color: #ffd6d6;
+      user-select: none;
+    }
+    .paytable h2 {
+      margin-top: 0;
+      text-align: center;
+      font-weight: 900;
+      font-size: 1.5rem;
+      text-shadow: 0 0 18px #e44c4cdd;
+    }
+    .paytable ul {
+      padding-left: 22px;
+      margin: 0;
+    }
+    .paytable ul li {
+      margin-bottom: 10px;
+    }
+    @media (max-width: 480px) {
+      .reel {
+        width: 44px;
+        height: 44px;
+        font-size: 2.3rem;
+      }
+    }
+    @media (max-width: 340px) {
+      .reel {
+        width: 38px;
+        height: 38px;
+        font-size: 2rem;
+      }
+      button {
+        font-size: 1.1rem;
+        padding: 12px 0;
+      }
+    }
+    /* Exit button styling */
+    #exitBtn {
+      margin-top: 12px;
+      background: #444;
+      color: #eee;
+      box-shadow: 0 0 12px #333;
+      font-weight: 700;
+    }
+    #exitBtn:hover {
+      background: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="slot-container" role="main" aria-label="Casino Royale Slots Game 4 by 3">
+    <h1>Casino Royale Slots ♠️♥️♦️♣️ (4x3)</h1>
+    <div class="cash-display" aria-live="polite" id="playerCash">Player Cash: 0 coins</div>
+    <div class="reels" id="reels" aria-label="Slot machine reels"></div>
+    <button id="spinBtn" aria-label="Spin the slot machine">Spin (Cost: 10,000 coins)</button>
+    <button id="exitBtn" aria-label="Exit to Petty Slots">Exit to Petty Slots</button>
+    <div class="result" aria-live="polite" id="result"></div>
+    <div class="paytable" aria-label="Paytable and payout information">
+      <h2>Pay Table</h2>
+      <ul>
+        <li>Match 2 identical suits in a row</li>
+        <li>♦️♦️ payout: 1,000 coins</li>
+        <li>♣️♣️ payout: 2,000 coins</li>
+        <li>♥️♥️ payout: 3,000 coins</li>
+        <li>♠️♠️ payout: 4,000 coins</li>
+        <li>Match 3 identical suits in a row</li>
+        <li>♦️♦️♦️ payout: 10,000 coins</li>
+        <li>♣️♣️♣️ payout: 20,000 coins</li>
+        <li>♥️♥️♥️ payout: 30,000 coins</li>
+        <li>♠️♠️♠️ payout: 40,000 coins</li>
+        <li>All 4 suits in a row ♦️♣️♥️♠️ (in order): 100,000 coins</li>
+        <li>Spin Cost: 1,000 coins</li>
+      </ul>
+      <p><strong>Feature:</strong> “Royal Flush Frenzy” – Every 5th spin is a guaranteed double payout.</p>
+    </div>
+  </div>
+
+  <script>
+    const symbols = ['♠️', '♥️', '♦️', '♣️'];
+    const rows = 3;
+    const cols = 4;
+    const spinCost = 1000;
+
+    const reelsContainer = document.getElementById('reels');
+    const spinBtn = document.getElementById('spinBtn');
+    const exitBtn = document.getElementById('exitBtn');
+    const resultDisplay = document.getElementById('result');
+    const playerCashDisplay = document.getElementById('playerCash');
+
+    // Build reels grid (4x3)
+    for(let i=0; i < rows * cols; i++) {
+      const div = document.createElement('div');
+      div.classList.add('reel');
+      div.textContent = symbols[i % symbols.length];
+      reelsContainer.appendChild(div);
+    }
+    const reels = Array.from(document.querySelectorAll('.reel'));
+
+    // Initialize playerCoins from localStorage or default
+    let playerCoins = parseInt(localStorage.getItem('PlayerCoins') || '50000', 10);
+    if (isNaN(playerCoins) || playerCoins < spinCost) {
+      playerCoins = 50000;
+      localStorage.setItem('PlayerCoins', playerCoins);
+    }
+    playerCashDisplay.textContent = `Player Cash: ${playerCoins.toLocaleString()} coins`;
+
+    function updateCash(amount) {
+      playerCoins += amount;
+      if (playerCoins < 0) playerCoins = 0;
+      localStorage.setItem('PlayerCoins', playerCoins);
+      playerCashDisplay.textContent = `Player Cash: ${playerCoins.toLocaleString()} coins`;
+      spinBtn.disabled = playerCoins < spinCost;
+    }
+
+    // Animate reels spinning effect
+    function animateReels(finalSymbols) {
+      return new Promise(resolve => {
+        reels.forEach(reel => {
+          reel.classList.add('spin-animation');
+          reel.classList.remove('glow');
+        });
+        const spinDuration = 2000;
+        const intervalTime = 50;
+        let elapsed = 0;
+        const spinInterval = setInterval(() => {
+          reels.forEach(reel => {
+            reel.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+          });
+          elapsed += intervalTime;
+          if (elapsed >= spinDuration) {
+            clearInterval(spinInterval);
+            reels.forEach((reel, idx) => {
+              reel.textContent = finalSymbols[idx];
+              reel.classList.remove('spin-animation');
+            });
+            resolve();
+          }
+        }, intervalTime);
+      });
+    }
+
+    // Check for winning combos according to updated rules:
+    // 2 identical suits in a row (horizontal only)
+    // 3 identical suits in a row (horizontal only)
+    // 4 different suits in order ♦️♣️♥️♠️ in a row (horizontal only)
+    function checkWins(gridSymbols) {
+      let winningIndexes = new Set();
+      let combos = 0;
+      let payout = 0;
+
+      // Helper to add indexes
+      function addIndexes(indexes) {
+        indexes.forEach(i => winningIndexes.add(i));
+      }
+
+      for(let r=0; r < rows; r++) {
+        for(let c=0; c <= cols - 2; c++) {
+          // Check 2 identical suits horizontally
+          if(gridSymbols[r*cols + c] === gridSymbols[r*cols + c + 1]) {
+            combos++;
+            addIndexes([r*cols + c, r*cols + c +1]);
+
+            // Payout by symbol for 2 identical
+            switch(gridSymbols[r*cols + c]) {
+              case '♦️': payout += 1000; break;
+              case '♣️': payout += 2000; break;
+              case '♥️': payout += 3000; break;
+              case '♠️': payout += 4000; break;
+            }
+          }
+          // Check 3 identical suits horizontally if possible
+          if(c <= cols - 3) {
+            if(gridSymbols[r*cols + c] === gridSymbols[r*cols + c + 1] &&
+               gridSymbols[r*cols + c] === gridSymbols[r*cols + c + 2]) {
+              combos++;
+              addIndexes([r*cols + c, r*cols + c +1, r*cols + c +2]);
+
+              // Payout by symbol for 3 identical
+              switch(gridSymbols[r*cols + c]) {
+                case '♦️': payout += 10000; break;
+                case '♣️': payout += 20000; break;
+                case '♥️': payout += 30000; break;
+                case '♠️': payout += 40000; break;
+              }
+            }
+          }
+          // Check 4 suits in order ♦️♣️♥️♠️ (only when c=0)
+          if(c === 0) {
+            const seq = [gridSymbols[r*cols], gridSymbols[r*cols+1], gridSymbols[r*cols+2], gridSymbols[r*cols+3]];
+            const targetSeq = ['♦️','♣️','♥️','♠️'];
+            if(seq.every((val, idx) => val === targetSeq[idx])) {
+              combos++;
+              addIndexes([r*cols, r*cols+1, r*cols+2, r*cols+3]);
+              payout += 100000;
+            }
+          }
+        }
+      }
+      return {winningIndexes: Array.from(winningIndexes), combos, payout};
+    }
+
+    let spinCount = 0;
+
+    async function spin() {
+      if(playerCoins < spinCost) {
+        resultDisplay.textContent = "Not enough coins to spin!";
+        resultDisplay.style.color = '#ff7b7b';
+        return;
+      }
+      spinBtn.disabled = true;
+      updateCash(-spinCost);
+      resultDisplay.textContent = "Spinning...";
+      resultDisplay.style.color = '#e44c4c';
+
+let finalSymbols = [];
+for(let i=0; i < rows*cols; i++) {
+  // For each reel, pick a symbol randomly but avoid repeating the previous symbol in the same row when possible
+  let choices = symbols.slice();
+
+  // For positions after the first column, remove the symbol immediately to the left from choices (to avoid easy doubles)
+  if(i % cols !== 0) {
+    const leftSymbol = finalSymbols[i - 1];
+    choices = choices.filter(s => s !== leftSymbol);
+  }
+  
+  // For positions after the second column, occasionally allow repeats to keep triples possible
+  if(i % cols === 2 && Math.random() < 0.3) {
+    // Allow symbol same as left to keep triples possible ~30% of the time
+    choices = symbols.slice();
+  }
+  
+  // Pick randomly from filtered choices
+  const chosen = choices[Math.floor(Math.random() * choices.length)];
+  finalSymbols.push(chosen);
+}
+
+      await animateReels(finalSymbols);
+
+      const {winningIndexes, combos, payout} = checkWins(finalSymbols);
+
+      spinCount++;
+      let payoutFinal = payout;
+      let frenzyActive = false;
+
+      if(winningIndexes.length > 0) {
+        // Highlight winning reels
+        reels.forEach((reel, idx) => {
+          if(winningIndexes.includes(idx)) {
+            reel.classList.add('glow');
+          } else {
+            reel.classList.remove('glow');
+          }
+        });
+      } else {
+        reels.forEach(r => r.classList.remove('glow'));
+      }
+
+      if(combos > 0) {
+        // Royal Flush Frenzy: every 5th spin doubles payout
+        if(spinCount % 5 === 0) {
+          payoutFinal *= 2;
+          frenzyActive = true;
+        }
+        updateCash(payoutFinal);
+        resultDisplay.style.color = frenzyActive ? '#ffff7b' : '#a8ff85';
+        resultDisplay.textContent = frenzyActive
+          ? `Royal Flush Frenzy! You won ${payoutFinal.toLocaleString()} coins!`
+          : `You won ${payoutFinal.toLocaleString()} coins!`;
+      } else {
+        resultDisplay.style.color = '#ff7b7b';
+        resultDisplay.textContent = "No win this time, try again!";
+      }
+
+      spinBtn.disabled = playerCoins < spinCost;
+    }
+
+    spinBtn.addEventListener('click', spin);
+
+    exitBtn.addEventListener('click', () => {
+      window.location.href = '../pettyslots.html';
+    });
+
+    // Initial button disable if player has less than spinCost
+    spinBtn.disabled = playerCoins < spinCost;
+  </script>
+</body>
+</html>

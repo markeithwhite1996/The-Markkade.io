@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RiddleMeThis... (I am...) - Medium</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: 'Comic Sans MS', sans-serif;
+      background: #444400; /* dark yellow */
+      overflow: hidden;
+      position: relative;
+      color: #fff;
+    }
+    #game {
+      padding: 10px;
+      text-align: center;
+      position: relative;
+      z-index: 2;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      color: #ffffcc;
+    }
+    h1 {
+      font-size: 1.8em;
+      margin-bottom: 10px;
+      color: #ffffaa;
+      text-shadow: 0 0 5px #ff0;
+    }
+    .question {
+      font-size: 1.2em;
+      margin-bottom: 15px;
+      color: #ffffaa;
+      background: #666600; /* dark yellow box */
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px #ff0;
+      max-width: 90vw;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .options {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      max-width: 90vw;
+      margin: 0 auto 20px;
+    }
+    .option-btn {
+      background: #555500;
+      color: #ffff88;
+      padding: 12px;
+      border: 2px solid #ff0;
+      border-radius: 10px;
+      font-size: 1em;
+      cursor: pointer;
+      box-shadow: 0 0 10px #ff0;
+      animation: wiggle 2s infinite;
+      transition: all 0.3s;
+      width: 100%;
+    }
+    .option-btn:hover {
+      box-shadow: 0 0 20px #ff0;
+      background: #777700;
+      color: #ffffcc;
+    }
+    @keyframes wiggle {
+      0%, 100% { transform: translate(0, 0); }
+      20% { transform: translate(-2px, -2px); }
+      40% { transform: translate(2px, 2px); }
+      60% { transform: translate(-2px, 2px); }
+      80% { transform: translate(2px, -2px); }
+    }
+    #cash, #score {
+      font-size: 1em;
+      margin-bottom: 5px;
+      color: #ffffaa;
+      text-shadow: 0 0 5px #ff0;
+    }
+    #exit {
+      margin-top: auto;
+      background: #333300;
+      padding: 10px;
+      font-size: 1em;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 0 10px #ff0;
+      width: 90%;
+      max-width: 300px;
+      align-self: center;
+      color: #ffff88;
+      border: 2px solid #ff0;
+      transition: background 0.3s, color 0.3s;
+    }
+    #exit:hover {
+      background: #555500;
+      color: #ffffcc;
+    }
+    canvas#particles {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .popup {
+      position: absolute;
+      top: 30%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #333300;
+      padding: 20px;
+      border-radius: 20px;
+      font-size: 1.5em;
+      color: #ff0;
+      box-shadow: 0 0 30px #ff0;
+      display: none;
+      z-index: 999;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles"></canvas>
+  <div id="game">
+    <h1>RiddleMeThis... (I am...) - Medium</h1>
+    <div id="cash">Cash: $<span id="playerCash">0</span></div>
+    <div id="score">Correct: <span id="right">0</span> | Wrong: <span id="wrong">0</span></div>
+    <div class="question" id="question">Loading...</div>
+    <div class="options" id="options"></div>
+    <button id="exit" onclick="location.href='index.html'">🚪 Exit</button>
+  </div>
+  <div class="popup" id="popup">You got it!</div>
+
+  <audio id="winSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_2070b9992c.mp3?filename=success-1-6297.mp3"></audio>
+  <audio id="loseSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_22d62b0ae2.mp3?filename=failure-drum-1-6551.mp3"></audio>
+
+  <script>
+const riddles = [
+  {
+    question: "I’m tall when I’m young, and I’m short when I’m old. What am I?",
+    answer: "Candle",
+    options: ["Candle", "Tree", "Person", "Mountain", "Shadow", "Pencil"]
+  },
+  {
+    question: "What has cities but no houses, forests but no trees, and rivers but no water?",
+    answer: "Map",
+    options: ["Map", "Painting", "Globe", "Book", "Video Game", "Puzzle"]
+  },
+  {
+    question: "What can fill a room but takes up no space?",
+    answer: "Light",
+    options: ["Light", "Air", "Sound", "Heat", "Shadow", "Smoke"]
+  },
+  {
+    question: "I have keys but no locks. I have space but no room. You can enter but can’t go outside. What am I?",
+    answer: "Keyboard",
+    options: ["Keyboard", "Computer", "Map", "Safe", "Phone", "Car"]
+  },
+  {
+    question: "What has to be broken before you can use it?",
+    answer: "Egg",
+    options: ["Egg", "Seal", "Glass", "Stick", "Door", "Chocolate"]
+  },
+  {
+    question: "What goes up but never comes down?",
+    answer: "Age",
+    options: ["Age", "Smoke", "Balloon", "Kite", "Sun", "Heat"]
+  },
+  {
+    question: "What belongs to you but others use it more than you do?",
+    answer: "Your name",
+    options: ["Your name", "Money", "Phone", "Clothes", "Car", "House"]
+  },
+  {
+    question: "What can travel around the world while staying in the same spot?",
+    answer: "Stamp",
+    options: ["Stamp", "Clock", "Globe", "Map", "Phone", "Compass"]
+  },
+  {
+    question: "What can you catch but not throw?",
+    answer: "Cold",
+    options: ["Cold", "Ball", "Frisbee", "Towel", "Hat", "Butterfly"]
+  },
+  {
+    question: "I’m not alive, but I grow; I don’t have lungs, but I need air; I don’t have a mouth, and I can drown. What am I?",
+    answer: "Fire",
+    options: ["Fire", "Plant", "Cloud", "Shadow", "Smoke", "Water"]
+  },
+  {
+    question: "What comes once in a minute, twice in a moment, but never in a thousand years?",
+    answer: "The letter M",
+    options: ["The letter M", "Time", "Moon", "Star", "Sun", "Wind"]
+  },
+  {
+    question: "What can you hold in your left hand but not in your right?",
+    answer: "Your right hand",
+    options: ["Your right hand", "Ball", "Pen", "Book", "Cup", "Key"]
+  },
+  {
+    question: "What has many teeth but cannot bite?",
+    answer: "Comb",
+    options: ["Comb", "Shark", "Saw", "Zipper", "Alligator", "Brush"]
+  },
+  {
+    question: "What has a heart that doesn’t beat?",
+    answer: "Artichoke",
+    options: ["Artichoke", "Clock", "Robot", "Tree", "Stone", "Pumpkin"]
+  },
+  {
+    question: "What begins with T, ends with T, and has T in it?",
+    answer: "Teapot",
+    options: ["Teapot", "Tent", "Toast", "Ticket", "Tablet", "Trophy"]
+  },
+  {
+    question: "What can run but never walks, has a mouth but never talks, has a head but never weeps, has a bed but never sleeps?",
+    answer: "River",
+    options: ["River", "Dog", "Clock", "Car", "Wind", "Fish"]
+  },
+  {
+    question: "What kind of room has no doors or windows?",
+    answer: "Mushroom",
+    options: ["Mushroom", "Bathroom", "Classroom", "Living room", "Bedroom", "Ballroom"]
+  },
+  {
+    question: "What is always in front of you but can’t be seen?",
+    answer: "Future",
+    options: ["Future", "Air", "Shadow", "Mirror", "Light", "Time"]
+  },
+  {
+    question: "What is easy to lift but hard to throw?",
+    answer: "Feather",
+    options: ["Feather", "Stone", "Paper", "Ball", "Balloon", "Wood"]
+  },
+  {
+    question: "What can break but never falls, and what falls but never breaks?",
+    answer: "Day and night",
+    options: ["Day and night", "Glass and water", "Light and shadow", "Heart and mind", "Glass and mirror", "Sun and moon"]
+  },
+  {
+    question: "What is seen in the middle of March and April that can’t be seen at the beginning or end of either month?",
+    answer: "The letter R",
+    options: ["The letter R", "Rain", "Sun", "Flower", "Day", "Moon"]
+  },
+  {
+    question: "What gets bigger when more is taken away?",
+    answer: "Hole",
+    options: ["Hole", "Shadow", "Water", "Fire", "Ice", "Sand"]
+  },
+  {
+    question: "What has no beginning, end, or middle?",
+    answer: "Circle",
+    options: ["Circle", "Line", "Square", "Triangle", "Oval", "Rectangle"]
+  },
+  {
+    question: "What has a neck but no head?",
+    answer: "Bottle",
+    options: ["Bottle", "Shirt", "Giraffe", "Lamp", "Tree", "Pen"]
+  },
+  {
+    question: "I shave every day, but my beard stays the same. What am I?",
+    answer: "Barber",
+    options: ["Barber", "Man", "Painter", "Doctor", "Chef", "Teacher"]
+  }
+];
+
+    let playerCash = parseInt(localStorage.getItem("playerCash")) || 0;
+    let current = 0;
+    let right = 0;
+    let wrong = 0;
+
+    const questionEl = document.getElementById("question");
+    const optionsEl = document.getElementById("options");
+    const playerCashEl = document.getElementById("playerCash");
+    const rightEl = document.getElementById("right");
+    const wrongEl = document.getElementById("wrong");
+    const popup = document.getElementById("popup");
+    const winSound = document.getElementById("winSound");
+    const loseSound = document.getElementById("loseSound");
+    const canvas = document.getElementById("particles");
+    const ctx = canvas.getContext("2d");
+
+    function updateStats() {
+      playerCashEl.textContent = playerCash;
+      rightEl.textContent = right;
+      wrongEl.textContent = wrong;
+      localStorage.setItem("playerCash", playerCash);
+    }
+
+ function loadRiddle() {
+  if (current >= riddles.length) {
+    showPopup("All Done!");
+    questionEl.textContent = "";
+    optionsEl.innerHTML = "";
+    return;
+  }
+  const riddle = riddles[current];
+  questionEl.textContent = riddle.question;
+  optionsEl.innerHTML = "";
+
+  // Make a copy of options so we don't modify original data
+  const shuffledOptions = [...riddle.options];
+  shuffleArray(shuffledOptions);
+
+  shuffledOptions.forEach(option => {
+    const btn = document.createElement("button");
+    btn.className = "option-btn";
+    btn.textContent = option;
+    btn.onclick = () => handleAnswer(option);
+    optionsEl.appendChild(btn);
+  });
+
+  createParticlesFromText(riddle.question);
+}
+
+
+    function handleAnswer(choice) {
+      if (current >= riddles.length) return;
+      const riddle = riddles[current];
+      if (choice === riddle.answer) {
+        playerCash += 5;
+        right++;
+        winSound.play();
+        showPopup("Correct!");
+      } else {
+        playerCash -= 1;
+        wrong++;
+        if (wrong >= 5) {
+          loseSound.play();
+          showPopup("Too Many Wrongs!");
+        }
+      }
+      updateStats();
+      current++;
+      setTimeout(() => {
+        popup.style.display = "none";
+        loadRiddle();
+      }, 2000);
+    }
+
+    function showPopup(text) {
+      popup.textContent = text;
+      popup.style.display = "block";
+    }
+
+    // Particle system
+    let particles = [];
+    const maxParticles = 100;
+
+    function createParticlesFromText(text) {
+      particles = [];
+      const words = text.match(/\b\w+\b/g) || [];
+      for(let i = 0; i < maxParticles; i++) {
+        const word = words[i % words.length] || '';
+        particles.push({
+          text: word,
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          dx: (Math.random() - 0.5) * 0.6,
+          dy: (Math.random() - 0.5) * 0.6,
+          size: 12 + Math.random() * 10,
+          alpha: 0.2 + Math.random() * 0.5,
+        });
+      }
+    }
+
+    function drawParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#ff0";
+      particles.forEach(p => {
+        ctx.globalAlpha = p.alpha;
+        ctx.font = `bold ${p.size}px Arial`;
+        ctx.fillText(p.text, p.x, p.y);
+        p.x += p.dx;
+        p.y += p.dy;
+        if (p.x < 0) p.x = canvas.width;
+        else if (p.x > canvas.width) p.x = 0;
+        if (p.y < 0) p.y = canvas.height;
+        else if (p.y > canvas.height) p.y = 0;
+      });
+      ctx.globalAlpha = 1;
+      requestAnimationFrame(drawParticles);
+    }
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    updateStats();
+    loadRiddle();
+    drawParticles();
+	
+	function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+  </script>
+</body>
+</html>

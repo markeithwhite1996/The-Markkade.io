@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Puff Puff Pass & Play</title>
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      color: #00ff99;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      overflow: hidden;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin: 1rem;
+      text-shadow: 0 0 30px #00ff99, 0 0 60px #00ff99;
+    }
+
+    #instructions, #setup, #game {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    input {
+      padding: 0.5rem;
+      font-size: 1.2rem;
+      margin: 0.5rem;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 1rem 2rem;
+      font-size: 1.5rem;
+      background: #00ff99;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 0 30px #00ff99;
+    }
+
+    button:hover {
+      background: #00cc77;
+    }
+
+    #wheel {
+      width: 300px;
+      height: 300px;
+      border: 10px solid #00ff99;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      text-align: center;
+      transition: transform 3s ease-out;
+      margin: 1rem;
+      box-shadow: 0 0 40px #00ff99;
+    }
+
+    #result {
+      font-size: 1.3rem;
+      text-align: center;
+      margin-top: 0.5rem;
+      white-space: pre-line;
+    }
+
+    .smoke {
+      position: absolute;
+      bottom: 0;
+      width: 60px;
+      height: 60px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 50%;
+      animation: rise 8s linear infinite;
+    }
+
+    @keyframes rise {
+      0% { transform: translateY(0) scale(0.5); opacity: 0.3; }
+      100% { transform: translateY(-120vh) scale(1.5); opacity: 0; }
+    }
+
+    #passOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      color: #00ff99;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      z-index: 1000;
+      text-align: center;
+      text-shadow: 0 0 30px #00ff99, 0 0 60px #00ff99;
+      animation: fade 3s ease-out;
+    }
+
+    @keyframes fade {
+      0% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Puff Puff Pass & Play</h1>
+
+  <div id="instructions" style="display: flex;">
+    <p style="max-width: 400px; font-size: 1.2rem;">
+      🚀 Welcome to <strong>Puff Puff Pass & Play!</strong><br><br>
+      🌿 Enter player names<br>
+      🌿 Take turns spinning and doing challenges<br>
+      🌿 Follow the pass instructions and get higher together!<br><br>
+      The fun starts in a moment...
+    </p>
+  </div>
+
+  <div id="setup">
+    <p>Enter player names (comma separated):</p>
+    <input type="text" id="playerNames" placeholder="e.g. Snoop, Willie, Bob" />
+    <button onclick="startGame()">Start Game</button>
+  </div>
+
+  <div id="game">
+    <div id="currentPlayer" style="font-size:1.5rem; margin: 1rem;"></div>
+    <div id="wheel">Click Spin to Play</div>
+    <button onclick="spinWheel()">🎡 Spin the Wheel</button>
+    <div id="result"></div>
+  </div>
+
+  <div id="passOverlay"></div>
+
+  <script>
+    const challenges = [
+      "🔥 Take 3 bong rips in 60 seconds",
+      "🎲 Roll a joint with your eyes closed",
+      "😂 Freestyle rap about weed for 30 seconds",
+      "👀 Balance a lighter on your nose for 10 seconds",
+      "🤳 Text 'I love weed' to a random contact or take 3 hits",
+      "🛋 You can't move for the next round unless someone tickles you"
+    ];
+
+    const funExtras = [
+      "🍕 MUNCHIE BONUS! First to grab a snack chooses who takes 2 hits.",
+      "💨 GROUP HIT! Everyone takes a hit together. Cheers!",
+      "🤯 STONER RIDDLE: What can travel around the world while staying in the same spot? (a stamp!)"
+    ];
+
+    let players = [];
+    let currentIndex = 0;
+
+    window.onload = function() {
+      document.getElementById('instructions').style.display = 'flex';
+      setTimeout(() => {
+        document.getElementById('instructions').style.display = 'none';
+        document.getElementById('setup').style.display = 'flex';
+      }, 5000);
+    }
+
+    function startGame() {
+      const input = document.getElementById('playerNames').value;
+      players = input.split(',').map(name => name.trim()).filter(name => name !== '');
+      if (players.length < 2) {
+        alert("Enter at least two players!");
+        return;
+      }
+      document.getElementById('setup').style.display = 'none';
+      document.getElementById('game').style.display = 'flex';
+      updateCurrentPlayer();
+      setInterval(createSmoke, 800);
+    }
+
+    function updateCurrentPlayer() {
+      const player = players[currentIndex];
+      document.getElementById('currentPlayer').textContent = `🚬 It's ${player}'s turn!`;
+      document.getElementById('result').textContent = '';
+    }
+
+    function spinWheel() {
+      const wheel = document.getElementById('wheel');
+      const spinDeg = 720 + Math.floor(Math.random() * 360);
+      wheel.style.transform = `rotate(${spinDeg}deg)`;
+
+      const thisPlayer = players[currentIndex];
+      currentIndex = (currentIndex + 1) % players.length;
+      const nextPlayer = players[currentIndex];
+
+      setTimeout(() => {
+        let challenge = challenges[Math.floor(Math.random() * challenges.length)];
+
+        if (Math.random() < 0.33) {
+          challenge += "\n" + funExtras[Math.floor(Math.random() * funExtras.length)];
+        }
+
+        document.getElementById('result').textContent = `${thisPlayer}, your challenge:\n${challenge}`;
+        document.getElementById('currentPlayer').textContent = `🚬 Next up: ${nextPlayer}`;
+
+        // Wait 30 seconds before pass overlay
+        setTimeout(() => {
+          showPassOverlay(nextPlayer);
+        }, 30000);
+
+      }, 3000);
+    }
+
+    function showPassOverlay(nextPlayer) {
+      const overlay = document.getElementById('passOverlay');
+      overlay.textContent = `👉 Pass the phone to ${nextPlayer}!`;
+      overlay.style.display = 'flex';
+
+      setTimeout(() => {
+        overlay.style.display = 'none';
+      }, 3000);
+    }
+
+    function createSmoke() {
+      const smoke = document.createElement('div');
+      smoke.classList.add('smoke');
+      smoke.style.left = Math.random() * window.innerWidth + 'px';
+      document.body.appendChild(smoke);
+      setTimeout(() => {
+        smoke.remove();
+      }, 8000);
+    }
+  </script>
+
+</body>
+</html>
