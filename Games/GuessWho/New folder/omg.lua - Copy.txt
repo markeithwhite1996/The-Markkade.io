@@ -1,0 +1,58 @@
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+
+lets create a digital multiplayer GuessWho game. 1-6 players
+
+create sperate player html GW_Player.html
+
+
+each player gets to choose witch player they are sendinding them to their html file 
+
+where they are shown a grid off all players to select what character they want 
+
+characters located in character/{characterName}.png
+
+fills in the slots of players names and what player they are 1-6 (2 minimum)
+
+once selected a overlay "start game" button shows up noting to wait for every player to be ready and ensure they all press at the same time
+
+once done everyones moved to the game html GW_Game.html that shows 
+
+
+____________________________________
+when it that players turn to guess 
+____________________________________
+
+the character they chose in the top left with pretend details next to it (your character banner),
+
+ underneith a grid of characters 5x5 to dim they think the other player is not 
+
+under neither five buttons asked question, next to guessed right on top of skip turn next to guessed wring in top once any are pressed it adds that action to log at bottom of the screen (you ... opponentss name ...) 
+and then disables those buttons untill next player.
+
+unerneith those theres a next player button that glows when actions above are taken and once pressed prompts a overlay noting to wait and ensure all players have taken their turn 
+
+add a list of players names buttons at button to press if that player gets character guess and is out so the game knows to skip that player
+____________________________________
+when that player is it for everyone  to guess
+____________________________________
+
+the character they chose in the top left with pretend details next to it (your character banner),
+
+a 2 rows of six buttons with players names to be pressed (disabled if no player)
+
+and 
+
+action buttons guessed my character right, guessed my character wrong, asked a question, skipped thier turn  
+
+to the log in the bottom of the game  (opponentss name ___ your ___)
+
+once player action is logged dim/disable that players button
+
+game ensure all players turns are taken and loged a over lay shows up with a next player but noting tell all the other players they can press their next player button
+
+
+
+the game cycles though each player, not synced but perfectly timed through player actions
+game boards update and save info for each player turn so game can cylce back around
+

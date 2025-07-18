@@ -1,0 +1,136 @@
+
+### 🎮 Digital Multiplayer *Guess Who* Game (1–6 Players)
+
+#### 🧑 Loading, Rules, & Start Page – `GuessWho.html`
+
+
+#### 🧑 Player Setup – `GuessWho_Setup.html`
+
+* Players select which player number they are (1–6).
+* Players list all players playing in game in the player number slot that each player chose (Minimum: 2 players)
+* They're presented with a grid of all character images (located in `character/{characterName}.png`) to choose their secret character.
+* After selecting a character, player names and positions (Player 1 to Player 6) are filled into placeholders.
+* Once a character is selected, a **"Start Game"** overlay button appears, instructing players to wait until **everyone is ready** and to press the button **at the same time**.
+* After all players confirm readiness, the game transitions to `GW_Game.html`.
+
+---
+
+### 🎲 Game Phase – `GuessWho_Game.html`
+
+#### ✅ When It's **Your Turn to Guess**:
+
+* Your chosen character appears in the **top-left corner**, with placeholder details (“Your Character” banner).
+
+* Below that, a **5x5 grid** of characters is displayed. Players can dim (visually mark) characters they think are not the opponent’s.
+
+* Below the grid are **five action buttons**:
+
+  * ❓ *Asked a Question*
+  * ✅ *Guessed Correctly*
+  * ❌ *Guessed Incorrectly*
+  * 🔁 *Skip Turn*
+
+* When any action button is clicked:
+
+  * It logs the action in a feed at the bottom (e.g., "You asked a question to \[Opponent's Name]").
+  * Action buttons become **disabled** until the next turn.
+
+* Below these is a **"Next Player"** button that glows when an action is taken. When pressed:
+
+  * A modal overlay appears instructing players to wait for everyone to complete their turns.
+
+* A list of player name buttons is shown at the bottom. If a player is eliminated (someone guessed their character), others can press their button to mark them as "out", so the game skips their turns.
+
+---
+
+#### 🎯 When **Others Are Guessing Your Character**:
+
+* Your selected character with placeholder details shows in the **top-left corner** (“Your Character” banner).
+* Two rows of six buttons display all **active player names** (disabled if no player in that slot).
+* Below are **action buttons** to log opponent behavior:
+
+  * ✅ *Guessed My Character Right*
+  * ❌ *Guessed My Character Wrong*
+  * ❓ *Asked Me a Question*
+  * 🔁 *Skipped Turn*
+* After logging an opponent's action, that player’s name button becomes **disabled**.
+* Once all active players are logged, a **"Next Player"** overlay appears, reminding the current player to **wait for others to finish before continuing**.
+
+---
+
+### 🔄 Game Flow & Synchronization
+
+* The game cycles through each player in turn.
+* It’s **not synced in real-time**, but flow is controlled precisely through **player actions and readiness**.
+* All game state (turns, logs, dimmed characters, eliminations) is saved and updated locally for each player.
+* Once the full cycle completes, the turn moves to the next player, maintaining continuity across devices.
+
+---
+
+
+characters\Zander.jpg
+characters\Zachary.jpg
+characters\William.jpg
+characters\Waylon.jpg
+characters\Walker.jpg
+characters\Vincent.jpg
+characters\Theodore.jpg
+characters\Steven.jpg
+characters\Staven.jpg
+characters\Sebastian.jpg
+characters\Ryker.jpg
+characters\Rqaymond.jpg
+characters\Parker.jpg
+characters\Oakley.jpg
+characters\Nolan.jpg
+characters\Noah.jpg
+characters\Mike.jpg
+characters\Michael.jpg
+characters\Mateo.jpg
+characters\Marty.jpg
+characters\Luca.jpg
+characters\Lincoln.jpg
+characters\Liam.jpg
+characters\Lewis.jpg
+characters\Landon.jpg
+characters\Kristen.jpg
+characters\Justin.jpg
+characters\Jordan.jpg
+characters\Johnathan.jpg
+characters\Jeff.jpg
+characters\James.jpg
+characters\Jackson.jpg
+characters\Jack.jpg
+characters\Ian.jpg
+characters\Hudson.jpg
+characters\Harrison.jpg
+characters\Graham.jpg
+characters\Gary.jpg
+characters\Eric.jpg
+characters\Emmett.jpg
+characters\Emiliano.jpg
+characters\Elijah.jpg
+characters\Elias.jpg
+characters\Dominic.jpg
+characters\Destin.jpg
+characters\Derrick.jpg
+characters\David.jpg
+characters\Darren.jpg
+characters\Daniel.jpg
+characters\Craig.jpg
+characters\Connor.jpg
+characters\Christian.jpg
+characters\Chris.jpg
+characters\Chloe.jpg
+characters\Charles.jpg
+characters\Carson.jpg
+characters\Benjamin.jpg
+characters\Axel.jpg
+characters\Austin.jpg
+characters\August.jpg
+characters\Arthur.jpg
+characters\Adrian.jpg
+characters\Adam.jpg
+characters\Aaron.jpg
+
+
