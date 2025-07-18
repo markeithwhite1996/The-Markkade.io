@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no"/>
+  <title>Guess Who Setup</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #fafafa;
+      margin: 0;
+      padding: 1em;
+      color: #333;
+    }
+    h2, h3 {
+      text-align: center;
+      margin-top: 0.5em;
+    }
+    .player-setup, .character-select, .start-overlay {
+      max-width: 600px;
+      margin: auto;
+      text-align: center;
+    }
+    select, input {
+      font-size: 1em;
+      padding: 0.4em;
+      margin: 0.3em;
+      border-radius: 0.5em;
+      border: 1px solid #ccc;
+      width: 45%;
+    }
+    .character-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+      gap: 8px;
+      margin: 1em auto;
+      max-width: 600px;
+    }
+    .character-grid img {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      border-radius: 0.5em;
+      border: 3px solid transparent;
+      box-shadow: 0 0 4px rgba(0,0,0,0.1);
+      transition: 0.3s;
+    }
+    .character-grid img.selected {
+      border-color: #00aaff;
+      box-shadow: 0 0 10px #00aaff;
+    }
+    .start-overlay {
+      display: none;
+      background: #fff;
+      padding: 1em;
+      margin-top: 1em;
+      border-radius: 1em;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    button {
+      padding: 0.8em 1.4em;
+      font-size: 1.1em;
+      border-radius: 0.6em;
+      border: none;
+      background: #00aaff;
+      color: white;
+      margin-top: 1em;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0088cc;
+    }
+  </style>
+</head>
+<body>
+  <div class="player-setup">
+    <h2>🎯 Select Player & Setup</h2>
+    <select id="playerSlot">
+      <option value="">-- Player Number --</option>
+      ${[...Array(6)].map((_, i) => `<option value="${i+1}">Player ${i+1}</option>`).join('')}
+    </select>
+
+    <div id="playerNames"></div>
+  </div>
+
+  <div class="character-select">
+    <h3>Choose Your Secret Character</h3>
+    <div class="character-grid" id="characters"></div>
+  </div>
+
+  <div class="start-overlay" id="startOverlay">
+    <h2>✅ Ready!</h2>
+    <p>Tell others you're ready. Press when all are ready:</p>
+    <button onclick="startGame()">Start Game</button>
+  </div>
+
+  <script>
+    const characters = [
+      "Zander","Zachary","William","Waylon","Walker","Vincent","Theodore","Steven","Staven","Sebastian",
+      "Ryker","Rqaymond","Parker","Oakley","Nolan","Noah","Mike","Michael","Mateo","Marty",
+      "Luca","Lincoln","Liam","Lewis","Landon","Kristen","Justin","Jordan","Johnathan","Jeff",
+      "James","Jackson","Jack","Ian","Hudson","Harrison","Graham","Gary","Eric","Emmett",
+      "Emiliano","Elijah","Elias","Dominic","Destin","Derrick","David","Darren","Daniel","Craig",
+      "Connor","Christian","Chris","Chloe","Charles","Carson","Benjamin","Axel","Austin","August",
+      "Arthur","Adrian","Adam","Aaron"
+    ];
+
+    const namesDiv = document.getElementById("playerNames");
+    for (let i = 1; i <= 6; i++) {
+      const input = document.createElement("input");
+      input.placeholder = `Player ${i} Name`;
+      input.id = `player${i}`;
+      namesDiv.appendChild(input);
+    }
+
+    const grid = document.getElementById("characters");
+    const overlay = document.getElementById("startOverlay");
+
+    characters.forEach(name => {
+      const img = document.createElement("img");
+      img.src = `characters/${name}.jpg`;
+      img.alt = name;
+      img.onclick = () => {
+        document.querySelectorAll(".character-grid img").forEach(i => i.classList.remove("selected"));
+        img.classList.add("selected");
+        localStorage.setItem("myCharacter", name);
+        overlay.style.display = "block";
+      };
+      grid.appendChild(img);
+    });
+
+    function startGame() {
+      const slot = document.getElementById("playerSlot").value;
+      if (!slot) return alert("Select your player number!");
+      localStorage.setItem("playerSlot", slot);
+
+      for (let i = 1; i <= 6; i++) {
+        const name = document.getElementById(`player${i}`).value.trim();
+        if (name) localStorage.setItem(`player${i}`, name);
+      }
+
+      location.href = "GuessWho_Game.html";
+    }
+  </script>
+</body>
+</html>
