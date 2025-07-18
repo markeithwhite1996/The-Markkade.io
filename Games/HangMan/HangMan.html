@@ -19,6 +19,9 @@ body, html {
   margin: 0;
   padding: 0;
   height: 100%;
+    width: 100vw;
+  max-width: 100%;
+  overflow-x: hidden;
   background: var(--playerBackgroundColor, #121212);
   color: white;
   display: flex;
@@ -285,11 +288,12 @@ body, html {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: #1c1c1e;
-  color: white;
-  padding: 1rem 2rem;
-  border-radius: 15px;
+  background: white;
+  color: black;
+  padding: 2rem;
+  border-radius: 12px;
   box-shadow: 0 0 20px var(--shadow);
+    box-sizing: border-box; /* Prevent padding from overflowing */
   z-index: 1000;
   font-size: 1.25rem;
   user-select: none;
