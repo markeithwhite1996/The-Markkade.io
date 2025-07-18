@@ -251,6 +251,26 @@
         min-width: 220px;
       }
     }
+#backBtn {
+  background: var(--playerColor1);
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  font-size: clamp(1rem, 4vw, 1.2rem);
+  border-radius: 40px;
+  cursor: pointer;
+  margin: 40px auto 10px;
+  display: block;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px var(--playerColor1), 0 0 20px var(--playerColor1), 0 0 30px var(--playerColor1);
+}
+
+#backBtn:hover {
+  background-color: #0056b3;
+  box-shadow: 0 0 12px #0056b3, 0 0 24px #0056b3, 0 0 36px #0056b3;
+}
+
+
   </style>
 </head>
 <body>
@@ -300,6 +320,8 @@
 </div>
 
 <canvas id="confettiCanvas" aria-hidden="true"></canvas>
+
+<button id="backBtn" onclick="window.location.href='../../TheMarkkade.io-Home.html'" aria-label="Back to Arcade">🏠 Back to Arcade</button>
 
 <script>
 
@@ -358,7 +380,7 @@ document.documentElement.style.setProperty('--playerColor2', color2);
   window.addEventListener('resize', resizeCanvas);
 
   // Game state
-  let cash = parseInt(localStorage.getItem('playerCash')) || 200;
+  let cash = parseInt(localStorage.getItem('playerCash')) || 0;
   let plays = parseInt(localStorage.getItem('rpsPlays')) || 0;
   let currentStreak = parseInt(localStorage.getItem('rpsStreak')) || 0;
   let bestStreak = parseInt(localStorage.getItem('rpsBestStreak')) || 0;
@@ -763,8 +785,12 @@ function showPopup(msg, isSuccess = true) {
   buildReels();
   initReels();
   updateUI();
+  
+  
 
 })();
+
+
 
 </script>
 

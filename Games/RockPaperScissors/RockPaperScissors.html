@@ -264,7 +264,7 @@
 </head>
 <body>
   <div class="top-bar">
-    <button class="close-btn" onclick="window.location.href='../../index.html'">✖ Close</button>
+    <button class="close-btn" onclick="window.location.href='../../TheMarkkade.io-Home.html'">✖ Close</button>
   </div>
   <h1>✊️🖐✌️ Slot Machine</h1>
   <div class="balance">Balance: $<span id="balance">0</span></div>
@@ -325,7 +325,7 @@
     // Player cash persistence and display
     function getBalance() {
       try {
-        return parseInt(localStorage.getItem('playerCash')) || 200;
+        return parseInt(localStorage.getItem('playerCash')) || 0;
       } catch {
         return 200;
       }
