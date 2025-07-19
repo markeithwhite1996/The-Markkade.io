@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Det. Markk: Case Files</title>
+  <style>
+    :root {
+      --bg: #111;
+      --card-bg: #1c1c1c;
+      --accent: #2a9d8f;
+      --locked: #e63946;
+      --text-light: #eee;
+      --text-muted: #aaa;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text-light);
+    }
+    header {
+      background: var(--accent);
+      padding: 20px;
+      text-align: center;
+      font-size: 1.8rem;
+      font-weight: bold;
+    }
+    .progress-container {
+      background: #333;
+      border-radius: 20px;
+      margin: 20px auto 5px;
+      height: 18px;
+      width: 90%;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      transition: width 0.4s ease;
+    }
+    #progress-label {
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    .case-list {
+      max-width: 500px;
+      margin: 20px auto;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .case-card {
+      background: var(--card-bg);
+      padding: 15px 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px #000;
+      cursor: pointer;
+      position: relative;
+      text-decoration: none;
+      color: inherit;
+    }
+    .case-card.locked {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .case-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+    .case-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-top: 5px;
+    }
+    .case-status {
+      position: absolute;
+      right: 15px;
+      top: 15px;
+      font-size: 1.2rem;
+    }
+    footer {
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 40px;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>🕵️ Det. Markk: Case Files</header>
+
+  <div class="progress-container">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+  <div id="progress-label">Loading progress...</div>
+
+  <div class="case-list" id="caseList"></div>
+
+  <footer>© 2025 Det. Markk Investigation Files</footer>
+
+  <script>
+    const totalCases = 10;
+    const currentCase = parseInt(localStorage.getItem("markk_currentCase") || "1");
+
+    // Update progress bar
+    const progressPercent = Math.floor((currentCase - 1) / (totalCases - 1) * 100);
+    document.getElementById("progressBar").style.width = progressPercent + "%";
+    document.getElementById("progress-label").textContent =
+      `Case ${currentCase} unlocked of ${totalCases} (${progressPercent}%)`;
+
+    const caseList = document.getElementById("caseList");
+    const caseDescriptions = {
+      1: "Murder behind a nightclub sparks chaos.",
+      2: "Robbery scene with no physical evidence.",
+      3: "Missing person last seen at a bus depot.",
+      4: "Cold case resurfaces with new testimony.",
+      5: "Ritualistic murder with eerie clues.",
+      6: "Detective goes undercover in a crime ring.",
+      7: "Haunted mansion reveals a brutal secret.",
+      8: "Politician blackmailed before election night.",
+      9: "Serial killer leaves poetic riddles.",
+      10: "Truth behind all crimes finally comes to light."
+    };
+
+    for (let i = 1; i <= totalCases; i++) {
+      const card = document.createElement("a");
+      card.className = "case-card";
+      card.innerHTML = `
+        <div class="case-title">Case ${i}</div>
+        <div class="case-desc">${caseDescriptions[i]}</div>
+        <div class="case-status">${i <= currentCase ? "✅" : "🔒"}</div>
+      `;
+
+      if (i <= currentCase) {
+        card.href = "Case_" + i + ".html";
+      } else {
+        card.classList.add("locked");
+        card.addEventListener("click", (e) => e.preventDefault());
+      }
+
+      caseList.appendChild(card);
+    }
+  </script>
+</body>
+</html>
