@@ -112,14 +112,23 @@
     flex-shrink: 0;
     position: relative;
   }
-  .game-card.purchased::after {
-    content: '✔️';
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    font-size: 1.2rem;
-    color: var(--color-primary);
-  }
+.game-card::after {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 1.2rem;
+}
+
+.game-card.purchased.downloaded::after {
+  content: '🛍️💾'; /* both */
+}
+.game-card.purchased:not(.downloaded)::after {
+  content: '🛍️'; /* only purchased */
+}
+.game-card.downloaded:not(.purchased)::after {
+  content: '💾'; /* only downloaded (unlikely case) */
+}
+
   .sidebar, .cartbar {
     position: fixed;
     top: 0;
@@ -490,7 +499,8 @@ card.textContent = `${game.working ? '🟢' : '🔴'} ${game.title}`;
 catGames.forEach(game => {
   const card = document.createElement('article');
   card.classList.add('game-card');
-  if (purchasedGames[game.id]) card.classList.add('purchased');
+if (purchasedGames[game.id]) card.classList.add('purchased');
+if (downloadedGames[game.id]) card.classList.add('downloaded');
 
   // ✅ Add working/broken class
   card.classList.add(game.working ? 'working' : 'broken');
