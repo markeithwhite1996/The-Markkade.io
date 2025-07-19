@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Markk’s Markka$h Wheel</title>
+  <style>
+    body {
+      background: radial-gradient(circle, #111, #000);
+      font-family: 'Segoe UI', sans-serif;
+      color: white;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .container {
+      text-align: center;
+      padding: 20px;
+    }
+
+    #wheelCanvas {
+      display: block;
+      margin: 0 auto;
+    }
+
+    #spinBtn {
+      background: limegreen;
+      border: none;
+      padding: 12px 25px;
+      font-size: 1.2em;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    #spinBtn:disabled {
+      background: gray;
+      cursor: not-allowed;
+    }
+
+    #playerCash {
+      font-weight: bold;
+      color: #0f0;
+    }
+
+    #resultMsg {
+      margin-top: 20px;
+      font-size: 1.2em;
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.85);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      font-size: 1.5em;
+      z-index: 9999;
+    }
+
+    #cooldownCountdown {
+      font-size: 2em;
+      margin-top: 10px;
+      color: #0f0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎡 Markk's Markka$h Wheel</h1>
+    <canvas id="wheelCanvas" width="400" height="400"></canvas>
+    <button id="spinBtn">🎰 Spin for Markka$h</button>
+    <p>Your Markka$h: <span id="playerCash">0</span></p>
+    <p id="resultMsg"></p>
+  </div>
+
+  <div id="cooldownOverlay" class="overlay" style="display:none;">
+    <p>🕒 You already spun!</p>
+    <p>Come back in:</p>
+    <div id="cooldownCountdown">--:--</div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('wheelCanvas');
+    const ctx = canvas.getContext('2d');
+    const spinBtn = document.getElementById('spinBtn');
+    const resultMsg = document.getElementById('resultMsg');
+    const playerCashEl = document.getElementById('playerCash');
+    const overlay = document.getElementById('cooldownOverlay');
+    const countdownEl = document.getElementById('cooldownCountdown');
+
+    const cooldownMs = 60 * 60 * 1000; // 1 hour
+    const cooldownKey = 'wheelLastSpin';
+    let angle = 0;
+    let spinning = false;
+
+    let playerCash = parseInt(localStorage.getItem('playerCash')) || 0;
+    playerCashEl.textContent = playerCash.toLocaleString();
+
+    const prizes = [
+      5, 25, 50, 75, 100, 200, 300, 400, 500, 600,
+      700, 800, 900, 1000, 5000, 10000, 15000, 20000,
+      25000, 50000, 75000, 100000
+    ];
+
+    const weights = [
+      10, 5, 5, 5, 4, 4, 4, 4, 4, 4,
+      4, 4, 4, 3, 3, 2, 2, 2,
+      2, 2, 2, 1
+    ];
+
+    const segments = prizes.flatMap((prize, i) => Array(weights[i]).fill(prize));
+    const totalSegments = segments.length;
+    const anglePerSegment = (2 * Math.PI) / totalSegments;
+
+    function drawWheel() {
+      for (let i = 0; i < totalSegments; i++) {
+        const start = anglePerSegment * i;
+        const end = start + anglePerSegment;
+        ctx.beginPath();
+        ctx.moveTo(200, 200);
+        ctx.arc(200, 200, 180, start, end);
+        ctx.fillStyle = i % 2 === 0 ? '#4caf50' : '#2196f3';
+        ctx.fill();
+        ctx.strokeStyle = '#000';
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(200, 200);
+        ctx.rotate(start + anglePerSegment / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = 'white';
+        ctx.font = "bold 12px sans-serif";
+        ctx.fillText(segments[i].toLocaleString(), 170, 5);
+        ctx.restore();
+      }
+
+      // Draw center
+      ctx.beginPath();
+      ctx.arc(200, 200, 50, 0, 2 * Math.PI);
+      ctx.fillStyle = '#000';
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = "bold 16px sans-serif";
+      ctx.textAlign = 'center';
+      ctx.fillText("SPIN", 200, 205);
+    }
+
+    function rotateWheelTo(index) {
+      const spinRounds = 6; // full spins
+      const targetAngle = (totalSegments - index) * anglePerSegment;
+      const finalAngle = spinRounds * 2 * Math.PI + targetAngle;
+      const duration = 5000;
+      const start = performance.now();
+
+      function animateSpin(now) {
+        const elapsed = now - start;
+        const t = Math.min(elapsed / duration, 1);
+        const easeOut = 1 - Math.pow(1 - t, 3);
+        angle = easeOut * finalAngle;
+
+        ctx.clearRect(0, 0, 400, 400);
+        ctx.save();
+        ctx.translate(200, 200);
+        ctx.rotate(angle);
+        ctx.translate(-200, -200);
+        drawWheel();
+        ctx.restore();
+
+        if (t < 1) {
+          requestAnimationFrame(animateSpin);
+        } else {
+          const landedIndex = (totalSegments - Math.floor((angle % (2 * Math.PI)) / anglePerSegment)) % totalSegments;
+          const reward = segments[landedIndex];
+          resultMsg.textContent = `🎉 You won ${reward.toLocaleString()} Markka$h!`;
+          playerCash += reward;
+          localStorage.setItem('playerCash', playerCash);
+          playerCashEl.textContent = playerCash.toLocaleString();
+          setCooldown();
+        }
+      }
+
+      requestAnimationFrame(animateSpin);
+    }
+
+    function setCooldown() {
+      const nextTime = Date.now() + cooldownMs;
+      localStorage.setItem(cooldownKey, nextTime);
+      showOverlay();
+    }
+
+    function showOverlay() {
+      overlay.style.display = 'flex';
+      updateCountdown();
+    }
+
+    function updateCountdown() {
+      const nextTime = parseInt(localStorage.getItem(cooldownKey)) || 0;
+      const remaining = nextTime - Date.now();
+      if (remaining > 0) {
+        const mins = Math.floor(remaining / 60000);
+        const secs = Math.floor((remaining % 60000) / 1000);
+        countdownEl.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        spinBtn.disabled = true;
+        setTimeout(updateCountdown, 1000);
+      } else {
+        overlay.style.display = 'none';
+        spinBtn.disabled = false;
+        resultMsg.textContent = '';
+      }
+    }
+
+    spinBtn.addEventListener('click', () => {
+      if (spinning) return;
+      spinning = true;
+      const index = Math.floor(Math.random() * totalSegments);
+      rotateWheelTo(index);
+      setTimeout(() => spinning = false, 5200);
+    });
+
+    function checkCooldown() {
+      const nextTime = parseInt(localStorage.getItem(cooldownKey)) || 0;
+      if (Date.now() < nextTime) {
+        showOverlay();
+        spinBtn.disabled = true;
+      }
+    }
+
+    drawWheel();
+    checkCooldown();
+  </script>
+</body>
+</html>
+
+
+show pointing emoji on the left side of wheel pointing at winning slot
+
+shuffle slots
+
+add more visual effects to game itself and overlay to make the game POP!
