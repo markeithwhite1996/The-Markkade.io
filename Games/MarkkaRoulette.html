@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MarkkaRoulette Pro</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: radial-gradient(circle at center, #1a1a1a, #000);
+      color: #fff;
+      text-align: center;
+    }
+
+    .container {
+      padding: 1em;
+      max-width: 450px;
+      margin: auto;
+    }
+
+    h1 {
+      color: gold;
+      font-size: 2em;
+      margin-bottom: 0.3em;
+    }
+
+    .balance {
+      font-size: 1.2em;
+      margin-bottom: 1em;
+    }
+
+    .wheel-container {
+      position: relative;
+      margin: 2em auto 3em;
+      width: 200px;
+      height: 200px;
+    }
+
+    .wheel {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 10px solid #333;
+      background: conic-gradient(
+        red 0deg 20deg,
+        black 20deg 40deg,
+        red 40deg 60deg,
+        black 60deg 80deg,
+        red 80deg 100deg,
+        black 100deg 120deg,
+        red 120deg 140deg,
+        black 140deg 160deg,
+        red 160deg 180deg,
+        black 180deg 200deg,
+        red 200deg 220deg,
+        black 220deg 240deg,
+        red 240deg 260deg,
+        black 260deg 280deg,
+        red 280deg 300deg,
+        black 300deg 320deg,
+        red 320deg 340deg,
+        black 340deg 360deg
+      );
+      transition: transform 4s ease-out;
+    }
+
+    .spin-btn {
+      margin-top: 1em;
+      padding: 10px 25px;
+      font-size: 1.2em;
+      background-color: gold;
+      color: black;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
+    .betting {
+      margin-top: 1.5em;
+    }
+
+    .betting input,
+    .betting select {
+      margin: 0.5em auto;
+      padding: 0.6em;
+      font-size: 1em;
+      border-radius: 10px;
+      border: none;
+      width: 80%;
+      max-width: 320px;
+      display: block;
+    }
+
+    .chips {
+      margin: 0.5em 0;
+    }
+
+    .chip {
+      display: inline-block;
+      padding: 10px 16px;
+      margin: 5px;
+      background: gold;
+      color: black;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    #result {
+      margin-top: 1.5em;
+      font-size: 1.1em;
+      min-height: 2.5em;
+    }
+
+    .exit-btn {
+      display: inline-block;
+      margin-top: 2em;
+      color: #ccc;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎲 MarkkaRoulette Pro</h1>
+    <div class="balance">Balance: $<span id="balance">0</span></div>
+
+    <div class="wheel-container">
+      <div class="wheel" id="wheel"></div>
+    </div>
+
+    <button class="spin-btn" onclick="spinWheel()">SPIN</button>
+
+    <div class="betting">
+      <h2>Place Your Bet</h2>
+
+      <div class="chips">
+        <span class="chip" onclick="setBet(10)">💵 $10</span>
+        <span class="chip" onclick="setBet(25)">💵 $25</span>
+        <span class="chip" onclick="setBet(50)">💵 $50</span>
+        <span class="chip" onclick="setBet(100)">💵 $100</span>
+      </div>
+
+      <input type="number" id="betAmount" placeholder="Or enter custom bet amount" />
+      <select id="betType">
+        <option value="red">Red</option>
+        <option value="black">Black</option>
+        <option value="odd">Odd</option>
+        <option value="even">Even</option>
+        <option value="1to12">1 to 12</option>
+        <option value="13to24">13 to 24</option>
+        <option value="25to36">25 to 36</option>
+        <option value="number">Single Number (0-36)</option>
+      </select>
+      <input type="number" id="betValue" placeholder="If single number bet" />
+
+      <label>
+        <input type="checkbox" id="jackpotBet" />
+        Bet $10 on "00" for $350!
+      </label>
+    </div>
+
+    <div id="result"></div>
+    <a href="../../TheMarkkade.io-Home.html" class="exit-btn">⏪ Back to Home</a>
+  </div>
+
+  <!-- Sound Effects -->
+  <audio id="spinSound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_1dbab34c8f.mp3"></audio>
+  <audio id="winSound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_7938daab19.mp3"></audio>
+  <audio id="loseSound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_e1f648c865.mp3"></audio>
+
+  <script>
+    let balance = Number(localStorage.getItem('playerCash')) || 1000;
+    const wheel = document.getElementById('wheel');
+    const resultDiv = document.getElementById('result');
+    const balanceDisplay = document.getElementById('balance');
+
+    const spinSound = document.getElementById('spinSound');
+    const winSound = document.getElementById('winSound');
+    const loseSound = document.getElementById('loseSound');
+
+    updateBalance();
+
+    function updateBalance() {
+      balanceDisplay.textContent = balance.toFixed(2);
+      localStorage.setItem('playerCash', balance.toFixed(2));
+    }
+
+    function setBet(amount) {
+      document.getElementById('betAmount').value = amount;
+    }
+
+    function spinWheel() {
+      const betAmount = Number(document.getElementById('betAmount').value);
+      const betType = document.getElementById('betType').value;
+      const betValue = Number(document.getElementById('betValue').value);
+      const jackpotOn = document.getElementById('jackpotBet').checked;
+
+      let totalBet = betAmount;
+      if (jackpotOn) totalBet += 10;
+
+      if (betAmount <= 0 || totalBet > balance) {
+        alert("Invalid bet.");
+        return;
+      }
+
+      const spinDeg = 3600 + Math.floor(Math.random() * 360);
+      wheel.style.transform = `rotate(${spinDeg}deg)`;
+      spinSound.play();
+
+      const spinResult = Math.floor(Math.random() * 37); // 0-36
+      const color = spinResult === 0 ? 'green' : (spinResult % 2 === 0 ? 'black' : 'red');
+      const isOdd = spinResult % 2 === 1;
+
+      setTimeout(() => {
+        let win = false;
+        let payout = 0;
+
+        // Inside/Outside Bet Resolution
+        if (betType === "red" && color === "red") { win = true; payout = betAmount * 2; }
+        else if (betType === "black" && color === "black") { win = true; payout = betAmount * 2; }
+        else if (betType === "odd" && isOdd) { win = true; payout = betAmount * 2; }
+        else if (betType === "even" && spinResult !== 0 && !isOdd) { win = true; payout = betAmount * 2; }
+        else if (betType === "1to12" && spinResult >= 1 && spinResult <= 12) { win = true; payout = betAmount * 3; }
+        else if (betType === "13to24" && spinResult >= 13 && spinResult <= 24) { win = true; payout = betAmount * 3; }
+        else if (betType === "25to36" && spinResult >= 25 && spinResult <= 36) { win = true; payout = betAmount * 3; }
+        else if (betType === "number" && spinResult === betValue) { win = true; payout = betAmount * 36; }
+
+        // Jackpot Bet
+        let jackpotWin = false;
+        if (jackpotOn && spinResult === 0) {
+          jackpotWin = true;
+          payout += 350;
+        }
+
+        balance -= totalBet;
+        if (win || jackpotWin) {
+          winSound.play();
+          balance += payout;
+          resultDiv.innerHTML = `🎉 You won! Number: ${spinResult} (${color})<br> +$${(payout - totalBet).toFixed(2)}`;
+        } else {
+          loseSound.play();
+          resultDiv.innerHTML = `❌ Lost. Number: ${spinResult} (${color})`;
+        }
+
+        updateBalance();
+      }, 4200);
+    }
+  </script>
+</body>
+</html>

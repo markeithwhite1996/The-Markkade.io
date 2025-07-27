@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mind Maze: Pattern Panic 500 - Stroop Challenge + Glow & Shake</title>
+  <style>
+    /* Wiggle animation */
+    @keyframes wiggle {
+      0%, 100% { transform: rotate(0deg); }
+      15% { transform: rotate(5deg); }
+      30% { transform: rotate(-5deg); }
+      45% { transform: rotate(4deg); }
+      60% { transform: rotate(-4deg); }
+      75% { transform: rotate(2deg); }
+      90% { transform: rotate(-2deg); }
+    }
+
+    /* Glow pulse for instruction */
+    @keyframes glowPulse {
+      0%, 100% {
+        text-shadow: 0 0 10px #00fff7, 0 0 20px #00fff7, 0 0 30px #00fff7;
+      }
+      50% {
+        text-shadow: 0 0 20px #00fff7, 0 0 40px #00fff7, 0 0 60px #00fff7;
+      }
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: radial-gradient(circle at center, #0a0a0a, #161616);
+      color: #e0f7fa;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 15px 10px 30px;
+      user-select: none;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    h1 {
+      margin: 10px 0 5px;
+      font-size: 2.4em;
+      color: #00faff;
+      text-align: center;
+      text-shadow:
+        0 0 6px #00e5ff,
+        0 0 15px #00e5ff,
+        0 0 30px #00c8ff;
+    }
+
+    #wallet, #stats {
+      margin: 4px 0;
+      font-size: 1.05em;
+      color: #4dd0e1;
+      text-align: center;
+      letter-spacing: 0.04em;
+      user-select: none;
+      font-weight: 600;
+      text-shadow: 0 0 5px #22a7b8;
+    }
+
+    #gameContainer {
+      margin-top: 20px;
+      width: 95vw;
+      max-width: 520px;
+      text-align: center;
+    }
+
+    #instruction {
+      font-size: 1.6em;
+      font-weight: 700;
+      margin-bottom: 15px;
+      animation: glowPulse 2.5s ease-in-out infinite;
+      user-select: none;
+      color: #00fff7;
+      text-shadow: 0 0 10px #00eaff;
+      min-height: 3em;
+    }
+
+    #grid {
+      display: grid;
+      gap: 12px;
+      margin-top: 10px;
+      user-select: none;
+      cursor: pointer;
+    }
+
+    .tile {
+      padding: 20px 0;
+      border-radius: 14px;
+      font-size: 2.3em;
+      box-shadow: 0 0 10px #000;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: 700;
+      color: #fff;
+      text-transform: capitalize;
+      user-select: none;
+      text-shadow: 0 0 5px rgba(0,0,0,0.7);
+      /* subtle gradient background for depth */
+      background: linear-gradient(145deg, #222, #111);
+      /* Glow by color classes below */
+      animation: none;
+    }
+
+    .tile:hover {
+      animation: wiggle 0.5s ease-in-out;
+      transform: scale(1.1);
+      filter: drop-shadow(0 0 10px cyan);
+      box-shadow:
+        0 0 18px #00ffff,
+        0 0 30px #00ffff,
+        0 0 45px #00ffff;
+      z-index: 2;
+    }
+
+    /* Color classes with glow and strong base color */
+    .red { background: #b30000; box-shadow: 0 0 12px #ff4d4d; }
+    .blue { background: #0033cc; box-shadow: 0 0 12px #4d79ff; }
+    .green { background: #009900; box-shadow: 0 0 12px #4dff4d; }
+    .yellow { background: #cccc00; box-shadow: 0 0 12px #ffff4d; color:#111;}
+    .pink { background: #ff33cc; box-shadow: 0 0 12px #ff66cc; }
+    .cyan { background: #00ffff; box-shadow: 0 0 12px #66ffff; color:#111;}
+    .orange { background: #ff9900; box-shadow: 0 0 12px #ffb84d; }
+    .purple { background: #800080; box-shadow: 0 0 12px #cc66cc; }
+    .lime { background: #99ff33; box-shadow: 0 0 12px #ccff66; color:#111;}
+    .brown { background: #996633; box-shadow: 0 0 12px #cc9966; }
+    .magenta { background: #ff00ff; box-shadow: 0 0 12px #ff66ff; }
+    .teal { background: #008080; box-shadow: 0 0 12px #33cccc; }
+    .coral { background: #ff7f50; box-shadow: 0 0 12px #ff9a7a; color:#111;}
+    .gold { background: #ffd700; box-shadow: 0 0 12px #fff066; color:#111;}
+    .indigo { background: #4b0082; box-shadow: 0 0 12px #7a4db8; }
+    .turquoise { background: #40e0d0; box-shadow: 0 0 12px #6ee4d9; color:#111;}
+
+    #scoreboard {
+      margin-top: 15px;
+      font-size: 1.15em;
+      user-select: none;
+      text-shadow: 0 0 5px #00fff7;
+      font-weight: 600;
+    }
+
+    #timerBar {
+      height: 10px;
+      width: 100%;
+      background: #222;
+      margin-top: 20px;
+      position: relative;
+      overflow: hidden;
+      border-radius: 6px;
+      user-select: none;
+      box-shadow: inset 0 0 5px #111;
+    }
+
+    #timerFill {
+      height: 100%;
+      width: 100%;
+      background: lime;
+      transition: width 0.1s linear;
+      user-select: none;
+      box-shadow: 0 0 12px lime;
+      border-radius: 6px;
+    }
+
+    #gameOverScreen {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.96);
+      color: #00ffff;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      text-align: center;
+      padding: 30px 20px;
+      user-select: none;
+      text-shadow:
+        0 0 10px #00ffff,
+        0 0 25px #00ffff;
+      font-weight: 700;
+      font-size: 1.25em;
+    }
+
+    /* Buttons styling */
+    button, .btn {
+      background: linear-gradient(145deg, #00e5ff, #00a8cc);
+      border: none;
+      border-radius: 16px;
+      padding: 14px 30px;
+      font-weight: 700;
+      font-size: 1.1em;
+      color: #002f3c;
+      cursor: pointer;
+      box-shadow:
+        0 0 15px #00e5ff,
+        0 0 35px #00a8cc;
+      user-select: none;
+      transition:
+        background-color 0.3s ease,
+        box-shadow 0.3s ease,
+        color 0.3s ease,
+        transform 0.3s ease;
+      display: inline-block;
+      text-decoration: none;
+      text-align: center;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      outline-offset: 3px;
+      outline-color: #00e5ff;
+      outline-style: solid;
+      outline-width: 0;
+      will-change: transform;
+    }
+
+    button:hover, .btn:hover {
+      animation: wiggle 0.5s ease-in-out;
+      background: linear-gradient(145deg, #00ffff, #008888);
+      color: #001e22;
+      box-shadow:
+        0 0 25px #00ffff,
+        0 0 50px #008888;
+      outline-width: 3px;
+      transform: scale(1.1);
+    }
+    button:focus, .btn:focus {
+      outline-width: 3px;
+      outline-color: #00ffff;
+    }
+    button:active, .btn:active {
+      animation: none;
+      transform: scale(0.97);
+      box-shadow:
+        0 0 10px #008888;
+      outline-width: 0;
+    }
+
+    #startScreen {
+      margin-top: 20px;
+      color: #00bcd4;
+      text-align: center;
+      font-weight: 600;
+      font-size: 1.15em;
+      user-select: none;
+    }
+
+    #exitBtn {
+      margin-top: 25px;
+      background: linear-gradient(145deg, #ff4444, #cc0000);
+      box-shadow:
+        0 0 15px #ff4444,
+        0 0 40px #cc0000;
+      color: white !important;
+      font-weight: 700;
+      border-radius: 18px;
+      padding: 14px 36px;
+      user-select: none;
+      display: inline-block;
+      text-decoration: none;
+      transition:
+        background-color 0.3s ease,
+        box-shadow 0.3s ease,
+        transform 0.3s ease;
+      will-change: transform;
+    }
+
+    #exitBtn:hover {
+      animation: wiggle 0.5s ease-in-out;
+      background: linear-gradient(145deg, #ff0000, #990000);
+      box-shadow:
+        0 0 30px #ff0000,
+        0 0 60px #990000;
+      transform: scale(1.12);
+      color: white !important;
+    }
+
+  </style>
+</head>
+<body>
+
+  <h1>🧠 Mind Maze: Pattern Panic 500 - Stroop Challenge + Glow & Shake</h1>
+
+  <div id="wallet" aria-live="polite" aria-atomic="true">Balance: $<span id="cash">0</span></div>
+  <div id="stats" aria-live="polite" aria-atomic="true">
+    Last Game: Level <span id="lastLevel">0</span>, Money Earned $<span id="lastMoney">0</span><br/>
+    Highest Level: <span id="highLevel">0</span>, Highest Money Earned: $<span id="highMoney">0</span>
+  </div>
+
+  <div id="gameContainer" style="display:none;">
+    <div id="instruction" aria-live="polite" aria-atomic="true" role="alert" aria-label="Game instruction">Tap the <strong>red</strong> tile!</div>
+    <div id="grid" role="grid" aria-label="Color selection grid" tabindex="0"></div>
+    <div id="timerBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" aria-label="Time remaining">
+      <div id="timerFill"></div>
+    </div>
+    <div id="scoreboard" aria-live="polite" aria-atomic="true">
+      Level: <span id="level">1</span> | Score: <span id="score">0</span>
+    </div>
+  </div>
+
+  <div id="startScreen" aria-label="Start menu">
+    <button id="startBtn" class="btn" aria-label="Start game, cost 10 dollars">Start Game (-$10)</button><br/>
+    <a id="exitBtn" href="../../TheMarkkade.io.html" aria-label="Exit game and return to The Markkade homepage">Exit</a>
+  </div>
+
+  <div id="gameOverScreen" role="dialog" aria-modal="true" aria-labelledby="gameOverTitle" aria-describedby="gameOverDesc">
+    <h2 id="gameOverTitle">💥 Game Over!</h2>
+    <p id="gameOverDesc">You reached Level <span id="finalLevel">0</span></p>
+    <p>Money earned this round: $<span id="finalMoney">0</span></p>
+    <button class="btn" id="restartBtn" aria-label="Play again, cost 10 dollars">Play Again (-$10)</button>
+    <a id="exitBtn" href="../../TheMarkkade.io.html" aria-label="Exit game and return to The Markkade homepage" style="margin-top: 10px; display: inline-block;">Exit</a>
+  </div>
+
+<script>
+  (() => {
+    // Elements
+    const grid = document.getElementById("grid");
+    const instruction = document.getElementById("instruction");
+    const timerFill = document.getElementById("timerFill");
+    const scoreEl = document.getElementById("score");
+    const levelEl = document.getElementById("level");
+    const cashDisplay = document.getElementById("cash");
+    const lastLevelEl = document.getElementById("lastLevel");
+    const lastMoneyEl = document.getElementById("lastMoney");
+    const highLevelEl = document.getElementById("highLevel");
+    const highMoneyEl = document.getElementById("highMoney");
+
+    const gameContainer = document.getElementById("gameContainer");
+    const gameOverScreen = document.getElementById("gameOverScreen");
+    const finalLevelEl = document.getElementById("finalLevel");
+    const finalMoneyEl = document.getElementById("finalMoney");
+    const startScreen = document.getElementById("startScreen");
+    const startBtn = document.getElementById("startBtn");
+    const restartBtn = document.getElementById("restartBtn");
+
+    // Config
+    const maxLevels = 500;
+    const baseCost = 10; // cost to start each game
+    const rewardPerCorrect = 1; // money gained per correct answer
+    const penaltyPerWrong = 3; // money lost per wrong answer
+
+    // Colors pool expanded
+    const colorsPoolFull = [
+      "red", "blue", "green", "yellow", "pink", "cyan", "orange", "purple",
+      "lime", "brown", "magenta", "teal", "coral", "gold", "indigo", "turquoise"
+    ];
+
+    // State
+    let playerCash = Number(localStorage.getItem("playerCash")) || 100;
+    let highLevel = Number(localStorage.getItem("mindMazeHighLevel")) || 0;
+    let highMoney = Number(localStorage.getItem("mindMazeHighMoney")) || 0;
+    let lastLevel = Number(localStorage.getItem("mindMazeLastLevel")) || 0;
+    let lastMoney = Number(localStorage.getItem("mindMazeLastMoney")) || 0;
+
+    let currentLevel = 1;
+    let score = 0;
+    let currentColorWord = "";
+    let displayedTextColor = "";
+    let timer;
+    let timeLeft = 3000; // initial timer length in ms
+    let gridSize = 3; // 3x3 grid
+
+    let colorsPool = []; // shuffled color pool per level
+
+    // Update UI stats
+    function updateStatsUI() {
+      cashDisplay.textContent = playerCash.toFixed(2);
+      lastLevelEl.textContent = lastLevel;
+      lastMoneyEl.textContent = lastMoney.toFixed(2);
+      highLevelEl.textContent = highLevel;
+      highMoneyEl.textContent = highMoney.toFixed(2);
+    }
+
+    // Save stats to localStorage
+    function saveStats() {
+      localStorage.setItem("playerCash", playerCash.toFixed(2));
+      localStorage.setItem("mindMazeHighLevel", highLevel);
+      localStorage.setItem("mindMazeHighMoney", highMoney.toFixed(2));
+      localStorage.setItem("mindMazeLastLevel", currentLevel - 1);
+      localStorage.setItem("mindMazeLastMoney", playerCash - startingCash);
+    }
+
+    // Shuffle an array (Fisher-Yates)
+    function shuffleArray(array) {
+      let arr = array.slice();
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    // Pick subset and shuffle for current level
+    function prepareColorsPool(level) {
+      // Increase colors count with level, min 5, max all 16
+      const count = Math.min(colorsPoolFull.length, 5 + Math.floor(level / 30));
+      const subset = colorsPoolFull.slice(0, count);
+      return shuffleArray(subset);
+    }
+
+    // Pick the word and display color
+    function pickColors(level) {
+      colorsPool = prepareColorsPool(level);
+      const word = colorsPool[Math.floor(Math.random() * colorsPool.length)];
+      // Choose a different color for text color, forcing challenge
+      let textColor;
+      do {
+        textColor = colorsPool[Math.floor(Math.random() * colorsPool.length)];
+      } while (textColor === word);
+      return { word, textColor };
+    }
+
+    // Render the grid with tiles
+    function renderGrid(correctColor) {
+      grid.innerHTML = "";
+      grid.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+      const totalTiles = gridSize * gridSize;
+      const correctIndex = Math.floor(Math.random() * totalTiles);
+
+      for (let i = 0; i < totalTiles; i++) {
+        const tile = document.createElement("div");
+        tile.classList.add("tile");
+        tile.style.fontSize = "2em";
+        tile.style.padding = "18px 0";
+        if (i === correctIndex) {
+          tile.classList.add(correctColor);
+          tile.dataset.color = correctColor;
+        } else {
+          // Pick a random color different from correctColor
+          let c;
+          do {
+            c = colorsPool[Math.floor(Math.random() * colorsPool.length)];
+          } while (c === correctColor);
+          tile.classList.add(c);
+          tile.dataset.color = c;
+        }
+        tile.onclick = () => onTileClick(tile.dataset.color);
+        grid.appendChild(tile);
+      }
+    }
+
+    // Timer bar animation & logic
+    function startTimer() {
+      clearInterval(timer);
+      let startTime = Date.now();
+      const duration = timeLeft;
+      timerFill.style.width = "100%";
+      timerFill.style.backgroundColor = "lime";
+
+      timer = setInterval(() => {
+        let elapsed = Date.now() - startTime;
+        let remainingPercent = Math.max(0, 1 - elapsed / duration);
+        timerFill.style.width = (remainingPercent * 100) + "%";
+        timerFill.setAttribute("aria-valuenow", (remainingPercent * 100).toFixed(0));
+        if (remainingPercent < 0.3) {
+          timerFill.style.backgroundColor = `rgb(${Math.floor(255 * (1 - remainingPercent))}, 0, 0)`;
+          timerFill.style.boxShadow = `0 0 20px rgb(${Math.floor(255 * (1 - remainingPercent))}, 0, 0)`;
+        } else {
+          timerFill.style.backgroundColor = "lime";
+          timerFill.style.boxShadow = "0 0 12px lime";
+        }
+        if (remainingPercent <= 0) {
+          clearInterval(timer);
+          onTimeout();
+        }
+      }, 20);
+    }
+
+    // Handle tile click
+    function onTileClick(colorClicked) {
+      if (colorClicked === currentColorWord) {
+        score++;
+        playerCash += rewardPerCorrect;
+        currentLevel++;
+        // Increase grid size every 50 levels (up to 6x6)
+        if (currentLevel % 50 === 0 && gridSize < 6) {
+          gridSize++;
+        }
+        if (currentLevel > maxLevels) {
+          endGame(true);
+          return;
+        }
+        // Speed up timer gradually but minimum 1 sec
+        timeLeft = Math.max(1000, 3000 - currentLevel * 30);
+        updateLevelScore();
+        renderNextRound();
+      } else {
+        playerCash -= penaltyPerWrong;
+        if (playerCash <= 0) {
+          playerCash = 0;
+          updateLevelScore();
+          endGame(false);
+        } else {
+          updateLevelScore();
+          // Reduce time for wrong answer, harder
+          timeLeft = Math.max(1000, timeLeft * 0.75);
+          renderNextRound();
+        }
+      }
+      updateStatsUI();
+    }
+
+    // Timeout handler
+    function onTimeout() {
+      playerCash -= penaltyPerWrong;
+      if (playerCash <= 0) {
+        playerCash = 0;
+        updateLevelScore();
+        endGame(false);
+      } else {
+        updateLevelScore();
+        // Reduce time on timeout too, but less severe than wrong click
+        timeLeft = Math.max(1000, timeLeft * 0.85);
+        renderNextRound();
+      }
+      updateStatsUI();
+    }
+
+    // Update level and score displays
+    function updateLevelScore() {
+      levelEl.textContent = currentLevel;
+      scoreEl.textContent = score;
+      cashDisplay.textContent = playerCash.toFixed(2);
+    }
+
+    // Show next round instructions and grid
+    function renderNextRound() {
+      clearInterval(timer);
+      const picked = pickColors(currentLevel);
+      currentColorWord = picked.word;
+      displayedTextColor = picked.textColor;
+      instruction.innerHTML = `Tap the <strong style="color:${displayedTextColor}">${currentColorWord}</strong> tile!`;
+      renderGrid(currentColorWord);
+      startTimer();
+    }
+
+    // Start game handler
+    let startingCash = playerCash;
+    function startGame() {
+      if (playerCash < baseCost) {
+        alert("You need at least $" + baseCost + " to start the game.");
+        return;
+      }
+      playerCash -= baseCost;
+      startingCash = playerCash;
+      currentLevel = 1;
+      score = 0;
+      timeLeft = 3000;
+      gridSize = 3;
+      updateStatsUI();
+      updateLevelScore();
+
+      startScreen.style.display = "none";
+      gameOverScreen.style.display = "none";
+      gameContainer.style.display = "block";
+
+      renderNextRound();
+    }
+
+    // End game handler
+    function endGame(won = false) {
+      clearInterval(timer);
+      gameContainer.style.display = "none";
+      gameOverScreen.style.display = "flex";
+      finalLevelEl.textContent = currentLevel > maxLevels ? maxLevels : currentLevel - 1;
+      finalMoneyEl.textContent = (playerCash - startingCash).toFixed(2);
+
+      lastLevel = currentLevel > maxLevels ? maxLevels : currentLevel - 1;
+      lastMoney = (playerCash - startingCash);
+
+      if (lastLevel > highLevel) highLevel = lastLevel;
+      if (lastMoney > highMoney) highMoney = lastMoney;
+
+      saveStats();
+      updateStatsUI();
+    }
+
+    // Init UI with saved stats
+    function init() {
+      updateStatsUI();
+      startScreen.style.display = "block";
+      gameContainer.style.display = "none";
+      gameOverScreen.style.display = "none";
+    }
+
+    startBtn.onclick = startGame;
+    restartBtn.onclick = startGame;
+
+    window.onload = init;
+
+  })();
+</script>
+
+</body>
+</html>
