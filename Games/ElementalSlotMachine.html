@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Elemental Slot Machine</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: radial-gradient(circle, #111 0%, #000 100%);
+      color: white;
+      overflow-x: hidden;
+    }
+    h1, h2 {
+      text-align: center;
+      text-shadow: 0 0 10px #fff;
+    }
+    .container {
+      padding: 10px;
+      max-width: 800px;
+      margin: auto;
+      text-align: center;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin: 20px auto;
+      max-width: 400px;
+    }
+    .cell {
+      font-size: 2.5rem;
+      padding: 20px;
+      background: #222;
+      border-radius: 12px;
+      box-shadow: 0 0 10px #555;
+      transition: all 0.3s;
+      user-select: none;
+    }
+    .cell.glow { box-shadow: 0 0 25px #0ff; }
+    .cell.win { box-shadow: 0 0 25px #0f0, 0 0 10px #0f0 inset; background: #2a2; }
+
+    .controls {
+      margin-top: 20px;
+    }
+    button, select {
+      padding: 10px 15px;
+      margin: 5px;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #444;
+    }
+    .paytable, .info {
+      background: rgba(255,255,255,0.05);
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+    #confetti {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1000;
+      font-size: 2rem;
+      display: none;
+    }
+    .balance {
+      margin-top: 10px;
+      font-size: 1.2rem;
+    }
+    #spinResultPopup {
+      margin-top: 10px;
+      background: rgba(0,0,0,0.6);
+      border-radius: 8px;
+      padding: 10px;
+      font-weight: bold;
+      font-size: 1.2rem;
+      color: #0f0;
+      min-height: 30px;
+      user-select: none;
+    }
+    .exit-link {
+      display: inline-block;
+      margin-top: 15px;
+      font-weight: bold;
+      color: #0ff;
+    }
+    canvas#emojiParticles {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="emojiParticles"></canvas>
+  <audio id="bgMusic" src="background.mp3" autoplay loop></audio>
+  <div class="container">
+    <h1>🌟 Elemental Slot Machine 🌟</h1>
+
+    <div class="balance">
+      Markka$h: <span id="playerCash">$0</span><br />
+      Jackpot Pool: <span id="jackpotPool">$0</span>
+    </div>
+
+    <div id="spinResultPopup"></div>
+
+    <div class="grid" id="slotGrid"></div>
+
+    <div class="controls">
+      Bet: $
+      <select id="betSelect"></select>
+      <button id="spinBtn">🎰 Spin</button>
+      <button id="claimRewardBtn">💰 Claim Daily Reward</button>
+    </div>
+
+    <div class="paytable">
+      <h2>📜 Paytable</h2>
+      <p>3 🔥 = 2× bet<br>3 💦 = 3× bet<br>3 🍃 = 4× bet<br>3 💨 = 5× bet</p>
+      <p><strong>💥 JACKPOT:</strong> All 4 rows each exactly one full elemental line: 🔥🔥🔥🔥, 💦💦💦💦, 🍃🍃🍃🍃, 💨💨💨💨 (in any order) pays entire Jackpot Pool!</p>
+      <p><em>Good luck! Jackpot triggers approx every 100-150 spins.</em></p>
+    </div>
+
+    <a class="exit-link" href="../TheMarkkade.io-GameShop.html">⬅️ Exit to Home</a>
+
+    <div id="confetti">🎉🎉🎉</div>
+  </div>
+
+  <audio id="spinSound" src="spin.mp3"></audio>
+  <audio id="winSound" src="win.mp3"></audio>
+  <audio id="jackpotSound" src="jackpot.mp3"></audio>
+
+  <script>
+    const symbols = ['💦', '🔥', '🍃', '💨'];
+    const payouts = { '🔥': 2, '💦': 3, '🍃': 4, '💨': 5 };
+    const grid = document.getElementById('slotGrid');
+    const spinBtn = document.getElementById('spinBtn');
+    const betSelect = document.getElementById('betSelect');
+    const playerCashDisplay = document.getElementById('playerCash');
+    const jackpotPoolDisplay = document.getElementById('jackpotPool');
+    const spinResultPopup = document.getElementById('spinResultPopup');
+    const confetti = document.getElementById('confetti');
+    const spinSound = document.getElementById('spinSound');
+    const winSound = document.getElementById('winSound');
+    const jackpotSound = document.getElementById('jackpotSound');
+    const claimRewardBtn = document.getElementById('claimRewardBtn');
+
+    // Spin counter & forced jackpot trigger range
+    let spinCount = parseInt(localStorage.spinCount || '0', 10);
+    if (isNaN(spinCount)) spinCount = 0;
+    // Random forced jackpot spin between 100 and 150 spins (saved to persist)
+    let forcedJackpotSpin = parseInt(localStorage.forcedJackpotSpin || '0', 10);
+    if (isNaN(forcedJackpotSpin) || forcedJackpotSpin < spinCount) {
+      forcedJackpotSpin = spinCount + 100 + Math.floor(Math.random() * 51);
+      localStorage.forcedJackpotSpin = forcedJackpotSpin;
+    }
+
+    for (let i = 1; i <= 100; i++) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = `$${i}`;
+      betSelect.appendChild(opt);
+    }
+
+    let playerCash = parseInt(localStorage.playerCash || '1000', 10);
+    if (isNaN(playerCash)) playerCash = 0;
+    let jackpotPool = parseInt(localStorage.jackpotPool || '0', 10);
+    if (isNaN(jackpotPool)) jackpotPool = 0;
+    let lastRewardTime = parseInt(localStorage.lastRewardTime || '0', 10);
+    if (isNaN(lastRewardTime)) lastRewardTime = 0;
+
+    function updateUI() {
+      playerCashDisplay.textContent = `$${playerCash}`;
+      jackpotPoolDisplay.textContent = `$${jackpotPool}`;
+      localStorage.playerCash = playerCash;
+      localStorage.jackpotPool = jackpotPool;
+      localStorage.spinCount = spinCount;
+      localStorage.forcedJackpotSpin = forcedJackpotSpin;
+    }
+
+    // Random with weighted probabilities to make wins harder:
+    // Assign weights so some symbols are rarer
+    // (Reduce chance of same symbol repeating)
+    const weightedSymbols = [
+      { symbol: '🔥', weight: 25 },
+      { symbol: '💦', weight: 25 },
+      { symbol: '🍃', weight: 20 },
+      { symbol: '💨', weight: 15 },
+   //   { symbol: '🌟', weight: 15 }, // add rare symbol that never counts as win, to add difficulty
+    ];
+
+    function getRandomSymbol() {
+      const totalWeight = weightedSymbols.reduce((sum, s) => sum + s.weight, 0);
+      let rand = Math.random() * totalWeight;
+      for (const s of weightedSymbols) {
+        if (rand < s.weight) return s.symbol;
+        rand -= s.weight;
+      }
+      return weightedSymbols[0].symbol;
+    }
+
+    function generateGrid(forcedJackpot = false) {
+      grid.innerHTML = '';
+      const matrix = [];
+
+      if (forcedJackpot) {
+        // Arrange jackpot pattern with 4 rows all different elemental lines in random order
+        // Shuffle symbols for rows
+        const jackpotRows = ['🔥', '💦', '🍃', '💨'].sort(() => Math.random() - 0.5);
+        for (let i = 0; i < 4; i++) {
+          const row = [];
+          for (let j = 0; j < 4; j++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell win';
+            cell.textContent = jackpotRows[i];
+            row.push({ emoji: jackpotRows[i], cell });
+            grid.appendChild(cell);
+          }
+          matrix.push(row);
+        }
+      } else {
+        for (let i = 0; i < 4; i++) {
+          const row = [];
+          for (let j = 0; j < 4; j++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            const emoji = getRandomSymbol();
+            cell.textContent = emoji;
+            row.push({ emoji, cell });
+            grid.appendChild(cell);
+          }
+          matrix.push(row);
+        }
+      }
+
+      return matrix;
+    }
+
+    function highlightWinningCells(cells) {
+      cells.forEach(({ cell }) => cell.classList.add('win'));
+    }
+
+    function checkSequence(arr, bet) {
+      let winAmount = 0;
+      let winningCells = [];
+
+      for (let start = 0; start <= arr.length - 3; start++) {
+        const triple = arr.slice(start, start + 3);
+        if (new Set(triple.map(c => c.emoji)).size === 1) {
+          winningCells = winningCells.concat(triple);
+          // Ignore wins from 🌟 symbol (never payout)
+          if (triple[0].emoji !== '🌟') {
+            winAmount += payouts[triple[0].emoji] * bet;
+          }
+        }
+      }
+      return { winAmount, winningCells };
+    }
+
+    function checkPayout(matrix, bet) {
+      let totalWin = 0;
+      let jackpotWon = false;
+
+      // Collect symbols of full 4-in-a-row rows
+      const fullRowsSymbols = [];
+
+      for (let i = 0; i < 4; i++) {
+        const row = matrix[i];
+        const firstSymbol = row[0].emoji;
+        if (row.every(c => c.emoji === firstSymbol) && firstSymbol !== '🌟') {
+          fullRowsSymbols.push(firstSymbol);
+          highlightWinningCells(row);
+        }
+      }
+
+      // Jackpot if fullRowsSymbols contain all four elements exactly once
+      const jackpotSet = new Set(['🔥', '💦', '🍃', '💨']);
+      const fullRowsSet = new Set(fullRowsSymbols);
+
+      if (fullRowsSet.size === 4 && [...fullRowsSet].every(s => jackpotSet.has(s))) {
+        jackpotWon = true;
+      }
+
+      if (!jackpotWon) {
+        // Check rows for 3-in-a-row (only triples, not quadruple rows already counted)
+        for (let i = 0; i < 4; i++) {
+          const seqResult = checkSequence(matrix[i], bet);
+          if (seqResult.winAmount > 0) totalWin += seqResult.winAmount;
+          highlightWinningCells(seqResult.winningCells);
+        }
+
+        // Check columns for 3-in-a-row
+        for (let j = 0; j < 4; j++) {
+          const col = [matrix[0][j], matrix[1][j], matrix[2][j], matrix[3][j]];
+          const seqResult = checkSequence(col, bet);
+          if (seqResult.winAmount > 0) totalWin += seqResult.winAmount;
+          highlightWinningCells(seqResult.winningCells);
+        }
+
+        // Check diagonals for 3-in-a-row
+        const diag1 = [matrix[0][0], matrix[1][1], matrix[2][2], matrix[3][3]];
+        const diag2 = [matrix[0][3], matrix[1][2], matrix[2][1], matrix[3][0]];
+        [diag1, diag2].forEach(diag => {
+          const seqResult = checkSequence(diag, bet);
+          if (seqResult.winAmount > 0) totalWin += seqResult.winAmount;
+          highlightWinningCells(seqResult.winningCells);
+        });
+      }
+
+      if (jackpotWon) {
+        totalWin += jackpotPool;
+        jackpotPool = 0;
+        confetti.style.display = 'block';
+        setTimeout(() => confetti.style.display = 'none', 3000);
+        playSound(jackpotSound);
+      } else if (totalWin > 0) {
+        jackpotPool += totalWin;
+        playSound(winSound);
+      }
+
+      return { totalWin, jackpotWon };
+    }
+
+    function playSound(audio) {
+      audio.currentTime = 0;
+      audio.play();
+    }
+
+    function animateSpin(callback) {
+      const cells = [...document.querySelectorAll('.cell')];
+      let spins = Math.floor(Math.random() * 30 + 20);
+      let interval = setInterval(() => {
+        cells.forEach(cell => {
+          cell.textContent = getRandomSymbol();
+          cell.classList.remove('win');
+        });
+        spins--;
+        if (spins <= 0) {
+          clearInterval(interval);
+          callback();
+        }
+      }, 100);
+    }
+
+    spinBtn.onclick = () => {
+      const bet = parseInt(betSelect.value, 10);
+      if (playerCash < bet) {
+        alert("Not enough Markka$h!");
+        return;
+      }
+
+      playerCash -= bet;
+      jackpotPool += bet;
+
+      spinCount++;
+      updateUI();
+
+      playSound(spinSound);
+
+      // Check if forced jackpot spin
+      const forcedJackpot = spinCount >= forcedJackpotSpin;
+
+      if (forcedJackpot) {
+        spinCount = 0;
+        forcedJackpotSpin = spinCount + 100 + Math.floor(Math.random() * 51);
+        updateUI();
+      }
+
+      animateSpin(() => {
+        const result = generateGrid(forcedJackpot);
+        const { totalWin, jackpotWon } = checkPayout(result, bet);
+        playerCash += totalWin;
+        updateUI();
+
+        if (jackpotWon) {
+          spinResultPopup.style.color = '#0f0';
+          spinResultPopup.textContent = `🎉 JACKPOT! You won $${totalWin}!`;
+        } else if (totalWin > 0) {
+          spinResultPopup.style.color = '#0f0';
+          spinResultPopup.textContent = `You won $${totalWin}! 🎉`;
+        } else {
+          spinResultPopup.style.color = '#f44';
+          spinResultPopup.textContent = "No win, try again!";
+        }
+      });
+    };
+
+    claimRewardBtn.onclick = () => {
+      const now = Date.now();
+      if (now - lastRewardTime > 86400000) {
+        playerCash += 100;
+        lastRewardTime = now;
+        localStorage.playerCash = playerCash;
+        localStorage.lastRewardTime = lastRewardTime;
+        updateUI();
+        alert("You've claimed your daily $100 Markka$h!");
+      } else {
+        let left = Math.ceil((86400000 - (now - lastRewardTime)) / 3600000);
+        alert(`Come back in ${left}h for your next reward.`);
+      }
+    };
+
+    function launchEmojiParticles() {
+      const canvas = document.getElementById('emojiParticles');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const particles = Array.from({ length: 60 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 15 + 15,
+        s: symbols[Math.floor(Math.random() * symbols.length)],
+        v: Math.random() * 1 + 0.5
+      }));
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.font = "30px serif";
+        particles.forEach(p => {
+          ctx.fillText(p.s, p.x, p.y);
+          p.y += p.v;
+          if (p.y > canvas.height) p.y = 0;
+        });
+        requestAnimationFrame(draw);
+      }
+      draw();
+    }
+
+    window.onload = () => {
+      generateGrid();
+      updateUI();
+      launchEmojiParticles();
+      spinResultPopup.textContent = "";
+    };
+  </script>
+</body>
+</html>

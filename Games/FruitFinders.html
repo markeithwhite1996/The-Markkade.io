@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FruitFinders - Retro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      font-family: 'Press Start 2P', cursive;
+      background: radial-gradient(circle at center, #150b30 0%, #0a061a 100%);
+      color: #fff;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.02),
+        rgba(255, 255, 255, 0.02) 1px,
+        transparent 1px,
+        transparent 2px
+      );
+      pointer-events: none;
+      z-index: 1000;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      color: #ffe600;
+      text-shadow: 0 0 10px #ff0, 0 0 30px #f0f;
+      margin: 20px 0 10px;
+    }
+    .game-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px;
+      max-width: 650px;
+      margin: 0 auto;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+      gap: 10px;
+      width: 100%;
+      user-select: none;
+      margin-top: 10px;
+    }
+    .cell {
+      background: rgba(255,255,255,0.15);
+      border-radius: 15px;
+      border: 2px solid rgba(255,255,255,0.3);
+      font-size: 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 0 10px #0ff8;
+      transition: transform 0.2s, box-shadow 0.3s;
+      cursor: pointer;
+      user-select: none;
+    }
+    .cell.correct {
+      box-shadow: 0 0 25px #0ff, 0 0 50px #0ff;
+      transform: scale(1.2);
+      cursor: default;
+    }
+    .cell:hover:not(.correct) {
+      transform: scale(1.1);
+      box-shadow: 0 0 20px #0ff;
+    }
+    .info {
+      font-size: 0.8rem;
+      margin: 10px 0 0;
+      color: #0ff;
+      text-shadow: 0 0 5px #0ff;
+      font-family: monospace;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    button, a.button-link {
+      background: #ff3cac;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-size: 0.8rem;
+      padding: 10px 15px;
+      cursor: pointer;
+      box-shadow: 0 0 10px #f0f;
+      font-family: 'Press Start 2P', cursive;
+      text-decoration: none;
+      user-select: none;
+      transition: background-color 0.3s ease;
+    }
+    button:hover, a.button-link:hover {
+      background: #ff69b4;
+    }
+    #message {
+      font-size: 1rem;
+      margin-top: 10px;
+      color: #ffe600;
+      text-shadow: 0 0 10px #ff0, 0 0 20px #f0f;
+      text-align: center;
+      min-height: 1.5em;
+      user-select: none;
+    }
+    #timerBar {
+      position: relative;
+      width: 100%;
+      max-width: 600px;
+      height: 20px;
+      background: rgba(0,255,255,0.1);
+      border: 2px solid #0ff;
+      border-radius: 12px;
+      box-shadow:
+        inset 0 0 14px #0ff,
+        0 0 18px #0ff;
+      overflow: hidden;
+      margin: 15px 0 20px;
+      user-select: none;
+    }
+    #timerProgress {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #0ff 0%, #07c 70%, #0ff 100%);
+      transition: width linear;
+    }
+    #timerText {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'Press Start 2P', cursive;
+      color: #0ff;
+      text-shadow:
+        0 0 6px #0ff,
+        0 0 10px #0ff;
+      pointer-events: none;
+      user-select: none;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    /* Glow pulse near timer end */
+    @keyframes pulseGlow {
+      0%, 100% {
+        box-shadow: 0 0 20px #ff0, 0 0 40px #ff0;
+      }
+      50% {
+        box-shadow: 0 0 10px #ff0, 0 0 20px #ff0;
+      }
+    }
+    #timerBar.pulse {
+      animation: pulseGlow 1s infinite;
+    }
+    /* Flash screen on loss */
+    @keyframes flashRed {
+      0%, 100% { background-color: transparent; }
+      50% { background-color: rgba(255,0,0,0.3); }
+    }
+    body.flash {
+      animation: flashRed 0.6s;
+    }
+    /* Level up splash */
+    #levelUpSplash {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      background: #0ff;
+      color: #000;
+      padding: 30px 50px;
+      font-family: 'Press Start 2P', cursive;
+      font-size: 2rem;
+      font-weight: 700;
+      border-radius: 15px;
+      box-shadow: 0 0 50px #0ff;
+      z-index: 10000;
+      user-select: none;
+      pointer-events: none;
+      transition: transform 0.5s ease;
+    }
+    #levelUpSplash.show {
+      transform: translate(-50%, -50%) scale(1);
+      pointer-events: auto;
+    }
+    /* Floating emojis */
+    #emojiParticles {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      z-index: 0;
+      user-select: none;
+      overflow: hidden;
+    }
+    .floatingEmoji {
+      position: absolute;
+      font-size: 1.5rem;
+      opacity: 0.15;
+      filter: drop-shadow(0 0 1px #0ff);
+      user-select: none;
+      will-change: transform;
+    }
+  </style>
+</head>
+<body>
+  <h1>FruitFinders</h1>
+  <div class="game-container" role="main" aria-label="FruitFinders game">
+    <div class="info" aria-live="polite" aria-atomic="true">
+      Level: <span id="level">1</span> | Reward: $<span id="reward">1.00</span> | Balance: $<span id="balance">0.00</span>
+    </div>
+    <div id="timerBar" aria-label="Timer progress bar" role="progressbar" aria-valuemin="0" aria-valuemax="10" aria-valuenow="10">
+      <div id="timerProgress"></div>
+      <div id="timerText">0.0</div>
+    </div>
+    <div class="grid" id="grid" aria-live="polite" aria-atomic="true"></div>
+    <div id="message" aria-live="assertive" aria-atomic="true"></div>
+    <div class="controls">
+      <button id="startBtn" aria-label="Start Game">Start Game</button>
+      <button id="retryBtn" style="display:none" aria-label="Retry Level">Retry Level</button>
+      <button id="resetBtn" style="display:none" aria-label="Back to Level 1">Back to Level 1</button>
+      <a href="../TheMarkkade.io-GameShop.html" class="button-link" aria-label="Return Home">Home</a>
+    </div>
+  </div>
+  <div id="levelUpSplash" role="alert" aria-live="assertive" aria-atomic="true">Level Up!</div>
+  <div id="emojiParticles"></div>
+
+  <audio id="successSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg" preload="auto"></audio>
+  <audio id="failSound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" preload="auto"></audio>
+
+  <script>
+    const fruits = ["🍎", "🍌", "🍒", "🍇", "🍉", "🍍", "🥝", "🍑", "🍓", "🍊", "🥭", "🍐"];
+    const maxLevel = 100;
+    let level = 1;
+    let reward = 1;
+    let balance = parseFloat(localStorage.getItem("playerCash")) || 0;
+    let correctIndex = -1;
+    let hasGuessedCorrectly = false;
+    let timeOutHandle = null;
+    let timerInterval = null;
+
+    const levelSpan = document.getElementById("level");
+    const rewardSpan = document.getElementById("reward");
+    const balanceSpan = document.getElementById("balance");
+    const grid = document.getElementById("grid");
+    const message = document.getElementById("message");
+    const startBtn = document.getElementById("startBtn");
+    const retryBtn = document.getElementById("retryBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const timerProgress = document.getElementById("timerProgress");
+    const timerText = document.getElementById("timerText");
+    const timerBar = document.getElementById("timerBar");
+    const successSound = document.getElementById("successSound");
+    const failSound = document.getElementById("failSound");
+    const levelUpSplash = document.getElementById("levelUpSplash");
+
+    // Timing durations in milliseconds
+    const memorizeDuration = 7000;
+    const timerDuration = 10000;
+
+    function updateUI() {
+      levelSpan.textContent = level;
+      rewardSpan.textContent = reward.toFixed(2);
+      balanceSpan.textContent = balance.toFixed(2);
+      localStorage.setItem("playerCash", balance.toFixed(2));
+    }
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    }
+
+    function generateEmojis(count) {
+      // Generate 'count' unique emojis + 1 odd emoji (different)
+      const used = [];
+      while (used.length < count) {
+        let candidate = fruits[Math.floor(Math.random() * fruits.length)];
+        if (!used.includes(candidate)) used.push(candidate);
+      }
+      let oddEmoji;
+      do {
+        oddEmoji = fruits[Math.floor(Math.random() * fruits.length)];
+      } while (used.includes(oddEmoji));
+      // Compose final array with oddEmoji included once
+      const finalArray = [...used];
+      finalArray.push(oddEmoji);
+      shuffle(finalArray);
+      return {finalArray, oddEmoji};
+    }
+
+    function startTimer(duration) {
+      clearInterval(timerInterval);
+      timerProgress.style.transition = "none";
+      timerProgress.style.width = "100%";
+      timerText.textContent = (duration / 1000).toFixed(1);
+      timerBar.classList.remove("pulse");
+      timerBar.setAttribute("aria-valuemax", duration / 1000);
+      timerBar.setAttribute("aria-valuenow", duration / 1000);
+
+      let startTime = Date.now();
+
+      setTimeout(() => {
+        timerProgress.style.transition = `width ${duration}ms linear`;
+        timerProgress.style.width = "0%";
+      }, 50);
+
+      timerInterval = setInterval(() => {
+        let elapsed = Date.now() - startTime;
+        let remaining = duration - elapsed;
+        if (remaining < 0) remaining = 0;
+        timerText.textContent = (remaining / 1000).toFixed(1);
+        timerBar.setAttribute("aria-valuenow", (remaining / 1000).toFixed(1));
+
+        // Color gradient cyan → yellow → red
+        let progress = remaining / duration;
+        if (progress > 0.5) {
+          let p = (progress - 0.5) * 2;
+          timerProgress.style.background = `linear-gradient(90deg,
+            rgba(0,255,255,${p}) 0%,
+            rgba(255,255,0,${p}) 70%,
+            rgba(0,255,255,${p}) 100%)`;
+        } else {
+          let p = progress * 2;
+          timerProgress.style.background = `linear-gradient(90deg,
+            rgba(255,255,0,${p}) 0%,
+            rgba(255,0,0,${p}) 70%,
+            rgba(255,255,0,${p}) 100%)`;
+        }
+
+        if (remaining <= 2000) {
+          timerBar.classList.add("pulse");
+        }
+
+        if (remaining <= 0) {
+          clearInterval(timerInterval);
+          timerBar.classList.remove("pulse");
+        }
+      }, 100);
+    }
+
+    function flashLoss() {
+      document.body.classList.add("flash");
+      setTimeout(() => document.body.classList.remove("flash"), 600);
+    }
+
+    function showLevelUpSplash() {
+      levelUpSplash.classList.add("show");
+      setTimeout(() => {
+        levelUpSplash.classList.remove("show");
+      }, 1800);
+    }
+
+    function startLevel() {
+      hasGuessedCorrectly = false;
+      message.textContent = "Memorize the emojis...";
+      retryBtn.style.display = "none";
+      resetBtn.style.display = "none";
+      startBtn.style.display = "none";
+
+      // Clear previous timer if any
+      clearTimeout(timeOutHandle);
+      clearInterval(timerInterval);
+      timerBar.classList.remove("pulse");
+
+      const count = Math.min(level + 2, fruits.length); // max unique fruits used
+      const {finalArray, oddEmoji} = generateEmojis(count);
+      correctIndex = finalArray.indexOf(oddEmoji);
+
+      // Show all emojis as memorization phase, no duplicates
+      grid.innerHTML = "";
+      finalArray.forEach(fruit => {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        cell.textContent = fruit;
+        cell.style.cursor = "default";
+        grid.appendChild(cell);
+      });
+
+      startTimer(memorizeDuration);
+
+      timeOutHandle = setTimeout(() => {
+        message.textContent = "Find the odd emoji!";
+        grid.innerHTML = "";
+        const shuffled = finalArray.slice();
+        shuffle(shuffled);
+        shuffled.forEach((fruit, idx) => {
+          const cell = document.createElement("div");
+          cell.className = "cell";
+          cell.textContent = fruit;
+          cell.style.cursor = "pointer";
+          cell.onclick = () => {
+            if (hasGuessedCorrectly) return;
+            if (fruit === oddEmoji) {
+              cell.classList.add("correct");
+              successSound.play();
+              message.textContent = `Correct! +$${reward.toFixed(2)}`;
+              balance += reward;
+              reward *= 2;
+              level++;
+              updateUI();
+              hasGuessedCorrectly = true;
+              if (level % 10 === 0) {
+                showLevelUpSplash();
+              }
+              if (level > maxLevel) {
+                message.textContent = "🎉 You beat all 100 levels! Game complete!";
+                startBtn.style.display = "inline-block";
+                retryBtn.style.display = "none";
+                resetBtn.style.display = "inline-block";
+                clearInterval(timerInterval);
+                timerBar.style.width = "100%";
+                timerText.textContent = "0.0";
+                return;
+              }
+              clearTimeout(timeOutHandle);
+              clearInterval(timerInterval);
+              setTimeout(startLevel, 2500);
+            } else {
+              failSound.play();
+              flashLoss();
+              message.textContent = "Wrong! Try again.";
+            }
+          };
+          grid.appendChild(cell);
+        });
+
+        startTimer(timerDuration);
+
+        timeOutHandle = setTimeout(() => {
+          if (!hasGuessedCorrectly) {
+            message.textContent = `Time's up! -$${reward.toFixed(2)}`;
+            balance = Math.max(0, balance - reward);
+            updateUI();
+            retryBtn.style.display = "inline-block";
+            resetBtn.style.display = "inline-block";
+          }
+        }, timerDuration);
+      }, memorizeDuration);
+
+      updateUI();
+    }
+
+    startBtn.onclick = () => {
+      startLevel();
+    };
+
+    retryBtn.onclick = () => {
+      retryBtn.style.display = "none";
+      resetBtn.style.display = "none";
+      startLevel();
+    };
+
+    resetBtn.onclick = () => {
+      level = 1;
+      reward = 1;
+      retryBtn.style.display = "none";
+      resetBtn.style.display = "none";
+      startLevel();
+    };
+
+    updateUI();
+
+    // Floating emoji particles background effect for mobile-game vibe
+    const emojiParticlesContainer = document.getElementById("emojiParticles");
+    const floatingEmojis = [];
+    const maxParticles = 20;
+
+    function createFloatingEmoji() {
+      const emoji = fruits[Math.floor(Math.random() * fruits.length)];
+      const el = document.createElement("div");
+      el.textContent = emoji;
+      el.className = "floatingEmoji";
+      el.style.top = `${Math.random() * 100}vh`;
+      el.style.left = `${Math.random() * 100}vw`;
+      el.style.fontSize = `${12 + Math.random() * 18}px`;
+      emojiParticlesContainer.appendChild(el);
+      return {el, speedX: (Math.random() - 0.5) * 0.3, speedY: (Math.random() - 0.5) * 0.3};
+    }
+
+    for (let i = 0; i < maxParticles; i++) {
+      floatingEmojis.push(createFloatingEmoji());
+    }
+
+    function animateFloatingEmojis() {
+      floatingEmojis.forEach(obj => {
+        let top = parseFloat(obj.el.style.top);
+        let left = parseFloat(obj.el.style.left);
+        top += obj.speedY;
+        left += obj.speedX;
+
+        if (top > 100) top = 0;
+        if (top < 0) top = 100;
+        if (left > 100) left = 0;
+        if (left < 0) left = 100;
+
+        obj.el.style.top = `${top}vh`;
+        obj.el.style.left = `${left}vw`;
+      });
+      requestAnimationFrame(animateFloatingEmojis);
+    }
+    animateFloatingEmojis();
+  </script>
+</body>
+</html>
