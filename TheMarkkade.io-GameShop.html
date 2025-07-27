@@ -129,6 +129,12 @@
   content: '🔗'; /* only downloaded (unlikely case) */
 }
 
+.game-card.beta {
+  color: yellow !important;
+  font-weight: bold;
+}
+
+
   .sidebar, .cartbar {
     position: fixed;
     top: 0;
@@ -467,7 +473,25 @@ card.textContent = `${game.working ? '🟢' : '🔴'} ${game.title}`;
     {id:'TrUtHoRlIe', title:'TrUtHoRlIe', path:'Games/TrUtHoRlIe/TrUtHoRlIe.html', category:'Trivia', description:'Truth or lie guessing game.', price: 400,  working: true },
     {id:'WordSearch', title:'Word Search', path:'Games/WordSearch/WordSearch.html', category:'Puzzle', description:'Find the hidden words.', price: 350, working: false },
     {id:'JBsPizzeria', title:'JB\'sPizzeria', path:'Games/JBsPizzeria/JBsPizzeria.html', category:'Casino', description:'Find the hidden words.', price: 200, working: true },
-
+  {
+    id: 'FruitFinders',
+    title: 'FruitFinders',
+    path: 'Games/FruitFinders.html',
+    category: 'Trivia',
+    description: 'Try out our latest beta game!',
+    price: 0,
+    working: true,
+    beta: true,
+  },  {
+    id: 'ElementalSlotMachine',
+    title: 'ElementalSlotMachine',
+    path: 'Games/ElementalSlotMachine.html',
+    category: 'Casino',
+    description: 'Try out our latest beta game!',
+    price: 0,
+    working: true,
+    beta: true,
+  },
   ];
 
   // UI update functions
@@ -526,18 +550,25 @@ card.textContent = `${game.working ? '🟢' : '🔴'} ${game.title}`;
 catGames.forEach(game => {
   const card = document.createElement('article');
   card.classList.add('game-card');
-if (purchasedGames[game.id]) card.classList.add('purchased');
-if (downloadedGames[game.id]) card.classList.add('downloaded');
 
-  // ✅ Add working/broken class
+  if (game.beta) {
+    card.classList.add('beta');
+  } else {
+    if (purchasedGames[game.id]) card.classList.add('purchased');
+    if (downloadedGames[game.id]) card.classList.add('downloaded');
+  }
+
   card.classList.add(game.working ? 'working' : 'broken');
 
   card.tabIndex = 0;
   card.title = game.description;
   card.textContent = game.title;
+
   card.addEventListener('click', () => openGameModal(game));
+
   gamesRow.appendChild(card);
 });
+
 
 
     section.appendChild(gamesRow);
@@ -644,8 +675,24 @@ function openGameModal(game) {
   modalGameTitle.textContent = game.title;
   modalGameCategory.textContent = 'Category: ' + game.category;
   modalGameDesc.textContent = game.description;
-  modalGamePrice.textContent = game.price + ' Markka$h';
   modalButtons.innerHTML = '';
+
+  if (game.beta) {
+    modalGamePrice.textContent = 'Beta - Free to Play';
+
+    const playBtn = document.createElement('button');
+    playBtn.textContent = 'Play / Test';
+    playBtn.onclick = () => {
+      window.open(game.path, '_blank');
+      closeGameModal();
+    };
+    modalButtons.appendChild(playBtn);
+
+    gameModal.classList.add('active');
+    return; // skip the rest of the purchase/download UI
+  } else {
+    modalGamePrice.textContent = game.price + ' Markka$h';
+  }
 
   if (purchasedGames[game.id]) {
     if (downloadedGames[game.id]) {
@@ -695,6 +742,7 @@ function openGameModal(game) {
 
   gameModal.classList.add('active');
 }
+
 
 
 function closeGameModal() {
