@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>TheMarkkade.io Annex - Bank</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron&display=swap');
+
+    :root {
+      --primary: #00ff6e;
+      --secondary: #00e5ff;
+      --bg: #121212;
+      --card-bg: #1e1e1e;
+      --text-color: #eee;
+      --glow-color: #00ff6e;
+      --button-glow-start: #ff0000;
+      --button-glow-end: #00ffff;
+    }
+
+    /* Rainbow color cycling animation */
+    @keyframes rainbowCycle {
+      0% { filter: hue-rotate(0deg); }
+      100% { filter: hue-rotate(360deg); }
+    }
+
+    /* Particle animation */
+    @keyframes floatUpDown {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-15px); }
+    }
+
+    body {
+      margin: 0;
+      background: radial-gradient(ellipse at center, #111 0%, #050505 100%);
+      color: var(--text-color);
+      font-family: 'Orbitron', monospace, sans-serif;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      align-items: center;
+      padding: 1rem;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Particle container */
+    #particle-container {
+      pointer-events: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    /* Single particle */
+    .particle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      opacity: 0.7;
+      animation: floatUpDown 4s ease-in-out infinite;
+      animation-delay: var(--delay);
+      filter: drop-shadow(0 0 5px currentColor);
+    }
+
+    /* Animate particle color cycling */
+    .particle:nth-child(odd) {
+      animation-name: floatUpDown, rainbowCycle;
+      animation-duration: 4s, 12s;
+      animation-iteration-count: infinite;
+      animation-timing-function: ease-in-out, linear;
+      animation-direction: alternate, normal;
+    }
+    .particle:nth-child(even) {
+      animation-name: floatUpDown, rainbowCycle;
+      animation-duration: 4s, 14s;
+      animation-iteration-count: infinite;
+      animation-timing-function: ease-in-out, linear;
+      animation-direction: alternate, reverse;
+    }
+
+    h1 {
+      color: #fff;
+      font-weight: 900;
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      text-align: center;
+      text-shadow:
+        0 0 6px #ff0000,
+        0 0 12px #ff7f00,
+        0 0 18px #ffff00,
+        0 0 24px #00ff00,
+        0 0 30px #0000ff,
+        0 0 36px #4b0082,
+        0 0 42px #9400d3;
+      animation: rainbowCycle 6s linear infinite;
+      user-select: none;
+      z-index: 1;
+    }
+
+    .balances {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      z-index: 1;
+      position: relative;
+    }
+
+    .balance-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      box-shadow:
+        0 0 8px #ff0000,
+        0 0 16px #ff7f00,
+        0 0 24px #ffff00,
+        0 0 32px #00ff00,
+        0 0 40px #0000ff,
+        0 0 48px #4b0082,
+        0 0 56px #9400d3;
+      padding: 1rem 2rem;
+      min-width: 140px;
+      text-align: center;
+      transition: transform 0.3s ease;
+      animation: rainbowCycle 8s linear infinite;
+      color: #fff;
+      user-select: none;
+    }
+    .balance-card:hover {
+      transform: scale(1.05);
+      box-shadow:
+        0 0 12px #ff0000,
+        0 0 24px #ff7f00,
+        0 0 36px #ffff00,
+        0 0 48px #00ff00,
+        0 0 60px #0000ff,
+        0 0 72px #4b0082,
+        0 0 84px #9400d3;
+    }
+
+    .balance-card h2 {
+      margin: 0.4rem 0;
+      font-size: 1.2rem;
+      letter-spacing: 1.2px;
+      color: #fff;
+      text-shadow:
+        0 0 3px #000;
+    }
+
+    .balance-amount {
+      font-size: 2rem;
+      font-weight: 900;
+      text-shadow:
+        0 0 8px currentColor,
+        0 0 15px currentColor;
+      color: #fff;
+      animation: rainbowCycle 10s linear infinite;
+    }
+
+    .exchange-section,
+    .buy-section {
+      background: var(--card-bg);
+      border-radius: 16px;
+      box-shadow:
+        0 0 10px #00fff7,
+        0 0 20px #ff00ff;
+      padding: 1.2rem 2rem;
+      max-width: 420px;
+      margin-bottom: 2rem;
+      width: 100%;
+      color: #fff;
+      user-select: none;
+      animation: rainbowCycle 12s linear infinite;
+      z-index: 1;
+    }
+
+    .exchange-section h3,
+    .buy-section h3 {
+      color: #ff80bf;
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+      text-align: center;
+      text-shadow:
+        0 0 5px #ff80bf,
+        0 0 10px #ff80bf;
+    }
+
+    label {
+      display: block;
+      margin: 0.6rem 0 0.8rem 0;
+      font-weight: 700;
+      color: #ddd;
+      letter-spacing: 0.5px;
+      user-select: text;
+    }
+
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 0.7rem;
+      font-size: 1.1rem;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+      color: #222;
+      font-weight: 700;
+      box-shadow: 0 0 10px #aaa inset;
+      transition: box-shadow 0.3s ease;
+      user-select: text;
+    }
+    input[type="number"]:focus,
+    select:focus {
+      box-shadow:
+        0 0 12px #ff00aa,
+        0 0 24px #ff00aa inset;
+      outline: none;
+    }
+
+    button {
+      margin-top: 1.3rem;
+      width: 100%;
+      background: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
+      background-size: 400% 400%;
+      color: #000;
+      font-weight: 900;
+      font-size: 1.4rem;
+      border-radius: 14px;
+      border: none;
+      padding: 0.85rem;
+      cursor: pointer;
+      box-shadow:
+        0 0 15px #ff0000,
+        0 0 20px #ff7f00,
+        0 0 30px #ffff00,
+        0 0 40px #00ff00,
+        0 0 50px #0000ff,
+        0 0 60px #4b0082,
+        0 0 70px #9400d3;
+      animation: rainbowCycle 5s linear infinite;
+      transition: transform 0.2s ease, box-shadow 0.3s ease;
+      user-select: none;
+    }
+    button:hover {
+      transform: scale(1.1);
+      box-shadow:
+        0 0 25px #ff0000,
+        0 0 30px #ff7f00,
+        0 0 40px #ffff00,
+        0 0 50px #00ff00,
+        0 0 60px #0000ff,
+        0 0 70px #4b0082,
+        0 0 80px #9400d3;
+    }
+    button:active {
+      transform: scale(0.95);
+    }
+
+    .message {
+      margin-top: 1rem;
+      font-weight: 700;
+      text-align: center;
+      min-height: 26px;
+      color: #ff77ff;
+      text-shadow:
+        0 0 10px #ff77ff;
+      user-select: none;
+    }
+
+    .bundle-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .bundle {
+      background: #222;
+      padding: 14px;
+      border-radius: 14px;
+      box-shadow:
+        0 0 10px #ff33cc,
+        0 0 20px #cc33ff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #eee;
+      user-select: none;
+      transition: transform 0.3s ease;
+    }
+    .bundle:hover {
+      transform: scale(1.04);
+      box-shadow:
+        0 0 18px #ff33cc,
+        0 0 30px #cc33ff,
+        0 0 40px #ff66ff;
+    }
+
+    .bundle-info {
+      font-size: 1rem;
+      max-width: 70%;
+    }
+
+    .bundle button {
+      max-width: 140px;
+      font-size: 1.1rem;
+      padding: 0.6rem 1rem;
+      border-radius: 14px;
+      font-weight: 800;
+      background: linear-gradient(45deg, #00ffff, #ff00ff, #00ffcc, #ff007f);
+      box-shadow:
+        0 0 10px #00ffff,
+        0 0 20px #ff00ff;
+      color: #111;
+      animation: rainbowCycle 7s linear infinite;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .balances {
+        flex-direction: column;
+        gap: 1.3rem;
+        align-items: center;
+      }
+      .exchange-section,
+      .buy-section {
+        max-width: 100%;
+        padding: 1rem 1.5rem;
+      }
+      button, .bundle button {
+        font-size: 1.3rem;
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>TheMarkkade.io Annex</h1>
+
+  <section class="balances" aria-label="Player balances">
+    <div class="balance-card" aria-live="polite" aria-atomic="true">
+      <h2>Markka$h</h2>
+      <div id="balanceCash" class="balance-amount">0</div>
+    </div>
+    <div class="balance-card" aria-live="polite" aria-atomic="true">
+      <h2>Markkoin$</h2>
+      <div id="balanceCoins" class="balance-amount">0</div>
+    </div>
+    <div class="balance-card" aria-live="polite" aria-atomic="true">
+      <h2>Tickets</h2>
+      <div id="balanceTickets" class="balance-amount">0</div>
+    </div>
+    <div class="balance-card" aria-live="polite" aria-atomic="true">
+      <h2>Scratchers</h2>
+      <div id="balanceScratchers" class="balance-amount">0</div>
+    </div>
+  </section>
+
+  <section class="exchange-section" aria-label="Currency exchange">
+    <h3>Exchange Currency</h3>
+    <label for="exchangeType">Exchange Direction:</label>
+    <select id="exchangeType" aria-describedby="exchangeDescription">
+      <option value="cashToCoins">Markka$h → Markkoin$</option>
+      <option value="coinsToCash">Markkoin$ → Markka$h</option>
+    </select>
+
+    <label for="exchangeAmount">Amount to Exchange:</label>
+    <input type="number" id="exchangeAmount" min="1" placeholder="Enter amount" autocomplete="off" />
+
+    <button id="exchangeBtn" aria-label="Exchange currency">Exchange</button>
+    <div id="exchangeMsg" class="message" role="alert" aria-live="polite"></div>
+  </section>
+
+  <section class="buy-section" aria-label="Buy tickets and scratchers">
+    <h3>Buy Tickets or Scratchers</h3>
+
+    <label for="buyItem">Select Item:</label>
+    <select id="buyItem">
+      <option value="ticket">Ticket - $10 Markka$h</option>
+      <option value="scratcher">Scratcher - $25 Markka$h</option>
+    </select>
+
+    <label for="buyQuantity">Quantity:</label>
+    <input type="number" id="buyQuantity" min="1" value="1" autocomplete="off" />
+
+    <button id="buyBtn" aria-label="Buy tickets or scratchers">Buy</button>
+    <div id="buyMsg" class="message" role="alert" aria-live="polite"></div>
+  </section>
+
+  <section class="buy-section" aria-label="Buy bundles">
+    <h3>Buy Bundles</h3>
+
+    <div class="bundle-list" id="bundleList">
+      <!-- Bundles inserted here -->
+    </div>
+  </section>
+
+  <div id="particle-container" aria-hidden="true"></div>
+
+<script>
+  // Audio sounds for UI feedback
+  const soundClick = new Audio('https://cdn.jsdelivr.net/gh/fawazahmed0/cdn/sounds/click.mp3');
+  const soundError = new Audio('https://cdn.jsdelivr.net/gh/fawazahmed0/cdn/sounds/error.mp3');
+  const soundSuccess = new Audio('https://cdn.jsdelivr.net/gh/fawazahmed0/cdn/sounds/success.mp3');
+
+  // Initialization of balances from localStorage or default
+  const storageKeys = {
+    cash: 'playerCash',
+    coins: 'playerCoins',
+    tickets: 'currentTickets',
+    scratchers: 'playerScratchers',
+  };
+
+  // Default values if not present
+  const defaults = {
+    cash: 500,
+    coins: 100,
+    tickets: 0,
+    scratchers: 0,
+  };
+
+  // Rates
+  const exchangeRateCashToCoins = 10;  // 1 Markka$h = 10 Markkoin$
+  const exchangeRateCoinsToCash = 0.08; // 1 Markkoin$ = 0.08 Markka$h (small loss on exchange)
+
+  // Prices
+  const prices = {
+    ticket: 10, // Markka$h
+    scratcher: 25, // Markka$h
+  };
+
+  // Bundles (example bundles)
+  const bundles = [
+    {
+      id: 'bundle1',
+      description: '100 Markka$h + 1000 Markkoin$ + 5 Tickets + 2 Scratchers',
+      price: 120, // Markka$h
+      contents: {
+        cash: 100,
+        coins: 1000,
+        tickets: 5,
+        scratchers: 2,
+      }
+    },
+    {
+      id: 'bundle2',
+      description: '500 Markka$h + 5000 Markkoin$ + 30 Tickets + 15 Scratchers',
+      price: 550,
+      contents: {
+        cash: 500,
+        coins: 5000,
+        tickets: 30,
+        scratchers: 15,
+      }
+    },
+    {
+      id: 'bundle3',
+      description: '1000 Markka$h + 12000 Markkoin$ + 70 Tickets + 40 Scratchers',
+      price: 1000,
+      contents: {
+        cash: 1000,
+        coins: 12000,
+        tickets: 70,
+        scratchers: 40,
+      }
+    }
+  ];
+
+  // Utility: Get number from localStorage or default
+  function getStoredNumber(key) {
+    const val = localStorage.getItem(key);
+    if(val === null || isNaN(Number(val))) return defaults[key] || 0;
+    return Number(val);
+  }
+
+  // Utility: Save number to localStorage
+  function setStoredNumber(key, val) {
+    localStorage.setItem(key, val.toFixed(2));
+  }
+
+  // Update UI balances
+  function updateBalances() {
+    document.getElementById('balanceCash').textContent = getStoredNumber(storageKeys.cash).toFixed(2);
+    document.getElementById('balanceCoins').textContent = getStoredNumber(storageKeys.coins).toFixed(2);
+    document.getElementById('balanceTickets').textContent = getStoredNumber(storageKeys.tickets);
+    document.getElementById('balanceScratchers').textContent = getStoredNumber(storageKeys.scratchers);
+  }
+
+  // Play sound helper
+  function playSound(sound) {
+    try {
+      sound.currentTime = 0;
+      sound.play();
+    } catch(e) {
+      // Ignore play errors
+    }
+  }
+
+  // Exchange function
+  function exchangeCurrency() {
+    const type = document.getElementById('exchangeType').value;
+    const amountInput = document.getElementById('exchangeAmount');
+    const msg = document.getElementById('exchangeMsg');
+    msg.textContent = '';
+    let amount = Number(amountInput.value);
+
+    if(!amount || amount <= 0) {
+      msg.textContent = 'Please enter a valid amount greater than zero.';
+      playSound(soundError);
+      return;
+    }
+
+    if(type === 'cashToCoins') {
+      let cashBalance = getStoredNumber(storageKeys.cash);
+      if(amount > cashBalance) {
+        msg.textContent = 'Insufficient Markka$h balance.';
+        playSound(soundError);
+        return;
+      }
+      // Convert cash → coins
+      let coinsReceived = amount * exchangeRateCashToCoins;
+      cashBalance -= amount;
+      let coinsBalance = getStoredNumber(storageKeys.coins) + coinsReceived;
+
+      setStoredNumber(storageKeys.cash, cashBalance);
+      setStoredNumber(storageKeys.coins, coinsBalance);
+      msg.textContent = `Exchanged $${amount.toFixed(2)} Markka$h for ${coinsReceived.toFixed(0)} Markkoin$.`;
+      playSound(soundSuccess);
+      amountInput.value = '';
+    }
+    else if(type === 'coinsToCash') {
+      let coinsBalance = getStoredNumber(storageKeys.coins);
+      if(amount > coinsBalance) {
+        msg.textContent = 'Insufficient Markkoin$ balance.';
+        playSound(soundError);
+        return;
+      }
+      // Convert coins → cash
+      let cashReceived = amount * exchangeRateCoinsToCash;
+      coinsBalance -= amount;
+      let cashBalance = getStoredNumber(storageKeys.cash) + cashReceived;
+
+      setStoredNumber(storageKeys.coins, coinsBalance);
+      setStoredNumber(storageKeys.cash, cashBalance);
+      msg.textContent = `Exchanged ${amount.toFixed(0)} Markkoin$ for $${cashReceived.toFixed(2)} Markka$h.`;
+      playSound(soundSuccess);
+      amountInput.value = '';
+    }
+    updateBalances();
+  }
+
+  // Buy tickets or scratchers
+  function buyItem() {
+    const item = document.getElementById('buyItem').value;
+    const qtyInput = document.getElementById('buyQuantity');
+    const msg = document.getElementById('buyMsg');
+    msg.textContent = '';
+    let qty = Number(qtyInput.value);
+    if(!qty || qty < 1) {
+      msg.textContent = 'Please enter a valid quantity (1 or more).';
+      playSound(soundError);
+      return;
+    }
+
+    const cashBalance = getStoredNumber(storageKeys.cash);
+    const cost = prices[item] * qty;
+
+    if(cost > cashBalance) {
+      msg.textContent = 'Insufficient Markka$h to buy.';
+      playSound(soundError);
+      return;
+    }
+
+    // Deduct cash and add items
+    setStoredNumber(storageKeys.cash, cashBalance - cost);
+
+    if(item === 'ticket') {
+      let tickets = getStoredNumber(storageKeys.tickets);
+      localStorage.setItem(storageKeys.tickets, tickets + qty);
+    } else if(item === 'scratcher') {
+      let scratchers = getStoredNumber(storageKeys.scratchers);
+      localStorage.setItem(storageKeys.scratchers, scratchers + qty);
+    }
+
+    msg.textContent = `Bought ${qty} ${item === 'ticket' ? 'Tickets' : 'Scratchers'} for $${cost.toFixed(2)} Markka$h.`;
+    playSound(soundSuccess);
+    qtyInput.value = 1;
+    updateBalances();
+  }
+
+  // Buy bundle
+  function buyBundle(bundleId) {
+    const bundle = bundles.find(b => b.id === bundleId);
+    if(!bundle) return;
+    const msg = document.getElementById('buyMsg');
+    msg.textContent = '';
+
+    const cashBalance = getStoredNumber(storageKeys.cash);
+    if(bundle.price > cashBalance) {
+      msg.textContent = `Not enough Markka$h to buy this bundle. Cost: $${bundle.price.toFixed(2)}`;
+      playSound(soundError);
+      return;
+    }
+
+    // Deduct cash
+    setStoredNumber(storageKeys.cash, cashBalance - bundle.price);
+
+    // Add bundle contents
+    const currentCash = getStoredNumber(storageKeys.cash);
+    const currentCoins = getStoredNumber(storageKeys.coins);
+    const currentTickets = getStoredNumber(storageKeys.tickets);
+    const currentScratchers = getStoredNumber(storageKeys.scratchers);
+
+    setStoredNumber(storageKeys.cash, currentCash + bundle.contents.cash);
+    setStoredNumber(storageKeys.coins, currentCoins + bundle.contents.coins);
+    localStorage.setItem(storageKeys.tickets, currentTickets + bundle.contents.tickets);
+    localStorage.setItem(storageKeys.scratchers, currentScratchers + bundle.contents.scratchers);
+
+    msg.textContent = `Bundle purchased! You received: ${bundle.contents.cash} Markka$h, ${bundle.contents.coins} Markkoin$, ${bundle.contents.tickets} Tickets, and ${bundle.contents.scratchers} Scratchers.`;
+    playSound(soundSuccess);
+    updateBalances();
+  }
+
+  // Initialize UI and particles
+  function init() {
+    updateBalances();
+
+    document.getElementById('exchangeBtn').addEventListener('click', () => {
+      exchangeCurrency();
+      playSound(soundClick);
+    });
+
+    document.getElementById('buyBtn').addEventListener('click', () => {
+      buyItem();
+      playSound(soundClick);
+    });
+
+    const bundleList = document.getElementById('bundleList');
+    bundles.forEach(bundle => {
+      const div = document.createElement('div');
+      div.classList.add('bundle');
+      div.innerHTML = `
+        <div class="bundle-info">${bundle.description}</div>
+        <button aria-label="Buy bundle for $${bundle.price.toFixed(2)} Markka$h" data-id="${bundle.id}">Buy - $${bundle.price.toFixed(2)}</button>
+      `;
+      bundleList.appendChild(div);
+
+      div.querySelector('button').addEventListener('click', () => {
+        buyBundle(bundle.id);
+        playSound(soundClick);
+      });
+    });
+
+    createParticles();
+  }
+
+  // Create colorful floating particles background
+  function createParticles() {
+    const container = document.getElementById('particle-container');
+    const colors = [
+      '#ff0055', '#ff9900', '#ffee00', '#00ff66', '#00ccff', '#aa00ff', '#ff00cc'
+    ];
+    const particleCount = 30;
+
+    for(let i=0; i < particleCount; i++) {
+      const p = document.createElement('div');
+      p.classList.add('particle');
+      p.style.left = Math.random() * 100 + 'vw';
+      p.style.top = Math.random() * 100 + 'vh';
+      p.style.backgroundColor = colors[i % colors.length];
+      p.style.setProperty('--delay', (Math.random()*4).toFixed(2) + 's');
+      p.style.animationDuration = (3 + Math.random()*3) + 's';
+      container.appendChild(p);
+    }
+  }
+
+  window.onload = init;
+</script>
+
+</body>
+</html>

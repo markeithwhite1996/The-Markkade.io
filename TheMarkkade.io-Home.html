@@ -6,162 +6,211 @@
   <title>Markkade.io Home</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
+
+    /* Keyframe for rainbow hue cycling */
+    @keyframes rainbowGlow {
+      0%   { filter: hue-rotate(0deg);  }
+      100% { filter: hue-rotate(360deg); }
+    }
+
+    /* Each element will use this but with different animation-delay to offset */
+    .rainbow-glow {
+      animation: rainbowGlow 8s linear infinite;
+      animation-timing-function: linear;
+      /* We'll override animation-delay per element */
+      text-shadow:
+        0 0 6px currentColor,
+        0 0 12px currentColor,
+        0 0 18px currentColor,
+        0 0 24px currentColor,
+        0 0 30px currentColor;
+    }
+
     :root {
-      --highlight-color: #00e5ff; /* swapped playerColor2 */
-      --text-color: #00ff6e;      /* swapped playerColor1 */
       --background-color: #121212;
-      --particle-color: #00ff6e;
-    }
-body {
-  margin: 0;
-  background: var(--background-color);
-  color: var(--text-color);
-  font-family: 'Roboto Mono', monospace;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 100vh;
-  padding: 1rem 0;
-  overflow-x: hidden; /* disables side scroll */
-}
-
-
-    #clock {
-      font-size: 4rem;
-      font-weight: 700;
-      color: var(--text-color);
-      letter-spacing: 0.1em;
-      margin-bottom: 0.2rem;
-      text-shadow: 0 0 8px var(--highlight-color);
-    }
-    #date {
-      font-size: 1.2rem;
-      color: var(--highlight-color);
-      margin-bottom: 1rem;
-      text-shadow: 0 0 5px var(--highlight-color);
-    }
-    #playerName {
-      font-size: 1.6rem;
-      font-weight: 600;
-      margin-bottom: 1.5rem;
-      color: var(--text-color);
-      text-shadow: 0 0 6px var(--highlight-color);
+      --app-bg: #1e1e1e;
+      --app-hover-bg: #222;
     }
 
-.grid-wrapper {
-  flex-grow: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  width: 100%;
-  padding: 0;
-  margin: 0;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
-  padding: 0.5rem;
-  box-sizing: border-box;
-  width: 100%;
-  max-width: 100%;
-}
-
-
-.app {
-  background: #1e1e1e;
-  border-radius: 16px;
-  font-size: 0.75rem;
-  cursor: pointer;
-  box-shadow: 0 0 6px var(--highlight-color);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-color);
-  user-select: none;
-  width: 100%;              /* Fills the grid column exactly */
-  aspect-ratio: 1 / 1;      /* Stays square */
-  padding: 0.4rem;
-  box-sizing: border-box;   /* Prevents overflow from padding */
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.app:hover:not(.disabled) {
-  transform: scale(1.05);
-  box-shadow: 0 0 15px var(--highlight-color);
-  background: #222;
-}
-
-    .app.disabled {
-      opacity: 0.4;
-      cursor: default;
-      pointer-events: none;
-      filter: grayscale(70%);
-    }
-    .app-icon {
-      font-size: 2.8rem;
-      margin-bottom: 0.4rem;
-      user-select: none;
-      color: var(--highlight-color);
-      text-shadow: 0 0 6px var(--highlight-color);
-    }
-    /* System app icons */
-    .app-store { color: #000; background: linear-gradient(45deg, var(--text-color), var(--highlight-color)); }
-    .calculator { color: var(--text-color); }
-    .notepad { color: var(--highlight-color); }
-    .timer { color: var(--text-color); }
-    .settings { color: var(--highlight-color); }
-
-    /* Scroll fix on mobile */
-    html, body {
-      -webkit-overflow-scrolling: touch;
-      overscroll-behavior-y: contain;
+    body {
+      margin: 0;
+      background: var(--background-color);
+      color: white;
+      font-family: 'Roboto Mono', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 1rem 0;
+      overflow-x: hidden;
+      position: relative;
+      z-index: 10;
     }
 
-    /* Particle canvas full screen */
     #particles {
       position: fixed;
       top: 0; left: 0;
       width: 100vw;
       height: 100vh;
       pointer-events: none;
-      z-index: 0;
+      z-index: 1;
+      filter: drop-shadow(0 0 2px white);
+      animation: rainbowGlow 30s linear infinite reverse;
     }
-	
+
+    #clock {
+      font-size: 4rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.2rem;
+      user-select: none;
+      z-index: 20;
+      color: hsl(0, 100%, 70%);
+      /* animation delay set in JS */
+    }
+    #date {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      user-select: none;
+      z-index: 20;
+      color: hsl(60, 100%, 70%);
+    }
+    #playerName {
+      font-size: 1.6rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      user-select: none;
+      z-index: 20;
+      color: hsl(120, 100%, 70%);
+    }
+
+    .grid-wrapper {
+      flex-grow: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      width: 100%;
+      padding: 0;
+      margin: 0;
+      max-width: 480px;
+      z-index: 20;
+      background: rgba(30, 30, 30, 0.6);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      box-shadow: 0 0 20px white;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.6rem;
+      padding: 1rem;
+      box-sizing: border-box;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .app {
+      background: var(--app-bg);
+      border-radius: 18px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      user-select: none;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      padding: 0.6rem 0.4rem;
+      box-sizing: border-box;
+      transition:
+        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.3s ease;
+      animation-name: floatBounce;
+      animation-duration: 4s;
+      animation-iteration-count: infinite;
+      animation-timing-function: ease-in-out;
+    }
+
+    @keyframes floatBounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+
+    .app:hover:not(.disabled),
+    .app:focus-visible:not(.disabled) {
+      transform: scale(1.1) translateY(-4px);
+      box-shadow:
+        0 0 20px currentColor,
+        0 0 35px currentColor,
+        0 0 50px currentColor;
+      background: var(--app-hover-bg);
+      animation-play-state: paused;
+      outline: none;
+    }
+    .app:active:not(.disabled) {
+      transform: scale(0.95);
+      box-shadow:
+        0 0 12px currentColor,
+        0 0 25px currentColor;
+    }
+
+    .app.disabled {
+      opacity: 0.4;
+      cursor: default;
+      pointer-events: none;
+      filter: grayscale(70%);
+      box-shadow: none !important;
+      animation-play-state: paused !important;
+    }
+
+    .app-icon {
+      font-size: 3.2rem;
+      margin-bottom: 0.5rem;
+      user-select: none;
+      color: white;
+      text-shadow:
+        0 0 10px currentColor,
+        0 0 20px currentColor;
+      /* animation delay set in JS */
+    }
+
+    /* Responsive tweaks */
+    @media (max-width: 480px) {
+      .grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+        padding: 0.75rem;
+      }
+      #clock {
+        font-size: 3rem;
+      }
+      #playerName {
+        font-size: 1.3rem;
+      }
+    }
   </style>
 </head>
 <body>
   <canvas id="particles"></canvas>
 
-  <div id="clock">--:--</div>
-  <div id="date"></div>
-  <div id="playerName">Markk</div>
+  <div id="clock" class="rainbow-glow">--:--</div>
+  <div id="date" class="rainbow-glow"></div>
+  <div id="playerName" class="rainbow-glow">Markk</div>
 
-<div class="grid-wrapper">
-  <div class="grid" id="appGrid">
-  <!-- Apps inserted here -->
+  <div class="grid-wrapper">
+    <div class="grid" id="appGrid">
+      <!-- Apps inserted here -->
+    </div>
   </div>
 
   <script>
-    // Load colors from localStorage or fallback defaults
-    const playerColor1 = localStorage.getItem('playerColor1') || '#00ff6e'; // text color now
-    const playerColor2 = localStorage.getItem('playerColor2') || '#00e5ff'; // highlight/glow color now
-    const playerBackgroundColor = localStorage.getItem('playerBackgroundColor') || '#121212';
-    const playerParticleColor = localStorage.getItem('playerParticleColor') || playerColor1;
-
-    // Set CSS variables with swapped colors
-    document.documentElement.style.setProperty('--highlight-color', playerColor2);
-    document.documentElement.style.setProperty('--text-color', playerColor1);
-    document.documentElement.style.setProperty('--background-color', playerBackgroundColor);
-    document.documentElement.style.setProperty('--particle-color', playerParticleColor);
-
-    // Update clock and date every second
+    // Clock and date update
     function updateClock() {
       const now = new Date();
       const hours = now.getHours().toString().padStart(2, '0');
       const minutes = now.getMinutes().toString().padStart(2, '0');
-      const seconds = now.getSeconds().toString().padStart(2, '0');
       document.getElementById('clock').textContent = `${hours}:${minutes}`;
       document.getElementById('date').textContent = now.toDateString();
     }
@@ -172,9 +221,9 @@ body {
     const playerName = localStorage.getItem('playerName') || 'Markk';
     document.getElementById('playerName').textContent = playerName;
 
-    // Game and system app data
+    // Games and system apps
     const allGames = [
-	  {id:'TrickorTreat', title:'TrickorTreat', path:'Games/TrickorTreat/TrickorTreat.html', icon:'🎃'},
+      {id:'TrickorTreat', title:'TrickorTreat', path:'Games/TrickorTreat/TrickorTreat.html', icon:'🎃'},
       {id:'Bingo', title:'Bingo', path:'Games/Bingo/Bingo.html', icon:'🎲'},
       {id:'Connect4', title:'Connect 4', path:'Games/Connect4/Connect4.html', icon:'🔴'},
       {id:'Food-O-Mania', title:'Food-O-Mania', path:'Games/Food-O-Mania/Food-O-Mania.html', icon:'🍔'},
@@ -193,7 +242,7 @@ body {
       {id:'McMarkksBurgers2', title:'McMarkks Burgers 2', path:'Games/McMarkksBurgers/McMarkksBurgers2.html', icon:'🍔'},
       {id:'MemoryMatch', title:'Memory Match', path:'Games/MemoryMatch/MemoryMatch.html', icon:'🧠'},
       {id:'PettySlots', title:'Petty Slots', path:'Games/PettySlots/PettySlots.html', icon:'🎰'},
-	  {id:'DetMarkk', title:'Detective Markk', path:'Games/DetevtiveMarkk/DetevtiveMarkk.html', icon:'🔍'},
+      {id:'DetMarkk', title:'Detective Markk', path:'Games/DetevtiveMarkk/DetevtiveMarkk.html', icon:'🔍'},
       {id:'PowerSpinMegaWin', title:'Power Spin Mega Win', path:'Games/PowerSpinMegaWin/PowerSpinMegaWin.html', icon:'🎡'},
       {id:'PuffPuffPassPlay', title:'Puff Puff Pass & Play', path:'Games/PuffPuffPass&Play/PuffPuffPassPlay.html', icon:'🚬'},
       {id:'RiddleMeThis', title:'Riddle Me This', path:'Games/RiddleMeThis/RiddleMeThis.html', icon:'🧩'},
@@ -204,8 +253,7 @@ body {
       {id:'TicTacToe', title:'Tic Tac Toe', path:'Games/TicTacToe/TicTacToe.html', icon:'❌'},
       {id:'TrUtHoRlIe', title:'TrUtHoRlIe', path:'Games/TrUtHoRlIe/TrUtHoRlIe.html', icon:'🤥'},
       {id:'WordSearch', title:'Word Search', path:'Games/WordSearch/WordSearch.html', icon:'🔍'},
-	  {id:'JBsPizzeria', title:'JB\'sPizzeria', path:'Games/JBsPizzeria/JBsPizzeria.html', icon:'🎰'},
-
+      {id:'JBsPizzeria', title:'JB\'sPizzeria', path:'Games/JBsPizzeria/JBsPizzeria.html', icon:'🎰'},
     ];
 
     const downloadedGames = JSON.parse(localStorage.getItem('downloadedGames')) || {};
@@ -213,40 +261,33 @@ body {
 
     const grid = document.getElementById('appGrid');
 
-    // System apps to show always
+    // System apps
     const systemApps = [
       { title: "🛍️ App Store", path: "TheMarkkade.io-GameShop.html", className: "app-store" },
-    //  { title: "🧮 Calculator", path: "SystemApps/Calculator.html", className: "calculator" },
-    //  { title: "📝 Notepad", path: "SystemApps/Notepad.html", className: "notepad" },
-    //  { title: "⏱️ Timer", path: "SystemApps/Timer.html", className: "timer" },
+      { title: "🏧 Annex", path: "TheMarkkade.io-Annex.html", className: "calculator" },
       { title: "⚙️ Settings", path: "TheMarkkade.io-PlayerSettings.html", className: "settings" },
-	    { title: "🛠️ Admin Settings", path: "TheMarkkade.io-AdminSettings.html", className: "admin-settings" },
-   //  { title: "💬 Discord", path: "TheMarkkade.io-Markkord.html", className: "discord" },
-
- // { title: "💬 Discord", path: "https://discord.gg/TVXn8G5PkG", className: "discord" },
-
+      { title: "🛠️ Admin Settings", path: "TheMarkkade.io-AdminSettings.html", className: "admin-settings" },
     ];
 
     // Add system apps first
-    systemApps.forEach(appData => {
+    systemApps.forEach((appData, i) => {
       const app = document.createElement('div');
-      app.className = 'app ' + appData.className;
-      app.innerHTML = `<div class="app-icon">${appData.title.split(' ')[0]}</div><div>${appData.title}</div>`;
+      app.className = 'app ' + appData.className + ' rainbow-glow';
+      app.style.animationDelay = (i * 0.4) + 's';
+      app.innerHTML = `<div class="app-icon" style="animation-delay: ${(i * 0.4 + 0.2)}s">${appData.title.split(' ')[0]}</div><div>${appData.title}</div>`;
       app.onclick = () => openApp(appData.path);
       grid.appendChild(app);
     });
 
-    // Add games
-    allGames.forEach(game => {
-      const app = document.createElement('div');
-      app.className = 'app';
-      app.innerHTML = `<div class="app-icon">${game.icon}</div><div>${game.title}</div>`;
+    // Add games with individual animation delays for rainbow glow
+    allGames.forEach((game, i) => {
+      if (!downloadedGames[game.id] || !purchasedGames[game.id]) return; // skip unpurchased or not downloaded
 
-      if (downloadedGames[game.id]) {
-        app.onclick = () => openApp(game.path);
-      } else {
-        return; // skip unpurchased
-      }
+      const app = document.createElement('div');
+      app.className = 'app rainbow-glow';
+      app.style.animationDelay = ((i + systemApps.length) * 0.3) + 's';
+      app.innerHTML = `<div class="app-icon" style="animation-delay: ${((i + systemApps.length) * 0.3 + 0.15)}s">${game.icon}</div><div>${game.title}</div>`;
+      app.onclick = () => openApp(game.path);
       grid.appendChild(app);
     });
 
@@ -254,7 +295,9 @@ body {
       window.open(url, '_blank');
     }
 
-    // Particle animation
+
+    /* --- PARTICLES --- */
+
     const canvas = document.getElementById('particles');
     const ctx = canvas.getContext('2d');
     let particlesArray = [];
@@ -268,23 +311,33 @@ body {
       initCanvas();
     });
 
+    // Particle class with multicolor hue cycling and independent delays
     class Particle {
       constructor() {
         this.x = Math.random() * canvas.width;
         this.y = Math.random() * canvas.height;
-        this.size = Math.random() * 2 + 1;
-        this.speedX = (Math.random() - 0.5) * 1;
-        this.speedY = (Math.random() - 0.5) * 1;
-        this.color = getComputedStyle(document.documentElement).getPropertyValue('--particle-color').trim() || '#00ff6e';
+        this.size = Math.random() * 2 + 1.2;
+        this.speedX = (Math.random() - 0.5) * 0.6;
+        this.speedY = (Math.random() - 0.5) * 0.6;
+        this.baseHue = Math.random() * 360;
+        this.hue = this.baseHue;
+        this.hueSpeed = 0.5 + Math.random() * 0.5;
+        this.opacity = 0.6 + Math.random() * 0.4;
       }
       update() {
         this.x += this.speedX;
         this.y += this.speedY;
-        if (this.x < 0 || this.x > canvas.width) this.speedX = -this.speedX;
-        if (this.y < 0 || this.y > canvas.height) this.speedY = -this.speedY;
+
+        if (this.x < 0) this.x = canvas.width;
+        if (this.x > canvas.width) this.x = 0;
+        if (this.y < 0) this.y = canvas.height;
+        if (this.y > canvas.height) this.y = 0;
+
+        this.hue += this.hueSpeed;
+        if (this.hue > 360) this.hue -= 360;
       }
       draw() {
-        ctx.fillStyle = this.color;
+        ctx.fillStyle = `hsla(${this.hue}, 100%, 70%, ${this.opacity})`;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         ctx.fill();
@@ -293,16 +346,16 @@ body {
 
     function handleParticles() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particlesArray.forEach(particle => {
-        particle.update();
-        particle.draw();
+      particlesArray.forEach(p => {
+        p.update();
+        p.draw();
       });
       requestAnimationFrame(handleParticles);
     }
 
     function initParticles() {
       particlesArray = [];
-      for (let i = 0; i < 80; i++) {
+      for (let i = 0; i < 120; i++) {
         particlesArray.push(new Particle());
       }
     }
@@ -310,6 +363,7 @@ body {
     initCanvas();
     initParticles();
     handleParticles();
+
   </script>
 </body>
 </html>
